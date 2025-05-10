@@ -1,0 +1,51 @@
+// src/pages/HomePage.js
+import React from 'react';
+import { Link } from 'react-router-dom';
+import './HomePage.css'; // Importation du fichier CSS externe
+
+const HomePage = () => {
+  return (
+    <div className="home-page">
+      <h1 className="home-page-title">Page de Révisions</h1>
+
+      <div className="home-page-buttons">
+        {/* Bouton Projet 1 */}
+        <Link to="/project1">
+          <button className="home-page-button" id="project1-button">
+            Ent1/BaC#
+          </button>
+        </Link>
+
+        {/* Bouton Projet 2 */}
+        <Link to="/project2">
+          <button className="home-page-button" id="project2-button">
+          VbaSql
+          </button>
+        </Link>
+
+        {/* Bouton Projet 3 */}
+        <Link to="/project3">
+          <button className="home-page-button" id="project3-button">
+            Projet 3
+          </button>
+        </Link>
+
+        {/* Bouton Projet 4 */}
+        <Link to="/project4">
+          <button className="home-page-button" id="project4-button">
+            Projet 4
+          </button>
+        </Link>
+        {/* Bouton Projet 4 */}
+        <Link to="/project4">
+          <button className="home-page-button" id="project4-button">
+            Projet 5
+          </button>
+        </Link>
+        
+      </div>
+    </div>
+  );
+};
+
+export default HomePage;

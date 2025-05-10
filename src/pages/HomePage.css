@@ -1,0 +1,84 @@
+/* src/pages/HomePage.css */
+
+/* Styles globaux */
+.home-page {
+  text-align: center;
+  margin-top: 50px;
+  padding: 20px;
+  background-color: #f9f9f9;
+  min-height: 100vh;
+  font-family: Arial, sans-serif;
+}
+
+.home-page-title {
+  font-size: 2.5rem;
+  color: #333;
+  margin-bottom: 30px;
+  text-transform: uppercase;
+  letter-spacing: 2px;
+}
+
+.home-page-buttons {
+  display: flex;
+  gap: 10px; /* Espacement entre les boutons */
+  justify-content: center; /* Centrer les boutons horizontalement */
+  flex-wrap: wrap; /* Permettre le retour à la ligne si nécessaire */
+  max-width: 800px; /* Largeur maximale pour les grands écrans */
+  margin: 0 auto; /* Centrer le conteneur */
+}
+
+.home-page-button {
+  border: none;
+  padding: 15px 30px;
+  font-size: 1rem;
+  border-radius: 8px;
+  cursor: pointer;
+  transition: background-color 0.3s ease;
+  color: #fff;
+  text-transform: uppercase;
+  letter-spacing: 1px;
+  flex: 1 1 calc(25% - 20px); /* Chaque bouton prend 25% de la largeur sur grand écran */
+  min-width: 150px; /* Largeur minimale pour éviter des boutons trop petits */
+}
+
+/* Styles spécifiques pour chaque bouton */
+#project1-button {
+  background-color: #ff7f50;
+}
+#project1-button:hover {
+  background-color: #ff6347;
+}
+
+#project2-button {
+  background-color: #6a5acd;
+}
+#project2-button:hover {
+  background-color: #483d8b;
+}
+
+#project3-button {
+  background-color: #32cd32;
+}
+#project3-button:hover {
+  background-color: #228b22;
+}
+
+#project4-button {
+  background-color: #4682b4;
+}
+#project4-button:hover {
+  background-color: #36648b;
+}
+
+/* Media Queries pour les petits écrans */
+@media (max-width: 768px) {
+  .home-page-buttons {
+    flex-direction: column; /* Passage en colonne */
+    align-items: center; /* Centrer les boutons verticalement */
+  }
+
+  .home-page-button {
+    flex: 1 1 100%; /* Chaque bouton prend 100% de la largeur */
+    min-width: auto; /* Annuler la largeur minimale */
+  }
+}
