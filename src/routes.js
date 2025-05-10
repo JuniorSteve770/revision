@@ -7,7 +7,7 @@ import Project2 from './projects/Project2';
 
 const AppRoutes = () => {
   return (
-    <Router>
+       <Router basename="/revision">
       <Routes>
         <Route path="/" element={<HomePage />} />
         <Route path="/project1/*" element={<Project1 />} />
