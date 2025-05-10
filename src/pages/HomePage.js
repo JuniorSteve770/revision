@@ -12,14 +12,14 @@ const HomePage = () => {
         {/* Bouton Projet 1 */}
         <Link to="/project1">
           <button className="home-page-button" id="project1-button">
-            Ent1/BaC#
+            P1:Ent1/BaC#
           </button>
         </Link>
 
         {/* Bouton Projet 2 */}
         <Link to="/project2">
           <button className="home-page-button" id="project2-button">
-          VbaSql
+          P2:VbaSql
           </button>
         </Link>
 
