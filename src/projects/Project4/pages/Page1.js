@@ -1,149 +1,25 @@
+// src/projects/Project1/pages/Page1.js
 import React, { useState, useEffect } from "react";
-import "./QCMStyles.css";
-
+import "./Page.css";
+// partie 
 // Flashcards pour le niveau basic
+
 const basicSlides = [
-    
-   {
-    "question": "1. Compréhension du Métier (Equity / Front Office)",
-    "answer": "."
-  },
   {
-    "question": "Pouvez-vous expliquer le fonctionnement des marchés actions ?",
-    "answer": "Les marchés actions permettent aux entreprises de lever des fonds en émettant des titres, et aux investisseurs d’acheter/vendre ces titres sur des marchés organisés comme Euronext ou le NYSE."
-  },
-  {
-    "question": "Quelle est la différence entre un ordre au marché et un ordre limite ?",
-    "answer": "Un ordre au marché est exécuté immédiatement au meilleur prix disponible, tandis qu’un ordre limite est exécuté uniquement si le prix atteint une limite définie par l’investisseur."
-  },
-  {
-    "question": "Que savez-vous des produits Equity dérivés (options, futures, turbos…) ?",
-    "answer": "Ce sont des instruments financiers dérivés d’actions sous-jacentes, utilisés pour se couvrir, spéculer ou optimiser un portefeuille. Ils incluent options, futures, turbos, warrants, etc."
-  },
-  {
-    "question": "Quelle est la différence entre le cash equity et les produits structurés ?",
-    "answer": "Le cash equity concerne l’achat/vente d’actions classiques. Les produits structurés combinent plusieurs instruments (souvent des dérivés) pour créer des profils de rendement spécifiques."
-  },
-  {
-    "question": "Comment les traders utilisent-ils les systèmes Front Office au quotidien ?",
-    "answer": "Ils les utilisent pour consulter les prix, exécuter des ordres, analyser le carnet d’ordres, visualiser les risques, suivre les positions et consulter les news ou données de marché."
-  },
-  {
-    "question": "Avez-vous déjà travaillé avec des desks actions ou des sales/traders ?",
-    "answer": "Oui, j’ai participé à des ateliers pour recueillir leurs besoins, suivi des incidents avec eux en production et contribué à l’évolution des outils de pricing ou de passage d’ordres."
-  },
-  {
-    "question": "Comment assurez-vous la prise en compte de la réglementation (MiFID II, etc.) dans vos projets ?",
-    "answer": "En intégrant les contraintes réglementaires dès le cadrage (reporting TCA, best execution, horodatage) et en collaborant avec les équipes conformité et juridiques."
-  },
-    {
-    "question": " 2. Questions de Rôle BA (Spécifiques au Front Office)",
-    "answer": "🧩"
-  },
-  {
-    "question": "Comment recueillez-vous les besoins métier auprès des traders ou sales ?",
-    "answer": "Je privilégie les échanges directs via ateliers, interviews, observation sur le floor et analyse des incidents ou usages récurrents."
-  },
-  {
-    "question": "Quelle méthodologie utilisez-vous pour rédiger vos spécifications fonctionnelles (UML, user stories, etc.) ?",
-    "answer": "Je m’adapte : user stories et critères d’acceptation en Agile, UML ou BPMN pour les processus plus complexes, et matrice de besoins pour les projets structurés."
-  },
-  {
-    "question": "Avez-vous déjà modélisé des workflows de trading ou d’exécution ?",
-    "answer": "Oui, j’ai utilisé des diagrammes de séquence ou de flux pour représenter les étapes clés entre l’ordre, le matching, l’exécution, l’alerte et le reporting."
-  },
-  {
-    "question": "Comment gérez-vous les priorités entre plusieurs utilisateurs Front Office ?",
-    "answer": "Je fais une qualification des impacts, fréquence et criticité, puis je priorise en lien avec les Product Owners ou les responsables de desk."
-  },
-  {
-    "question": "Quelle est votre approche pour tester une fonctionnalité sur un outil de pricing ou de passage d’ordre ?",
-    "answer": "Je définis des cas de test métiers, des jeux de données réalistes et je valide les résultats avec les utilisateurs clés en environnement de préproduction."
-  },
-  {
-    "question": "Avez-vous participé à des phases de recette avec le Front Office ?",
-    "answer": "Oui, en coordonnant les tests UAT avec les sales/traders, en rédigeant les plans de test et en centralisant les retours sur anomalies ou ergonomie."
-  },
-  {
-    "question": "Comment identifiez-vous et documentez-vous les impacts d’un changement sur une chaîne Front to Back ?",
-    "answer": "Je cartographie le flux métier complet, du Front (saisie de l’ordre) au Back (règlement/livraison) et j’identifie les dépendances applicatives ou humaines."
-  },
-  {
-    "question": " 3. Compétences Techniques",
-    "answer": "💻"
+    "question": "1. Compréhension du Métier (Equity / Front Office) / Pouvez-vous expliquer le fonctionnement des marchés actions ?",
+    "answer": "Marchés actions : financement des sociétés par titres ; investisseurs échangent sur Euronext, NYSE. Introduction métier Equity."
   },
   
   {
-    "question": "Travaillez-vous avec des outils comme Bloomberg, Reuters, Fidessa, Murex ou Calypso ?",
-    "answer": "Oui, je maîtrise l’environnement Bloomberg pour les prix, les ordres et les news. J’ai aussi eu des interactions avec Calypso sur les flux de dérivés."
+    "question": "Avez-vous utilisé Power BI, Tableau ? / Quels outils pour le suivi (JIRA, Confluence…) ?",
+    "answer": "Reporting via Power BI/Tableau : KPIs, anomalies. JIRA pour suivi agile, Confluence pour documentation projets FO."
   },
+  
   {
-    "question": "Connaissez-vous le langage FIX ? Avez-vous déjà analysé un message FIX ?",
-    "answer": "Oui, j’ai analysé des messages FIX pour tracer des ordres (tag 35, 55, etc.) et investiguer des bugs d’exécution ou de booking dans les logs."
-  },
-  {
-    "question": "Savez-vous lire ou écrire des requêtes SQL pour valider des données ?",
-    "answer": "Oui, j’utilise régulièrement SQL pour valider des données, reconstruire un trade ou vérifier des écarts entre systèmes Front et Back."
-  },
-  {
-    "question": "Avez-vous déjà utilisé des outils de BI (Power BI, Tableau) pour produire des reportings ?",
-    "answer": "Oui, notamment pour suivre les KPIs d’activité des desks, analyser les anomalies ou agréger des données de performance ou de risque."
-  },
-  {
-    "question": "Quels outils utilisez-vous pour suivre les demandes (JIRA, Confluence…) ?",
-    "answer": "JIRA pour le suivi Agile des user stories et Confluence pour la documentation fonctionnelle, les workflows et les comptes-rendus d’ateliers."
-  },
-  {
-    "question": "Avez-vous contribué à des projets Agile ? Quel était votre rôle dans les sprints ?",
-    "answer": "Oui, en tant que BA, je rédigeais les user stories, participais aux plannings, revues et rétrospectives, et validais les livrables avec les PO et utilisateurs."
-  },
-  {
-    "question": "4. Problèmes Concrets et Études de Cas",
-    "answer": "💻"
-  },
-   {
-    "question": "Un trader se plaint que les prix affichés sur l’outil de pricing ne sont pas à jour. Que faites-vous ?",
-    "answer": "Je vérifie la source de données (ex : Bloomberg, feed interne), teste le flux en temps réel, consulte les logs et alerte si besoin les équipes techniques."
-  },
-  {
-    "question": "Un utilisateur ne retrouve pas un trade exécuté. Comment analysez-vous le problème ?",
-    "answer": "Je reconstitue le parcours du trade dans le système, vérifie les statuts, consulte les logs, les tables SQL et les éventuels rejets ou erreurs d’enrichissement."
-  },
-  {
-    "question": "Comment structureriez-vous un projet de refonte d’un outil d’ordre Front Office ?",
-    "answer": "Je commence par recueillir les besoins utilisateurs, cartographier les flux existants, prioriser les fonctionnalités clés, puis définir les phases MVP, tests et déploiement progressif."
-  },
-  {
-    "question": "Donnez un exemple où vous avez dû faire le lien entre MOA, MOE et le Front Office pour résoudre un incident critique.",
-    "answer": "Lors d’un incident de pricing erroné en salle des marchés, j’ai analysé les logs, confirmé le bug avec la MOE, sécurisé temporairement les flux, puis organisé la correction en urgence avec les traders."
-  },
-  {
-    "question": "Vous devez intégrer un nouveau flux de données de marché dans l’outil de pricing. Quelles sont les étapes clés ?",
-    "answer": "Analyser le format du flux, valider sa fréquence et sa qualité, définir le mapping vers le système cible, coordonner le développement avec la MOE, tester avec les utilisateurs et monitorer après mise en production."
-  },
-        {
-    "question": " 5. Soft Skills & Communication",
-    "answer": "💻"
-  },
-  {
-    "question": "Comment gérez-vous une situation où le trader attend une solution immédiate mais la DSI vous demande du délai ?",
-    "answer": "Je priorise la transparence : j’explique les contraintes techniques, propose une solution intermédiaire ou un workaround, tout en relayant l’urgence à la DSI."
-  },
-  {
-    "question": "Quelle est votre approche pour vulgariser des contraintes techniques auprès du Front Office ?",
-    "answer": "Je fais des analogies concrètes, utilise des schémas simples et me concentre sur les impacts métier plutôt que les détails techniques."
-  },
-  {
-    "question": "Comment construisez-vous une relation de confiance avec les utilisateurs Front ?",
-    "answer": "En étant réactif, en comprenant leurs contraintes métier, en tenant mes engagements et en communiquant régulièrement sur l’avancement ou les incidents."
-  },
-  {
-    "question": "Donnez un exemple où vous avez contribué à la prise de décision fonctionnelle en salle des marchés.",
-    "answer": "Lors du choix d’un module d’exécution rapide, j’ai organisé une démo, comparé les options et rédigé une synthèse claire qui a permis au desk de trancher rapidement."
-  },
-
+    "question": "Quelle est la différence entre Monte Carlo et arbre binomial pour le pricing d’options ?",
+    "answer": "Monte Carlo : simulation aléatoire, bon pour options exotiques et haute dimension. Arbre binomial : discret, plus intuitif, bon pour options standards avec peu de dates d’exercice."
+  }
 ];
-
 // QCM pour les niveaux moyen et avancé
 const questions = {
   moyen: [
@@ -292,7 +168,74 @@ const questions = {
     "answer": "La performance est inférieure au taux sans risque",
     "explanation": "Un Sharpe Ratio négatif signifie que le rendement excédentaire est négatif, c’est-à-dire inférieur au rendement sans risque malgré la prise de risque."
   }, 
-
+   {
+      "question": "Quelle méthode utiliseriez-vous en priorité pour diagnostiquer un incident applicatif ?",
+      "options": [
+        "Lancer une analyse post-mortem immédiatement",
+        "Extraire les logs et données métiers pertinentes",
+        "Redémarrer immédiatement le serveur",
+        "Contacter le support sans investigation"
+      ],
+      "answer": "Extraire les logs et données métiers pertinentes",
+      "explanation": "L'extraction des logs et données critiques permet d'identifier la racine du problème avant toute action corrective."
+    },
+   
+    {
+      "question": "Quelle requête trouve les clients sans commande ?",
+      "options": [
+        "SELECT * FROM clients c INNER JOIN commandes co ON c.id = co.client_id",
+        "SELECT * FROM clients c LEFT JOIN commandes co ON c.id = co.client_id WHERE co.id IS NULL",
+        "SELECT COUNT(*) FROM clients",
+        "DELETE FROM clients WHERE id NOT IN (SELECT client_id FROM commandes)"
+      ],
+      "answer": "SELECT * FROM clients c LEFT JOIN commandes co ON c.id = co.client_id WHERE co.id IS NULL",
+      "explanation": "LEFT JOIN + WHERE IS NULL est le pattern classique pour trouver les absences de correspondance."
+    },
+    {
+      "question": "Comment suivre les appels système d'un processus en cours ?",
+      "options": [
+        "strace -p <PID>",
+        "tail -f /dev/null",
+        "ping localhost",
+        "chmod +x /proc/<PID>"
+      ],
+      "answer": "strace -p <PID>",
+      "explanation": "strace trace les appels système (open/read/write) d'un processus, crucial pour le debugging."
+    },
+    {
+      "question": "Pourquoi éviter 'SELECT *' en production ?",
+      "options": [
+        "Cela charge inutilement des colonnes non utilisées",
+        "La syntaxe est obsolète en SQL:2023",
+        "Cela corrompt les indexes",
+        "Cela déclenche toujours un full table scan"
+      ],
+      "answer": "Cela charge inutilement des colonnes non utilisées",
+      "explanation": "Sélectionner uniquement les colonnes nécessaires réduit la charge réseau/CPU."
+    },
+    {
+      "question": "Quel outil permet de gérer l'infrastructure comme code ?",
+      "options": [
+        "Terraform",
+        "Wireshark",
+        "MySQL Workbench",
+        "Nagios"
+      ],
+      "answer": "Terraform",
+      "explanation": "Terraform (HCL) et Ansible (YAML) sont les standards pour l'IaC (Infrastructure as Code)."
+    },
+    {
+      "question": "Comment vérifier les ports ouverts sur votre machine locale ?",
+      "options": [
+        "netstat -tuln",
+        "ping 127.0.0.1",
+        "curl ifconfig.me",
+        "dig localhost"
+      ],
+      "answer": "netstat -tuln",
+      "explanation": "netstat -tuln liste les ports en écoute (TCP/UDP) sans résolution DNS (-n)."
+    },
+   
   ]
 };
 
@@ -353,7 +296,7 @@ const Results = ({ scores }) => {
 };
 
 // Page principale
-const OOp_Python = () => {
+const Page1 = () => {
   const [level, setLevel] = useState("basic");
   const [currentSlide, setCurrentSlide] = useState(0);
   const [currentQuestion, setCurrentQuestion] = useState(0);
@@ -449,7 +392,4 @@ const OOp_Python = () => {
   );
 };
 
-
-
-
-export default OOp_Python;
+export default Page1;

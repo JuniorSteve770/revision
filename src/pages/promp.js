@@ -1,5 +1,4 @@
 /*
-
 Reformulation 1 – Style concis et structuré :
 Voici une liste de flashcards. Je souhaite que tu les regroupes deux par deux, en combinant les questions et les réponses tout en respectant le format "question-réponse".
 Merci de réduire la longueur des phrases dans les réponses, tout en mettant en valeur les mots-clés essentiels.
@@ -8,14 +7,20 @@ Organise les flashcards par thématiques proches sans en supprimer aucune.
 
 ✍️ Reformulation 2 – Style plus pédagogique et clair :
 Je vais te fournir une série de flashcards. Ta mission :
-
 Regroupe-les 2 par 2 en fusionnant les questions ensemble, puis les réponses ensemble.
-
 Réécris les réponses pour qu’elles soient plus courtes, plus claires, et riches en mots-clés pour faciliter la mémorisation.
-
 Regroupe les cartes par logique ou thème similaire, mais ne supprime aucune information.
-
 L’objectif est d’avoir un ensemble de flashcards plus compact, plus clair, et optimisé pour réviser efficacement.
+
+Extraction des concepts fondamentaux
+Objectif : Identifier et organiser les idées principales, les paradigmes ou les méthodologies abordés.
+Prompt :
+"À partir de mes notes sur la conférence de programmation en amont , extrais et structure les concepts fondamentaux mentionnés (ex : langages, frameworks, bonnes pratiques, architectures).
+Thèmes majeurs : [liste]
+Définitions clés : [termes + explications concises]
+Outils/Technologies : [noms + cas d'usage]
+Citations importantes : [si relevé]
+Priorise les éléments récurrents ou présentés comme essentiels par l'intervenant."
 
 ########### 
 ETAPES
@@ -61,6 +66,19 @@ Structure attendue :
   "answer": "B",  
   "explanation": "..."  
 }
+  voici un exple 
+    {
+    "question": "Quelle attitude adopter face à un trader qui exige une solution immédiate alors que la DSI prévoit un délai ?",
+    "options": [
+      "Promettre une résolution rapide sans validation",
+      "Proposer une solution intermédiaire et alerter la DSI",
+      "Ignorer la demande du trader",
+      "Transférer la demande à un autre BA"
+    ],
+    "answer": "Proposer une solution intermédiaire et alerter la DSI",
+    "explanation": "Le BA doit gérer la pression en proposant un workaround, en maintenant une communication claire, et en impliquant rapidement la DSI."
+  }
+    ###########################
 
 🔹 Prompt 6 – Générer des QCM avec du code source intégré
 🔁 Pour les entretiens techniques ou tests d’analyse

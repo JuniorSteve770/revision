@@ -305,6 +305,7 @@ const questions = {
   ]
 };
 
+
 // Timer
 const Timer = ({ timeLeft }) => (
   <p className="timer">⏳ Temps restant : <span>{timeLeft}s</span></p>
@@ -317,8 +318,8 @@ const QuestionCard = ({ question, options, onAnswerClick, timeLeft }) => (
     <Timer timeLeft={timeLeft} />
     <div className="options-container">
       {options.map((option, index) => (
-        <button key={index} onClick={() => onAnswerClick(option)} className="option-button">
-          {index + 1}. {option}
+        <button key={index} onClick={() => onAnswerClick(option, index)} className="option-button">
+          {String.fromCharCode(65 + index)}.{option}
         </button>
       ))}
     </div>
@@ -329,14 +330,20 @@ const QuestionCard = ({ question, options, onAnswerClick, timeLeft }) => (
 const Flashcard = ({ slide, index, total }) => (
   <div className="question-card" style={{ fontSize: '14px', margin: '0' }}>
     {/* <h5>🧠 Flashcard {index + 1} / {total}</h5> */}
-    <strong>Question :</strong>
-    <pre style={{ margin: '0', padding: '4px', background: '#f5f5f5', borderRadius: '3px', overflowX: 'auto' }}>
-      <code style={{ fontFamily: 'monospace', whiteSpace: 'pre-wrap', lineHeight: '0.4' }}>
-        {slide.question}
-      </code>
+    <strong>Question : </strong>
     
-    </pre>
-    <strong>Réponse :</strong> {slide.answer}
+    <strong>
+      <p>
+        <code style={{ fontFamily: 'monospace', whiteSpace: 'pre-wrap', lineHeight: '0.4' }}>
+          {slide.question}
+        </code>
+      </p>
+    </strong>  
+      <pre style={{ margin: '0', padding: '2px', background: '#f5f5f5', borderRadius: '3px', overflowX: 'auto' }}>
+        <p>
+          <strong>Réponse :</strong> {slide.answer}
+        </p>
+      </pre>
   </div>
 );
 
@@ -400,17 +407,25 @@ const Page1 = () => {
     }
   }, [level, showResult]);
 
-  const handleAnswerClick = (option) => {
-    const currentQuestions = questions[level];
-    const current = currentQuestions[currentQuestion];
-    if (option === current.answer) {
-      setScores((prevScores) => ({ ...prevScores, [level]: prevScores[level] + 1 }));
-      setMessage("✅ Correct !");
-    } else {
-      setMessage(`❌ Incorrect ! La bonne réponse était : ${current.answer}\n ℹ️ ${current.explanation}`);
-    }
-    setTimeout(handleNextQuestion, 2500);
-  };
+const handleAnswerClick = (option, index) => {
+  const currentQuestions = questions[level];
+  const current = currentQuestions[currentQuestion];
+  const correctAnswer = current.answer;
+
+  const isCorrect =
+    /^[A-D]$/.test(correctAnswer) // Si c’est une lettre
+      ? index === correctAnswer.charCodeAt(0) - 65
+      : option === correctAnswer; // Sinon compare le texte
+
+  if (isCorrect) {
+    setScores((prevScores) => ({ ...prevScores, [level]: prevScores[level] + 1 }));
+    setMessage("✅ Correct !");
+  } else {
+    setMessage(`❌ Incorrect ! La bonne réponse était : ${correctAnswer}\n ℹ️ ${current.explanation}`);
+  }
+
+  setTimeout(handleNextQuestion, 2500);
+};
 
   const handleNextQuestion = () => {
     const currentQuestions = questions[level];

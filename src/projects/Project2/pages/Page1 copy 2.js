@@ -8,11 +8,11 @@ import "./Page.css";
 const basicSlides = [
   {
   "question": "Pourquoi éviter 'Select' et 'Activate' en VBA ?",
-  "answer": "Ces méthodes :\n1. Ralentissent l'exécution et Sont fragiles car dépendent de la sélection active)\n3. Alternative : Travailler directement avec les objets\nExle à éviter :\nRange(\"A1\").Select\nSelection.Value = 10\n\nExemple propre :\nRange(\"A1\").Value = 10"
+  "answer": "Ces méthodes :\n1. Ralentissent l'exécution (manipulation UI inutile)\n2. Sont fragiles (dépendent de la sélection active)\n3. Alternative : Travailler directement avec les objets\nExemple à éviter :\nRange(\"A1\").Select\nSelection.Value = 10\n\nExemple propre :\nRange(\"A1\").Value = 10\nMots-clés : Performance, Bonnes pratiques"
 },
 {
     "question": "Contrôle de flux : Différence entre Exit For/Exit Sub ET Optimisation des performances",
-    "answer": "1) Exit For : Sortie de boucle\n   Exit Sub : Sortie de procédure\n   Exemple : If condition Then Exit For\n"
+    "answer": "1) Exit For : Sortie de boucle\n   Exit Sub : Sortie de procédure\n   Exemple : If condition Then Exit For\n\n2) Optimisation :\n   - ScreenUpdating=False\n   - Calculs manuels\n   - Tableaux mémoire\nMots-clés : Flow control, Performance"
   },
   {
     "question": "Structures de boucle : For Each/For Next/Do While ET Gestion d'erreurs",
@@ -23,74 +23,57 @@ const basicSlides = [
     "answer": "1) Collections :\n   - Redimension dynamique\n   - Méthodes Add/Remove\n\n2) Dictionnaires :\n   - Clés uniques\n   - Performance O(1)\n   - Exists/Keys/Items\nMots-clés : Data structures, Efficiency"
   },
   {
+    "question": "Algorithmes : Recherche binaire ET Bonnes pratiques de nommage",
+    "answer": "1) Recherche binaire :\n   While low<=high\n      mid=(low+high)\\2\n      ...\n   Wend (O(log n))\n\n2) Nommage :\n   - Préfixes (str, i, dbl)\n   - camelCase\n   - MAJ pour constantes\nMots-clés : Algorithms, Coding standards"
+  },
+  {
     "question": "Tableaux dynamiques ET Techniques de débogage",
     "answer": "1) Tableaux :\n   Redim Preserve arr(1 To n)\n\n2) Débogage :\n   - Points d'arrêt (F9)\n   - Fenêtre Exécution (Ctrl+G)\n   - Debug.Print\nMots-clés : Arrays, Debugging"
   },
   {
     "question": "Modularité : Subs vs Functions ET Sécurité des fichiers",
-    "answer": "1) Subs : Actions\n   Functions : Retours\n  "
+    "answer": "1) Subs : Actions\n   Functions : Retours\n   Exemple : Function CalcTTC(ht)\n\n2) Sécurité :\n   - ReadOnly\n   - Validation Dir()\n   - Gestion erreurs\nMots-clés : Procedures, File security"
   },
 {
     "question": "Comment traiter des plages non contiguës ET optimiser les performances pour grandes plages ?",
-    "answer": "1) Plages discontinues :\nFor Each area In Selection.Areas\n   'Traitement...\nNext area\n\n2) Optimisation :\n- ScreenUpdating=False\n- Traitement par blocs avec Step\n"
+    "answer": "1) Plages discontinues :\nFor Each area In Selection.Areas\n   'Traitement...\nNext area\n\n2) Optimisation :\n- ScreenUpdating=False\n- Traitement par blocs avec Step\n- Utiliser des tableaux mémoire\nMots-clés : Areas, Performance, Bulk operations"
   },
   {
     "question": "Gestion de colonnes de tailles différentes ET validation croisée",
-    "answer": "1) Taille variable :\nmaxRow = Application.Max(lastRowA, lastRowB)\n\n2) Validation :\nFor i=1 To maxRow\n   If Cells(i,1)<>Cells(i,2) Then 'Différence...\n"
+    "answer": "1) Taille variable :\nmaxRow = Application.Max(lastRowA, lastRowB)\n\n2) Validation :\nFor i=1 To maxRow\n   If Cells(i,1)<>Cells(i,2) Then 'Différence...\nMots-clés : Robustesse, Dynamic ranges"
   },
   {
     "question": "Boucles avancées : Séquences croissantes ET nested loops optimisés",
     "answer": "1) Séquences :\nIf Cells(i,1)<Cells(i+1,1) Then i=i+2 'Saut\n\n2) Nested loops :\nFor i=1 To lastRow\n   For j=i+1 To lastRow 'Évite redondance\nMots-clés : Algorithmie, Optimisation"
   },
   {
+    "question": "Structures de données : Collections ET Dictionnaires",
+    "answer": "1) Collections :\n- Add/Remove/Count\n- Données hétérogènes\n\n2) Dictionnaires :\n- Exists/Keys/Items\n- O(1) pour recherches\nMots-clés : Hash table, Flexibilité"
+  },
+  {
     "question": "Gestion d'erreurs professionnelle ET debugging",
     "answer": "1) Error handling :\nOn Error GoTo ErrorHandler\n...\nErrorHandler:\n   Log Err.Description\n\n2) Debugging :\n- Points d'arrêt (F9)\n- Fenêtre Exécution (Ctrl+G)\nMots-clés : Robustesse, Debug.Print"
   },
-   {
-    "question": "À quoi servent les mots-clés Sub et Dim ?",
-    "answer": "**Sub** définit une macro exécutée automatiquement : `Sub Test()` ... `End Sub`. **Dim** déclare une variable avec un type : `Dim x As Integer`. Obligatoire pour un code propre et typé."
+  {
+    "question": "Initialisation de matrices ET tableaux dynamiques",
+    "answer": "1) Matrice 20x20 :\nDim mat(1 To 20,1 To 20)\n\n2) Redim :\nReDim Preserve arr(1 To newSize)\nMots-clés : Multidimensionnel, Resizing"
   },
   {
-    "question": "Quelle est la différence entre Range et Cells ? Et comment remplir une colonne ?",
-    "answer": "**Range(\"A1\")** est une référence fixe, **Cells(1,1)** est indexée (A1). Pr rmplir une col : `For i = 1 To 10 : Cells(i,1).Value = i : Next i`."
+    "question": "Patterns avancés : Fuzzy matching ET recherche binaire",
+    "answer": "1) Fuzzy :\nIf matches/Len(str)>=seuil Then...\n\n2) Binaire :\nWhile low<=high\n   mid=(low+high)\\2\n   '...\nMots-clés : Algorithmes, O(log n)"
   },
   {
-    "question": "Comment structurer une condition ? Et colorier une cellule si paire ?",
-    "answer": "`If ... Then ... Else` permet de tester une valeur. Exemple : `If x > 5 Then MsgBox \"OK\"`. Pour colorier en vert : `If i Mod 2 = 0 Then Cells(i,1).Interior.Color = vbGreen`."
+    "question": "Contrôle de flux : Exit For/Sub ET structures de boucles",
+    "answer": "1) Sorties :\n- Exit For (boucle)\n- Exit Sub (procédure)\n\n2) Boucles :\n- For Each (collections)\n- Do While (condition)\nMots-clés : Flow control, Best practices"
   },
   {
-    "question": "Comment interagir avec l’utilisateur avec MsgBox et InputBox ?",
-    "answer": "`MsgBox` affiche un message : `MsgBox \"Opération réussie\"`. `InputBox` récupère une saisie : `nom = InputBox(\"Votre nom ?\")`."
+    "question": "Bonnes pratiques : Commentaires ET nommage",
+    "answer": "1) Commentaires :\n'****************************************************************\n' BUT : [Fonction]\n\n2) Variables :\nstrNom, iCount, dblMontant\nMots-clés : Maintenance, Lisibilité"
   },
   {
-    "question": "Comment tester si une cellule est vide ou numérique ?",
-    "answer": "`IsEmpty(Range(\"A1\"))` vérifie le vide. `IsNumeric(val)` teste si val est un nombre. Utile pour valider des saisies."
+    "question": "Modularité : Subs vs Functions ET sécurité fichiers",
+    "answer": "1) Subs : Actions\nFunctions : Retour valeur\n\n2) Sécurité :\n- ReadOnly:=True\n- Validation Dir()\nMots-clés : Réutilisabilité, File access"
   },
-  {
-    "question": "Comment quitter une macro ou éviter une erreur ?",
-    "answer": "`Exit Sub` stoppe la macro (ex : si champ vide). `On Error GoTo GestionErreur` redirige les erreurs. Afficher l'erreur avec `Err.Description`."
-  },
-  {
-    "question": "Comment parcourir une sélection et tronquer du texte ?",
-    "answer": "`For Each cell In Selection` parcourt chaque cellule. `Left(cell.Value, 5)` garde les 5 premiers caractères. Vérifie d'abord que `IsEmpty(cell) = False`."
-  },
-  {
-    "question": "Comment activer une feuille et insérer une valeur ?",
-    "answer": "`Worksheets(\"Feuil1\").Activate` change de feuille. `Range(\"A1\").Value = 42` insère une valeur dans une cellule."
-  },
-  {
-    "question": "Comment détecter la dernière ligne et trier une colonne ?",
-    "answer": "`Cells(Rows.Count, 1).End(xlUp).Row` donne la dernière ligne utilisée. Pour trier A : `Range(\"A1:A\" & n).Sort Key1:=Range(\"A1\")`."
-  },
-  {
-    "question": "Pourquoi éviter Select/Activate ? Et comment optimiser du code ?",
-    "answer": "`Select` ralentit et rend le code fragile. Préfère `With Range(\"A1\") .Value = 1 .Font.Bold = True End With` pour grouper les actions sur un objet."
-  },
-  {
-    "question": "Comment afficher un UserForm et à quoi sert-il ?",
-    "answer": "`UserForm1.Show` affiche une interface utilisateur. Il permet de saisir des données, gérer des boutons, afficher dynamiquement dans Excel."
-  }
-
 ];
 // QCM pour les niveaux moyen et avancé
 const questions = {
@@ -322,7 +305,6 @@ const questions = {
   ]
 };
 
-
 // Timer
 const Timer = ({ timeLeft }) => (
   <p className="timer">⏳ Temps restant : <span>{timeLeft}s</span></p>
@@ -335,8 +317,8 @@ const QuestionCard = ({ question, options, onAnswerClick, timeLeft }) => (
     <Timer timeLeft={timeLeft} />
     <div className="options-container">
       {options.map((option, index) => (
-        <button key={index} onClick={() => onAnswerClick(option, index)} className="option-button">
-          {String.fromCharCode(65 + index)}.{option}
+        <button key={index} onClick={() => onAnswerClick(option)} className="option-button">
+          {index + 1}. {option}
         </button>
       ))}
     </div>
@@ -347,20 +329,14 @@ const QuestionCard = ({ question, options, onAnswerClick, timeLeft }) => (
 const Flashcard = ({ slide, index, total }) => (
   <div className="question-card" style={{ fontSize: '14px', margin: '0' }}>
     {/* <h5>🧠 Flashcard {index + 1} / {total}</h5> */}
-    <strong>Question : </strong>
+    <strong>Question :</strong>
+    <pre style={{ margin: '0', padding: '4px', background: '#f5f5f5', borderRadius: '3px', overflowX: 'auto' }}>
+      <code style={{ fontFamily: 'monospace', whiteSpace: 'pre-wrap', lineHeight: '0.4' }}>
+        {slide.question}
+      </code>
     
-    <strong>
-      <p>
-        <code style={{ fontFamily: 'monospace', whiteSpace: 'pre-wrap', lineHeight: '0.4' }}>
-          {slide.question}
-        </code>
-      </p>
-    </strong>  
-      <pre style={{ margin: '0', padding: '2px', background: '#f5f5f5', borderRadius: '3px', overflowX: 'auto' }}>
-        <p>
-          <strong>Réponse :</strong> {slide.answer}
-        </p>
-      </pre>
+    </pre>
+    <strong>Réponse :</strong> {slide.answer}
   </div>
 );
 
@@ -424,21 +400,14 @@ const Page1 = () => {
     }
   }, [level, showResult]);
 
-const handleAnswerClick = (option, index) => {
-  const currentQuestions = questions[level];
-  const current = currentQuestions[currentQuestion];
-  const correctAnswer = current.answer;
+const handleAnswerClick = (selectedOption, index) => {
+  const current = questions[level][currentQuestion];
 
-  const isCorrect =
-    /^[A-D]$/.test(correctAnswer) // Si c’est une lettre
-      ? index === correctAnswer.charCodeAt(0) - 65
-      : option === correctAnswer; // Sinon compare le texte
-
-  if (isCorrect) {
-    setScores((prevScores) => ({ ...prevScores, [level]: prevScores[level] + 1 }));
+  if (isAnswerCorrect(selectedOption, current, index)) {
+    setScores(prev => ({ ...prev, [level]: prev[level] + 1 }));
     setMessage("✅ Correct !");
   } else {
-    setMessage(`❌ Incorrect ! La bonne réponse était : ${correctAnswer}\n ℹ️ ${current.explanation}`);
+    setMessage(`❌ Incorrect ! La bonne réponse était : ${current.answer}\nℹ️ ${current.explanation}`);
   }
 
   setTimeout(handleNextQuestion, 2500);

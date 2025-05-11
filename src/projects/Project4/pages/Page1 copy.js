@@ -9,12 +9,82 @@ const basicSlides = [
     "question": "1. Compréhension du Métier (Equity / Front Office) / Pouvez-vous expliquer le fonctionnement des marchés actions ?",
     "answer": "Marchés actions : financement des sociétés par titres ; investisseurs échangent sur Euronext, NYSE. Introduction métier Equity."
   },
-  
+  {
+    "question": "Quelle est la différence entre un ordre au marché et un ordre limite ? / Que savez-vous des produits Equity dérivés (options, futures, turbos…) ?",
+    "answer": "Ordre marché : exécution immédiate. Ordre limite : à prix défini. Produits Equity dérivés = couverture, spéculation via options, futures, turbos."
+  },
+  {
+    "question": "Quelle est la différence entre le cash equity et les produits structurés ? / Comment les traders utilisent-ils les systèmes Front Office au quotidien ?",
+    "answer": "Cash equity : actions simples. Structurés : combinaisons de dérivés pour rendement ciblé. Traders : outils FO pour prix, ordres, risques, carnets, actus."
+  },
+  {
+    "question": "Avez-vous déjà travaillé avec des desks actions ou des sales/traders ? / Comment assurez-vous la prise en compte de la réglementation (MiFID II, etc.) dans vos projets ?",
+    "answer": "Ateliers, suivi incidents, évolutions outils. MiFID II : TCA, best execution, horodatage intégrés dès le cadrage, en lien avec conformité/juridique."
+  },
+  {
+    "question": "2. Questions de Rôle BA (Spécifiques au Front Office) / Comment recueillez-vous les besoins métier auprès des traders ou sales ?",
+    "answer": "Analyse incidents, observation, interviews, ateliers : méthode directe pour recueillir les besoins FO."
+  },
+  {
+    "question": "Quelle méthodologie utilisez-vous pour rédiger vos spécifications fonctionnelles ? / Avez-vous déjà modélisé des workflows de trading ou d’exécution ?",
+    "answer": "User stories, UML/Merise/BPMNbudinesprocessmodela nd Notation, matrices de besoins. Workflows : diagrammes séquence/flux entre ordre, exécution, alerte, reporting."
+  },
+  {
+    "question": "Comment gérez-vous les priorités entre plusieurs utilisateurs Front Office ? / Quelle est votre approche pour tester une fonctionnalité de pricing ou passage d’ordre ?",
+    "answer": "Priorisation par impact/fréquence. Tests : cas métiers, jeux de données, validation pré-prod avec utilisateurs clés."
+  },
+  {
+    "question": "Avez-vous participé à des phases de recette avec le Front Office ? / Comment identifiez-vous les impacts d’un changement Front to Back ?",
+    "answer": "Tests UAT coordonnés avec FO. Cartographie des flux Front-Back et identification dépendances applicatives et humaines."
+  },
+  {
+    "question": "3. Compétences Techniques / Travaillez-vous avec Bloomberg, Reuters, Murex, Calypso ?",
+    "answer": "Utilisation Bloomberg (prix, news, ordres), interactions Calypso (dérivés). Compétences FO techniques."
+  },
+  {
+    "question": "Connaissez-vous le langage FIX ? / Savez-vous lire ou écrire des requêtes SQL ?",
+    "answer": "Messages FIX analysés (tags 35, 55). SQL utilisé pour valider données, reconstruire trades, détecter écarts Front/Back."
+  },
   {
     "question": "Avez-vous utilisé Power BI, Tableau ? / Quels outils pour le suivi (JIRA, Confluence…) ?",
     "answer": "Reporting via Power BI/Tableau : KPIs, anomalies. JIRA pour suivi agile, Confluence pour documentation projets FO."
   },
-  
+  {
+    "question": "Avez-vous contribué à des projets Agile ? / 4. Problèmes Concrets et Études de Cas",
+    "answer": "Rédaction user stories, participation aux rituels agiles (planning, review, rétro), validation avec PO/utilisateurs. Études de cas à suivre."
+  },
+  {
+    "question": "Prix non à jour sur outil de pricing ? / Trade manquant après exécution ?",
+    "answer": "Vérif source prix (Bloomberg, feed), logs, flux, alerte IT. Trace trade : statuts, SQL, logs, enrichissement, rejets."
+  },
+  {
+    "question": "Comment refondre un outil de passage d’ordre ? / Exemple d’incident critique FO à résoudre avec MOA/MOE.",
+    "answer": "Besoins, carto flux, MVP, tests, déploiement progressif. Incident pricing : logs, confirmation MOE, correctif avec traders."
+  },
+  {
+    "question": "Intégrer un nouveau flux de marché dans outil de pricing ? / 5. Soft Skills & Communication",
+    "answer": "Analyser format/fréquence/qualité, mapping, développement, tests, monitoring post-prod. Compétences communication à venir."
+  },
+  {
+    "question": "Trader exigeant VS DSI lente ? / Comment vulgariser contraintes techniques au Front ?",
+    "answer": "Transparence, workaround, alerte DSI. Vulgarisation via analogies concrètes, schémas simples, focus métier."
+  },
+  {
+    "question": "Comment bâtir une relation de confiance avec les utilisateurs Front ? / Exemple de contribution fonctionnelle en salle des marchés.",
+    "answer": "Réactivité, écoute, communication régulière. Ex : choix module exécution via démo, comparatif, synthèse claire = décision rapide."
+  },
+   {
+    "question": "Expliquez la différence entre la variance et l’écart-type. Quand utilise-t-on l’un plutôt que l’autre ?",
+    "answer": "La variance mesure la dispersion quadratique autour de la moyenne. L’écart-type est la racine carrée de la variance, exprimé dans la même unité que les données. L’écart-type est plus interprétable pour évaluer le risque en finance."
+  },
+  {
+    "question": "Qu’est-ce qu’un processus de Wiener ? Pourquoi est-il utilisé en finance quantitative ?",
+    "answer": "Processus de Wiener = mouvement brownien standard, base des modèles stochastiques comme Black-Scholes. Modélise l’aléa continu du prix dans le temps avec indépendance et normalité des incréments."
+  },
+  {
+    "question": "Comment calibrer un modèle de volatilité implicite à partir de données de marché ?",
+    "answer": "Par interpolation de la volatilité à différents strikes/maturités depuis les prix d’options observés. Utilisation de smile, surface de volatilité, puis calibration via méthodes numériques (least squares, optimisation)."
+  },
   {
     "question": "Quelle est la différence entre Monte Carlo et arbre binomial pour le pricing d’options ?",
     "answer": "Monte Carlo : simulation aléatoire, bon pour options exotiques et haute dimension. Arbre binomial : discret, plus intuitif, bon pour options standards avec peu de dates d’exercice."

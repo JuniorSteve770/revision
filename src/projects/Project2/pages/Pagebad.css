@@ -21,7 +21,7 @@
   color: #270047;
 }
 
-/* Texte de la question dans les flashcards */
+/* Uniquement sur question dans les flashcards */
 .question-card strong:first-of-type {
   display: block;
   font-size: 1rem;
@@ -31,21 +31,60 @@
 }
 
 /* Réponse textuelle dans flashcards */
-.question-card strong + .answer-text {
-  font-size: 0.95rem;
-  color: #333;
-  padding: 0.6rem 1rem;
-  background: #f3f3f3;
-  border-left: 4px solid #A6192E;
-  border-radius: 6px;
+/* Style de la réponse après <strong>Réponse :</strong> */
+.question-card strong:last-of-type {
   display: block;
-  margin-top: 0.3rem;
+  margin-top: 1rem;
+  font-size: 1.05rem;
+  color: #002147;
+  font-weight: 700;
 }
+
+.answer-text {
+  display: block;
+  margin-top: 0.5rem;
+  padding: 1rem 1.2rem;
+  background-color: #4964db;
+  color: #2b2b2b;
+  border-left: 4px solid #3206d3;
+  border-radius: 8px;
+  font-size: 1rem;
+  line-height: 1.6;
+  white-space: pre-wrap;
+  word-wrap: break-word;
+  font-family: Calibri, 'Segoe UI', sans-serif;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05);
+}
+
+/* Casse automatique à chaque "1)", "2)", ... */
+.answer-liste {
+  white-space: pre-line;
+}
+
+/* En option : meilleure gestion manuelle si besoin */
+.answer-liste::before {
+  content: "";
+  display: block;
+}
+
+/* Forcer retour à la ligne avant chaque chiffre suivi d'une parenthèse */
+.answer-liste {
+  counter-reset: ligne;
+}
+
+.answer-liste::after {
+  content: "";
+  display: table;
+  clear: both;
+}
+
+/* Version JS possible si tu veux automatiser proprement via JSX */
+
 
 /* Bloc technique <pre> dans les réponses */
 pre {
   background: #f01010;                    /* À ajuster : couleur vive */
-  padding: 1rem;
+  padding: 2rem;
   border-radius: 12px;
   overflow-x: auto;
   white-space: pre-wrap;
