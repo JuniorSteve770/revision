@@ -2,94 +2,82 @@
 
 import React, { useState, useEffect } from "react";
 import "./Page.css";
-// partie 
+// partie Pile Stack GC et Mecanisme de Gestion d'erreur
 // Flashcards pour le niveau basic
 
 const basicSlides = [
   {
-  "question": "Pourquoi éviter 'Select' et 'Activate' en VBA ?",
-  "answer": "Ces méthodes :\n1. Ralentissent l'exécution et Sont fragiles car dépendent de la sélection active)\n3. Alternative : Travailler directement avec les objets\nExle à éviter :\nRange(\"A1\").Select\nSelection.Value = 10\n\nExemple propre :\nRange(\"A1\").Value = 10"
-},
-{
-    "question": "Contrôle de flux : Différence entre Exit For/Exit Sub ET Optimisation des performances",
-    "answer": "1) Exit For : Sortie de boucle\n   Exit Sub : Sortie de procédure\n   Exemple : If condition Then Exit For\n"
+    "question": "Différences entre stack et heap ? Quels types y sont stockés ?",
+    "answer": "**Stack** : mémoire rapide, stocke les **types valeur** (`int`, `bool`, `struct`). **Heap** : mémoire lente, gérée par le **Garbage Collector**, stocke les **types référence** (`class`, `string`, `array`)."
   },
   {
-    "question": "Structures de boucle : For Each/For Next/Do While ET Gestion d'erreurs",
-    "answer": "1) Boucles :\n   - For Each (Collections)\n   - For Next (Compteur)\n   - Do While (Condition)\n\n2) Gestion erreurs :\n   On Error GoTo Handler\n   ...\nHandler:\n   MsgBox Err.Description\nMots-clés : Loop structures, Error handling"
+    "question": "Que contient la stack et la heap lors d’un appel d’objet ?",
+    "answer": "La **stack** contient la **référence** de l’objet, la **heap** contient l’**instance**. Exemple : `string s = \"abc\";` → s est sur la stack, mais l’objet string est sur le heap."
   },
   {
-    "question": "Structures de données : Collections vs Tableaux ET Dictionnaires",
-    "answer": "1) Collections :\n   - Redimension dynamique\n   - Méthodes Add/Remove\n\n2) Dictionnaires :\n   - Clés uniques\n   - Performance O(1)\n   - Exists/Keys/Items\nMots-clés : Data structures, Efficiency"
+    "question": "Rôle et fonctionnement du Garbage Collector (GC) ?",
+    "answer": "Le **GC** libère la mémoire des objets **inaccessibles** du heap. Fonctionne par cycles : **Mark**, **Sweep**, **Compact**. Optimisé pour limiter l'impact sur les performances."
   },
   {
-    "question": "Tableaux dynamiques ET Techniques de débogage",
-    "answer": "1) Tableaux :\n   Redim Preserve arr(1 To n)\n\n2) Débogage :\n   - Points d'arrêt (F9)\n   - Fenêtre Exécution (Ctrl+G)\n   - Debug.Print\nMots-clés : Arrays, Debugging"
+    "question": "Quelles sont les 3 générations du GC et leur rôle ?",
+    "answer": "**Gen 0** : objets récents. **Gen 1** : objets survivants. **Gen 2** : objets durables (singleton, cache). Plus la génération est élevée, moins le GC la collecte souvent."
   },
   {
-    "question": "Modularité : Subs vs Functions ET Sécurité des fichiers",
-    "answer": "1) Subs : Actions\n   Functions : Retours\n  "
-  },
-{
-    "question": "Comment traiter des plages non contiguës ET optimiser les performances pour grandes plages ?",
-    "answer": "1) Plages discontinues :\nFor Each area In Selection.Areas\n   'Traitement...\nNext area\n\n2) Optimisation :\n- ScreenUpdating=False\n- Traitement par blocs avec Step\n"
+    "question": "Dispose() vs Finalize() : quand et pourquoi les utiliser ?",
+    "answer": "**Dispose()** : appel manuel, rapide, pour libérer des **ressources non managées**. **Finalize()** : déclenché par le **GC**, lent et non garanti. Implémenter `IDisposable` pour contrôler la libération."
   },
   {
-    "question": "Gestion de colonnes de tailles différentes ET validation croisée",
-    "answer": "1) Taille variable :\nmaxRow = Application.Max(lastRowA, lastRowB)\n\n2) Validation :\nFor i=1 To maxRow\n   If Cells(i,1)<>Cells(i,2) Then 'Différence...\n"
+    "question": "Comment garantir l’appel de Dispose() automatiquement ?",
+    "answer": "Utiliser le mot-clé **`using`** : exécute `Dispose()` à la fin du bloc. Ex : `using (var f = new StreamReader(...)) { }` → fichier automatiquement fermé."
   },
   {
-    "question": "Boucles avancées : Séquences croissantes ET nested loops optimisés",
-    "answer": "1) Séquences :\nIf Cells(i,1)<Cells(i+1,1) Then i=i+2 'Saut\n\n2) Nested loops :\nFor i=1 To lastRow\n   For j=i+1 To lastRow 'Évite redondance\nMots-clés : Algorithmie, Optimisation"
+    "question": "Pourquoi éviter GC.Collect() et les cycles de référence ?",
+    "answer": "**GC.Collect()** force la collecte manuellement, ce qui **détériore les performances**. Les **références circulaires** compliquent le nettoyage automatique par le GC."
   },
   {
-    "question": "Gestion d'erreurs professionnelle ET debugging",
-    "answer": "1) Error handling :\nOn Error GoTo ErrorHandler\n...\nErrorHandler:\n   Log Err.Description\n\n2) Debugging :\n- Points d'arrêt (F9)\n- Fenêtre Exécution (Ctrl+G)\nMots-clés : Robustesse, Debug.Print"
-  },
-   {
-    "question": "À quoi servent les mots-clés Sub et Dim ?",
-    "answer": "**Sub** définit une macro exécutée automatiquement : `Sub Test()` ... `End Sub`. **Dim** déclare une variable avec un type : `Dim x As Integer`. Obligatoire pour un code propre et typé."
+    "question": "Quelles ressources doivent être libérées manuellement ?",
+    "answer": "**Ressources non managées** : fichiers, sockets, connexions. Sans `Dispose()`, on risque des **fuites mémoire** ou un **verrouillage système**."
   },
   {
-    "question": "Quelle est la différence entre Range et Cells ? Et comment remplir une colonne ?",
-    "answer": "**Range(\"A1\")** est une référence fixe, **Cells(1,1)** est indexée (A1). Pr rmplir une col : `For i = 1 To 10 : Cells(i,1).Value = i : Next i`."
+    "question": "Différences entre type valeur et référence à l'affectation ?",
+    "answer": "**Valeur** : copie du contenu (ex : `int a = b`). **Référence** : copie de l’**adresse mémoire**, les deux variables pointent vers le **même objet** sur le heap."
   },
   {
-    "question": "Comment structurer une condition ? Et colorier une cellule si paire ?",
-    "answer": "`If ... Then ... Else` permet de tester une valeur. Exemple : `If x > 5 Then MsgBox \"OK\"`. Pour colorier en vert : `If i Mod 2 = 0 Then Cells(i,1).Interior.Color = vbGreen`."
+    "question": "Métaphores pédagogiques pour stack et heap ?",
+    "answer": "**Stack** : pile d’assiettes (LIFO, rapide). **Heap** : entrepôt géré par un robot (GC) qui nettoie les objets inutilisés."
+  },
+    {
+    "question": "PARTIE débogueur Visual STUDIO ",
+    "answer": ""
   },
   {
-    "question": "Comment interagir avec l’utilisateur avec MsgBox et InputBox ?",
-    "answer": "`MsgBox` affiche un message : `MsgBox \"Opération réussie\"`. `InputBox` récupère une saisie : `nom = InputBox(\"Votre nom ?\")`."
+    "question": "Quels sont les types de points d'arrêt (standard/conditionnel/fonctionnel) et comment inspecter une variable rapidement ?",
+    "answer": "Points d'arrêt : 1) Standard (ligne), 2) Conditionnel (if x>5), 3) Fonctionnel (appel méthode). Inspection : Infobulles (survol) ou fenêtres Autos/Locals. Mots-clés : Breakpoint, variable contextuelle."
   },
   {
-    "question": "Comment tester si une cellule est vide ou numérique ?",
-    "answer": "`IsEmpty(Range(\"A1\"))` vérifie le vide. `IsNumeric(val)` teste si val est un nombre. Utile pour valider des saisies."
+    "question": "Différence F10/F11 et utilité de Maj+F11 ?",
+    "answer": "F10 (ignore les fonctions), F11 (entre dans les fonctions), Maj+F11 (sort de la fonction actuelle). Mots-clés : Pas à pas, granularité. Exemple : F10 pour éviter System.*."
   },
   {
-    "question": "Comment quitter une macro ou éviter une erreur ?",
-    "answer": "`Exit Sub` stoppe la macro (ex : si champ vide). `On Error GoTo GestionErreur` redirige les erreurs. Afficher l'erreur avec `Err.Description`."
+    "question": "Comment redémarrer vite un débogage (Ctrl+Maj+F5) et exécuter jusqu'au curseur ?",
+    "answer": "Redémarrage : Ctrl+Maj+F5. Exécution rapide : Ctrl+F10 ou bouton 'Run to Cursor'. Optimise les tests itératifs sans points d'arrêt."
   },
   {
-    "question": "Comment parcourir une sélection et tronquer du texte ?",
-    "answer": "`For Each cell In Selection` parcourt chaque cellule. `Left(cell.Value, 5)` garde les 5 premiers caractères. Vérifie d'abord que `IsEmpty(cell) = False`."
+    "question": "Quels outils pour déboguer en prod (Snapshot) et analyser l'historique (IntelliTrace) ?",
+    "answer": "Snapshot Debugger : Capture l'état en prod. IntelliTrace : 'Machine à remonter le temps'. Mots-clés : Enterprise, diagnostics temps réel."
   },
   {
-    "question": "Comment activer une feuille et insérer une valeur ?",
-    "answer": "`Worksheets(\"Feuil1\").Activate` change de feuille. `Range(\"A1\").Value = 42` insère une valeur dans une cellule."
+    "question": "Modifier du code à chaud (Edit and Continue) et déboguer du cloud (Azure) ?",
+    "answer": "Hot edit : Edit and Continue (C#) / Hot Reload (XAML). Cloud : Attacher le débogueur à Azure App Service. Prérequis : Symboles de debug."
   },
   {
-    "question": "Comment détecter la dernière ligne et trier une colonne ?",
-    "answer": "`Cells(Rows.Count, 1).End(xlUp).Row` donne la dernière ligne utilisée. Pour trier A : `Range(\"A1:A\" & n).Sort Key1:=Range(\"A1\")`."
+    "question": "Comment utiliser la pile des appels et surveiller des expressions complexes ?",
+    "answer": "Call Stack (Alt+7) pour le flux d'exécution. Watch pour expressions (ex: items.Count(x=>x.IsActive)). Mots-clés : Hiérarchie, évaluation dynamique."
   },
   {
-    "question": "Pourquoi éviter Select/Activate ? Et comment optimiser du code ?",
-    "answer": "`Select` ralentit et rend le code fragile. Préfère `With Range(\"A1\") .Value = 1 .Font.Bold = True End With` pour grouper les actions sur un objet."
+    "question": "Outils de performance (CPU/Mémoire) et assistance IA (Copilot) ?",
+    "answer": "Diagnostics Tools (Alt+F2) : CPU Usage et Memory Analyzer. Copilot : Explications d'erreurs via 'Ask Copilot'. Nécessite abonnement."
   },
-  {
-    "question": "Comment afficher un UserForm et à quoi sert-il ?",
-    "answer": "`UserForm1.Show` affiche une interface utilisateur. Il permet de saisir des données, gérer des boutons, afficher dynamiquement dans Excel."
-  }
 
 ];
 // QCM pour les niveaux moyen et avancé
@@ -97,226 +85,281 @@ const questions = {
   moyen: [
 
    {
-    "question": "Quelle méthode permet de quitter immédiatement toute une procédure VBA ?",
+    "question": "Quel type de point d'arrêt se déclenche uniquement si une condition est vraie ?",
     "options": [
-      "A. Exit For",
-      "B. Exit Function",
-      "C. Exit Sub",
-      "D. End"
+      "Point d'arrêt standard",
+      "Point d'arrêt conditionnel",
+      "Point d'arrêt fonctionnel",
+      "Point d'arrêt temporaire"
     ],
-    "answer": "C",
-    "explanation": "Exit Sub termine l'exécution de la procédure courante. Exit For ne sort que de la boucle actuelle, Exit Sub est la bonne réponse car plus globale qu'Exit Function qui ne s'applique qu'aux fonctions. End est à éviter car peut causer des problèmes de nettoyage."
+    "answer": "Point d'arrêt conditionnel",
+    "explanation": "Un point d'arrêt conditionnel (ex: 'if x > 5') permet de cibler des cas spécifiques sans interrompre l'exécution à chaque passage."
   },
   {
-    "question": "Quelle technique NE fait PAS partie des optimisations recommandées pour les macros VBA ?",
+    "question": "Quelle touche permet d'ignorer le code des fonctions appelées pendant le débogage ?",
     "options": [
-      "A. Désactiver ScreenUpdating",
-      "B. Utiliser des tableaux mémoire",
-      "C. Activer Calculation automatique",
-      "D. Traiter par blocs de données"
+      "F5",
+      "F10",
+      "F11",
+      "F9"
     ],
-    "answer": "C",
-    "explanation": "Il faut au contraire désactiver les calculs automatiques (xlCalculationManual) pour optimiser les performances. Les autres options sont des bonnes pratiques d'optimisation."
+    "answer": "F10",
+    "explanation": "F10 (Pas à pas principal) évite d'entrer dans les fonctions secondaires, contrairement à F11 (Pas à pas détaillé) qui explore chaque appel."
   },
   {
-    "question": "Quelle structure de boucle est la plus adaptée pour itérer sur une collection d'objets ?",
+    "question": "Comment afficher rapidement la valeur d'une variable sans ajouter de watch ?",
     "options": [
-      "A. For Next",
-      "B. Do Until",
-      "C. For Each",
-      "D. While Wend"
+      "Double-cliquer sur la variable",
+      "Survoler la variable avec la souris",
+      "Appuyer sur Ctrl+W",
+      "Utiliser la fenêtre Call Stack"
     ],
-    "answer": "C",
-    "explanation": "For Each est spécialement conçu pour itérer sur des collections (Range, Worksheets, etc.). For Next utilise un compteur numérique, Do Until et While Wend sont des boucles conditionnelles."
+    "answer": "Survoler la variable avec la souris",
+    "explanation": "Les infobulles de données (data tips) apparaissent au survol et fournissent un accès instantané aux valeurs des variables."
   },
   {
-    "question": "Quelle syntaxe correcte pour gérer les erreurs en VBA ?",
+    "question": "Quel outil permet de capturer l'état d'une application en production sans l'interrompre ?",
     "options": [
-      "A. On Error Resume",
-      "B. On Error GoTo Label",
-      "C. Try Catch Finally",
-      "D. Error Handle"
+      "IntelliTrace",
+      "Snapshot Debugger",
+      "Hot Reload",
+      "Diagnostics Tools"
     ],
-    "answer": "B",
-    "explanation": "La syntaxe correcte est On Error GoTo Label. VBA n'utilise pas Try-Catch (syntaxe C#). On Error Resume existe mais sans gestion structurée."
+    "answer": "Snapshot Debugger",
+    "explanation": "Le Snapshot Debugger (Visual Studio Enterprise) prend des instantanés de l'application en prod pour analyser des bugs complexes."
   },
   {
-    "question": "Quel avantage principal offre un Dictionary par rapport à une Collection ?",
+    "question": "Quelle combinaison de touches redémarre rapidement une session de débogage ?",
     "options": [
-      "A. Méthode Remove plus efficace",
-      "B. Test d'existence de clé (Exists)",
-      "C. Meilleure gestion des doublons",
-      "D. Tri automatique des éléments"
+      "Ctrl+F5",
+      "Ctrl+Maj+F5",
+      "Alt+F5",
+      "F5+Maj"
     ],
-    "answer": "B",
-    "explanation": "La méthode Exists permet de vérifier une clé en O(1). Les Collections nécessitent un parcours manuel pour cette vérification. Les autres options sont incorrectes ou secondaires."
+    "answer": "Ctrl+Maj+F5",
+    "explanation": "Ctrl+Maj+F5 permet de redémarrer immédiatement le débogage sans passer par l'arrêt complet de l'application."
   },
   {
-    "question": "Quelle complexité algorithmique pour une recherche binaire bien implémentée ?",
+    "question": "Quelle fonctionnalité permet de modifier du code C# pendant son exécution ?",
     "options": [
-      "A. O(1)",
-      "B. O(n)",
-      "C. O(log n)",
-      "D. O(n²)"
+      "Live Share",
+      "Edit and Continue",
+      "Hot Reload",
+      "Time Travel Debugging"
     ],
-    "answer": "C",
-    "explanation": "La recherche binaire a une complexité logarithmique O(log n) car elle divise l'espace de recherche par 2 à chaque itération. C'est bien plus efficace qu'une recherche linéaire O(n)."
+    "answer": "Edit and Continue",
+    "explanation": "'Edit and Continue' permet de corriger le code source pendant une pause dans le débogage, sans perdre l'état actuel de l'application."
   },
   {
-    "question": "Quelle convention de nommage est recommandée pour une variable de type String ?",
+    "question": "Quelle fenêtre affiche la hiérarchie des appels de méthodes ?",
     "options": [
-      "A. sNom",
-      "B. strNom",
-      "C. stringNom",
-      "D. NomStr"
+      "Watch",
+      "Locals",
+      "Call Stack",
+      "Autos"
     ],
-    "answer": "B",
-    "explanation": "Le préfixe 'str' est la convention standard pour les String (strNom). 's' est trop court, 'string' trop long, et le suffixe 'Str' moins lisible."
+    "answer": "Call Stack",
+    "explanation": "La fenêtre Call Stack (Alt+7) montre l'ordre des appels de méthodes, essentielle pour comprendre le flux d'exécution."
   },
   {
-    "question": "Comment redimensionner un tableau en conservant son contenu existant ?",
+    "question": "Quel outil analyse spécifiquement les fuites de mémoire ?",
     "options": [
-      "A. ReDim",
-      "B. ReDim Keep",
-      "C. ReDim Preserve",
-      "D. Resize Array"
+      "CPU Usage",
+      "Memory Analyzer",
+      "IntelliTrace",
+      "Snapshot Debugger"
     ],
-    "answer": "C",
-    "explanation": "ReDim Preserve est la seule syntaxe valide pour redimensionner en gardant les données. ReDim seul réinitialise le tableau. Les autres options n'existent pas en VBA."
+    "answer": "Memory Analyzer",
+    "explanation": "Le Memory Analyzer (via Diagnostics Tools) identifie les allocations anormales et les objets non libérés."
   },
   {
-    "question": "Quel outil permet d'inspecter des valeurs pendant l'exécution en VBA ?",
+    "question": "Comment déboguer une application ASP.NET déployée sur Azure ?",
     "options": [
-      "A. Immediate Window (Ctrl+G)",
-      "B. Data Inspector",
-      "C. Variable Explorer",
-      "D. Code Profiler"
+      "Avec le Snapshot Debugger",
+      "En attachant le débogueur à Azure App Service",
+      "Via Live Share",
+      "En utilisant Copilot"
     ],
-    "answer": "A",
-    "explanation": "La fenêtre Exécution (Immediate Window) accessible par Ctrl+G permet d'évaluer des expressions et variables durant le débogage. Les autres outils n'existent pas dans l'IDE VBA standard."
+    "answer": "En attachant le débogueur à Azure App Service",
+    "explanation": "Visual Studio permet d'attacher son débogueur à une instance Azure App Service, à condition que les symboles de debug soient disponibles."
   },
   {
-    "question": "Quelle pratique améliore la sécurité des accès fichiers en VBA ?",
+    "question": "Quelle fonctionnalité Enterprise enregistre l'historique d'exécution pour le rejouer ?",
     "options": [
-      "A. Toujours utiliser ReadOnly:=False",
-      "B. Supprimer le fichier après usage",
-      "C. Valider l'existence avec Dir() avant ouverture",
-      "D. Désactiver les alertes Excel"
+      "Hot Reload",
+      "IntelliTrace",
+      "Watch Window",
+      "Data Tips"
     ],
-    "answer": "C",
-    "explanation": "La validation avec Dir() évite les erreurs sur fichiers inexistants. ReadOnly:=True est recommandé (pas False). La suppression est risquée et désactiver les alertes réduit la sécurité."
+    "answer": "IntelliTrace",
+    "explanation": "IntelliTrace capture des événements et des états pour permettre un 'débogage temporel', utile pour les bugs intermittents."
+  },
+  {
+    "question": "Quelle commande exécute le code jusqu'à la ligne du curseur ?",
+    "options": [
+      "F5",
+      "F10",
+      "Ctrl+F10",
+      "Maj+F11"
+    ],
+    "answer": "Ctrl+F10",
+    "explanation": "'Run to Cursor' (Ctrl+F10) exécute le programme jusqu'à la position du curseur, évitant les points d'arrêt intermédiaires."
+  },
+  {
+    "question": "Quel outil fournit des suggestions contextuelles pendant le débogage ?",
+    "options": [
+      "IntelliSense",
+      "Copilot",
+      "CodeLens",
+      "Roslyn Analyzer"
+    ],
+    "answer": "Copilot",
+    "explanation": "Copilot (via 'Ask Copilot') explique les erreurs et propose des corrections en temps réel pendant le débogage."
+  },
+  {
+    "question": "Que fait la commande Maj+F11 pendant le débogage ?",
+    "options": [
+      "Entre dans une fonction",
+      "Ignore une fonction",
+      "Sort de la fonction actuelle",
+      "Ajoute un watch"
+    ],
+    "answer": "Sort de la fonction actuelle",
+    "explanation": "Maj+F11 (Pas à pas sortant) termine l'exécution de la fonction courante et s'arrête à l'appelant, utile pour sortir des méthodes longues."
+  },
+  {
+    "question": "Quelle fenêtre permet de surveiller une expression personnalisée ?",
+    "options": [
+      "Autos",
+      "Locals",
+      "Watch",
+      "Immediate"
+    ],
+    "answer": "Watch",
+    "explanation": "La fenêtre Watch permet d'ajouter des expressions complexes (ex: 'items.Count(x => x.IsActive)') et d'en suivre l'évolution."
+  },
+  {
+    "question": "Quel outil combine profilage CPU et analyse mémoire ?",
+    "options": [
+      "IntelliTrace",
+      "Diagnostics Tools",
+      "Live Share",
+      "Code Metrics"
+    ],
+    "answer": "Diagnostics Tools",
+    "explanation": "Les Diagnostics Tools (Alt+F2) regroupent le CPU Usage, Memory Usage et d'autres analyseurs de performance."
   },
   ],
   avance: [
-     {
-    "question": "Quel outil permet d'exécuter du code pas à pas en sautant les appels de procédures ?",
+  {
+    "question": "Quels types de données sont généralement stockés dans la stack ?",
     "options": [
-      "A. Step Into (F8)",
-      "B. Step Over (Maj+F8)",
-      "C. Step Out (Ctrl+Maj+F8)",
-      "D. Run To Cursor (Ctrl+F8)"
+      "Les objets instanciés avec new",
+      "Les fichiers et connexions",
+      "Les types valeur comme int, bool, struct",
+      "Les tableaux et chaînes de caractères"
     ],
-    "answer": "B",
-    "explanation": "Step Over (Maj+F8) exécute la procédure appelée sans entrer dans son code, contrairement à Step Into. Step Out sort de la procédure courante, Run To Cursor exécute jusqu'au point d'insertion."
+    "answer": "Les types valeur comme int, bool, struct",
+    "explanation": "La stack est utilisée pour les types valeur, car ils sont plus petits et rapidement alloués/désalloués à la fin d'une portée."
   },
   {
-    "question": "Quelle fenêtre permet d'évaluer instantanément des expressions pendant le débogage ?",
+    "question": "Que contient la stack lorsqu’un objet de type référence est instancié ?",
     "options": [
-      "A. Fenêtre Exécution (Ctrl+G)",
-      "B. Fenêtre Espion",
-      "C. Fenêtre Variables locales",
-      "D. Fenêtre Projet"
+      "L'objet entier",
+      "La copie de l'objet",
+      "L’adresse de l’objet sur le heap",
+      "Rien, l’objet est uniquement sur le heap"
     ],
-    "answer": "A",
-    "explanation": "La fenêtre Exécution (Immediate Window) permet d'évaluer des expressions avec ? ou Print. Les fenêtres Espion et Variables locales sont en lecture seule."
+    "answer": "L’adresse de l’objet sur le heap",
+    "explanation": "La stack contient uniquement la référence (adresse) de l’objet ; son contenu est stocké dans le heap."
   },
   {
-    "question": "Comment ajouter un espion sur une variable complexe comme un objet Collection ?",
+    "question": "Quelle est la fonction principale du Garbage Collector (GC) en C# ?",
     "options": [
-      "A. Via Watch Window > Add Watch",
-      "B. Debug.AddEspion",
-      "C. En préfixant la variable par 'Watch:'",
-      "D. Impossible pour les Collections"
+      "Libérer les fichiers ouverts",
+      "Gérer les accès concurrents à la mémoire",
+      "Libérer la mémoire des objets inaccessibles",
+      "Compresser les fichiers inutilisés"
     ],
-    "answer": "A",
-    "explanation": "La fenêtre Espion (Watch Window) permet d'ajouter des surveillances même pour des objets complexes. Il faut sélectionner 'Add Watch' et configurer le contexte."
+    "answer": "Libérer la mémoire des objets inaccessibles",
+    "explanation": "Le GC automatise la libération de la mémoire utilisée par les objets qui ne sont plus référencés dans le code."
   },
   {
-    "question": "Quelle technique permet de tracer l'exécution sans points d'arrêt ?",
+    "question": "Quel est le rôle de la génération 2 dans le GC ?",
     "options": [
-      "A. Debug.Print",
-      "B. MsgBox",
-      "C. LogEvent API",
-      "D. Stop instruction"
+      "Gérer les objets très temporaires",
+      "Optimiser les accès aux variables locales",
+      "Stocker les objets persistants comme les singletons",
+      "Supprimer les références circulaires"
     ],
-    "answer": "A",
-    "explanation": "Debug.Print envoie des traces vers la fenêtre Exécution sans bloquer l'exécution comme MsgBox. Stop équivaut à un point d'arrêt codé en dur."
+    "answer": "Stocker les objets persistants comme les singletons",
+    "explanation": "Les objets de génération 2 sont rarement collectés et sont souvent des objets à longue durée de vie comme les caches ou singletons."
   },
   {
-    "question": "Comment déboguer un événement Worksheet_Change qui se déclenche trop souvent ?",
+    "question": "Quelle méthode permet de libérer immédiatement une ressource non managée ?",
     "options": [
-      "A. Désactiver les événements avant le traitement",
-      "B. Utiliser Application.EnableEvents = False",
-      "C. Ajouter un flag booléen de contrôle",
-      "D. Toutes ces réponses"
+      "Finalize()",
+      "Dispose()",
+      "GC.Collect()",
+      "Release()"
     ],
-    "answer": "D",
-    "explanation": "Toutes ces techniques sont valables : désactivation temporaire des événements, flag pour ignorer les déclenchements récursifs, ou désactivation globale contrôlée."
+    "answer": "Dispose()",
+    "explanation": "Dispose() est appelée manuellement pour libérer des ressources comme des fichiers ou connexions, contrairement à Finalize() qui dépend du GC."
   },
   {
-    "question": "Quel outil permet d'inspecter la pile d'appels (call stack) en VBA ?",
+    "question": "Quel mot-clé C# appelle automatiquement Dispose() à la fin d’un bloc ?",
     "options": [
-      "A. Fenêtre Call Stack (Ctrl+L)",
-      "B. Debug.CallStack",
-      "C. Log manuel avec des étiquettes",
-      "D. VBA ne gère pas la pile d'appels"
+      "auto",
+      "release",
+      "finalize",
+      "using"
     ],
-    "answer": "A",
-    "explanation": "La fenêtre Call Stack (Ctrl+L) affiche la hiérarchie des appels. Elle n'est visible qu'en mode débogage avec des points d'arrêt actifs."
+    "answer": "using",
+    "explanation": "`using` garantit que Dispose() est appelée, même en cas d’exception, ce qui est essentiel pour les ressources critiques."
   },
   {
-    "question": "Comment capturer une erreur sans interrompre l'exécution ?",
+    "question": "Pourquoi est-il déconseillé d’utiliser GC.Collect() manuellement ?",
     "options": [
-      "A. On Error Resume Next",
-      "B. Try/Catch hidden",
-      "C. ErrorHandler global",
-      "D. IgnoreErrors instruction"
+      "Cela efface la stack",
+      "Cela peut créer des fuites mémoire",
+      "Cela détériore les performances",
+      "Cela libère les ressources managées prématurément"
     ],
-    "answer": "A",
-    "explanation": "On Error Resume Next permet de continuer après une erreur. VBA n'a pas de Try/Catch. Un handler global nécessite toujours On Error."
+    "answer": "Cela détériore les performances",
+    "explanation": "Forcer la collecte manuelle interrompt l’optimisation automatique du GC, ce qui peut ralentir l’exécution du programme."
   },
   {
-    "question": "Quelle méthode pour déboguer une macro lancée via un bouton Excel ?",
+    "question": "Quelles sont les conséquences de ne pas appeler Dispose() sur une ressource non managée ?",
     "options": [
-      "A. Point d'arrêt avant l'appel",
-      "B. Déclencher manuellement depuis l'IDE",
-      "C. Ajouter un paramètre de débogage",
-      "D. Toutes ces réponses"
+      "Le compilateur génère une erreur",
+      "La ressource est automatiquement libérée",
+      "Le GC la libère immédiatement",
+      "On risque des fuites mémoire ou des verrous système"
     ],
-    "answer": "D",
-    "explanation": "Toutes ces techniques fonctionnent : point d'arrêt stratégique, exécution contrôlée depuis l'éditeur, ou paramètre conditionnel pour activer le mode debug."
+    "answer": "On risque des fuites mémoire ou des verrous système",
+    "explanation": "Les ressources non managées ne sont pas sous la responsabilité du GC et doivent être libérées explicitement pour éviter les blocages."
   },
   {
-    "question": "Comment inspecter les propriétés d'un objet Excel non reconnu en mode débogage ?",
+    "question": "Quelle est la différence principale entre type valeur et type référence à l’affectation ?",
     "options": [
-      "A. Utiliser TypeName() dans la fenêtre Exécution",
-      "B. Ajouter à la fenêtre Espion avec l'option 'All Properties'",
-      "C. Activer l'explorateur d'objets",
-      "D. Convertir en Dictionary"
+      "Les deux sont copiés par adresse",
+      "Les types valeur copient les données, les références copient l’adresse",
+      "Les types référence créent une copie indépendante",
+      "Les types valeur ne sont jamais copiés"
     ],
-    "answer": "B",
-    "explanation": "La fenêtre Espion permet d'explorer toutes les propriétés via l'option dédiée. TypeName donne juste le type, pas les détails."
+    "answer": "Les types valeur copient les données, les références copient l’adresse",
+    "explanation": "Les types valeur créent une nouvelle copie, alors que les références partagent la même instance en mémoire."
   },
   {
-    "question": "Quelle pratique évite le débogage fastidieux des erreurs 'Objet requis' ?",
+    "question": "Quelle image pédagogique illustre le fonctionnement de la stack ?",
     "options": [
-      "A. Toujours utiliser Option Explicit",
-      "B. Vérifier Is Nothing avant usage",
-      "C. Activer 'Break on All Errors'",
-      "D. Toutes ces réponses"
+      "Un entrepôt avec un robot nettoyeur",
+      "Un sac sans fond",
+      "Une pile d’assiettes (LIFO)",
+      "Un flux de données en continu"
     ],
-    "answer": "D",
-    "explanation": "Option Explicit force la déclaration des variables, Is Nothing teste les objets, et 'Break on All Errors' dans les options VBA intercepte les erreurs tôt."
+    "answer": "Une pile d’assiettes (LIFO)",
+    "explanation": "La stack fonctionne comme une pile LIFO (Last In, First Out), où chaque appel de méthode ajoute une nouvelle 'assiette'."
   }
    
   ]

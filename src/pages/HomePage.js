@@ -26,7 +26,7 @@ const HomePage = () => {
         {/* Bouton Projet 3 */}
         <Link to="/project3">
           <button className="home-page-button" id="project3-button">
-            BP2ss
+          Solid/Swp/Debug
           </button>
         </Link>
 

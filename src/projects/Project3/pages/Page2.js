@@ -3,102 +3,113 @@
 
 import React, { useState, useEffect } from "react";
 import "./Page.css";
-// partie 
+// partie Solid OOP Multithreadx
 // Flashcards pour le niveau basic
 
 const basicSlides = [
- {
-    "question": "Quel est le rôle de BP2S et à qui s’adresse-t-il ?",
-    "answer": "BP2S (BNP Paribas Securities Services) est un prestataire **post-trade** dédié au **buy side** (asset managers, assureurs, fonds). Il gère : custody (conservation d’actifs), middle/back office, valorisation des portefeuilles, gestion du risque opérationnel et reporting réglementaire."
+  {
+    "question": "Qu’est-ce que le principe de responsabilité unique (SRP) ?",
+    "answer": "Une classe doit avoir **une seule responsabilité** métier (un seul rôle).\n🔑 Mauvais : `ClientService` gère tout (validation, stockage, mails).\n🔑 Bon :\n```csharp\npublic class EmailService { public void Envoyer(...) {...} }\n```"
   },
   {
-    "question": "BP2S est-il un dépositaire ? Quel est son rôle ?",
-    "answer": "**Oui.** En tant que **dépositaire**, BP2S conserve les titres, vérifie la conformité réglementaire des opérations, assure le règlement-livraison et protège les investisseurs (ex : contrôle des mouvements pour un OPCVM)."
+    "question": "Qu’est-ce que le principe Open/Closed (OCP) ?",
+    "answer": "Une classe doit être **ouverte à l’extension**, mais **fermée à la modification**.\n🔑 On utilise **l’héritage ou l’abstraction**.\n```csharp\npublic abstract class Paiement { public abstract void Payer(); }\npublic class PaiementCarte : Paiement { public override void Payer() => Console.WriteLine(\"CB\"); }\n```"
   },
   {
-    "question": "Quels produits Forex BP2S traite-t-il et pourquoi ?",
-    "answer": "BP2S suit opérationnellement les produits FX : **spot, forward, swap, options**. Ces instruments sont utilisés par ses clients pour **gérer le risque de change** et la **liquidité multi-devises** dans les portefeuilles."
+    "question": "Qu’est-ce que le principe de substitution de Liskov (LSP) ?",
+    "answer": "Une sous-classe doit pouvoir **remplacer** la classe de base **sans altérer le comportement**.\n🔴 Mauvais : `class Pingouin : Oiseau` avec une méthode `Voler()` qui jette une exception.\n✅ Solution :\n```csharp\npublic interface IVolant { void Voler(); }\n```"
   },
   {
-    "question": "Quels risques BP2S couvre-t-il sur le Forex ?",
-    "answer": "BP2S gère : le **risque de règlement (Herstatt)**, le **risque d’exposition de change** (variations des taux), et le **risque opérationnel** (matching, fails). Il valorise aussi les positions FX en mark-to-market."
+    "question": "Qu’est-ce que l’Interface Segregation Principle (ISP) ?",
+    "answer": "Il faut **éviter les interfaces trop larges** : une classe ne doit implémenter **que ce dont elle a besoin**.\n🔑 Mauvais :\n```csharp\ninterface IEmploye { void Travailler(); void Cuisiner(); }\n```\n✅ Bon :\n```csharp\ninterface ICuisinier { void Cuisiner(); }\ninterface IDeveloppeur { void Programmer(); }\n```"
   },
   {
-    "question": "Quel est le rôle de BP2S dans les opérations REPO ?",
-    "answer": "BP2S intervient **post-exécution** : matching, gestion du **collatéral**, règlement-livraison, **valorisation** et **reporting SFTR**. Il déclenche aussi les appels de marge selon la variation de la valeur du collatéral."
+    "question": "Qu’est-ce que le Dependency Inversion Principle (DIP) ?",
+    "answer": "Les modules haut niveau doivent **dépendre d’abstractions**, pas de classes concrètes.\n✅ On utilise **l’injection de dépendances** :\n```csharp\npublic interface IDatabase { void Sauvegarder(); }\npublic class Service { private readonly IDatabase _db;\npublic Service(IDatabase db) { _db = db; } }\n```"
   },
   {
-    "question": "Comment BP2S suit une opération FX après exécution ?",
-    "answer": "Étapes : 1) **Matching** des détails, 2) **Gestion des flux** devises (settlement), 3) Suivi de l’exposition FX, 4) **Valorisation MTM**, 5) Reporting **EMIR / MiFID II**. Objectif : limiter erreurs, couvrir les risques."
+    "question": "Comment appliquer concrètement les principes SOLID en C# ?",
+    "answer": "✅ Modulariser les rôles métier (SRP)\n✅ Étendre via héritage (OCP)\n✅ Respecter l’héritage logique (LSP)\n✅ Diviser les interfaces (ISP)\n✅ Injecter les dépendances via interfaces (DIP)\n🔑 Exemple combiné :\n```csharp\npublic interface ILogger { void Log(string msg); }\npublic class FichierLogger : ILogger { ... }\npublic class MonService { public MonService(ILogger logger) { ... } }\n```"
   },
   {
-    "question": "Comment BP2S gère le PnL d’un portefeuille ?",
-    "answer": "Il calcule le **PnL réalisé** (positions clôturées) et **non réalisé** (MTM), les **attribue par stratégie**, intègre les flux (dividendes, coupons), et convertit les devises pour produire les **rapports client**."
+    "question": "Quelle est une bonne métaphore pour les principes SOLID ?",
+    "answer": "🔹 **SRP** : Un employé ≠ facturation + livraison + support.\n🔹 **OCP** : Ajouter une nouvelle prise sans démonter l’appareil.\n🔹 **LSP** : Une voiture électrique remplace une thermique sans changer sa conduite.\n🔹 **ISP** : Une imprimante ≠ scanner ≠ fax → interfaces séparées.\n🔹 **DIP** : Piloter une voiture sans dépendre de la marque (interface)."
   },
   {
-    "question": "Quels types de risques BP2S suit-il au quotidien ?",
-    "answer": "BP2S surveille : **risques opérationnels** (erreurs, fails, écarts de cash), **risques de marché** (change, taux), **règlements** et **risques réglementaires** (EMIR, SFTR, AIFMD)."
+    "question": "Quels sont les 4 piliers de la POO ?",
+    "answer": "**Encapsulation** (masquer les données internes), **Héritage** (réutiliser les comportements), **Polymorphisme** (comportement adaptable), **Abstraction** (exposer uniquement l'essentiel).\n🔑 Exemple :\n```csharp\npublic class Animal { public virtual void Crier() {} }\npublic class Chien : Animal { public override void Crier() => Console.WriteLine(\"Wouf\"); }\n```"
   },
   {
-    "question": "Qu’est-ce que le rapprochement comptabilité vs marché ?",
-    "answer": "**Rapprochement quotidien** entre la valorisation de marché (MTM) et les données comptables. Objectif : détecter anomalies, oublis d’opérations, erreurs de pricing."
+    "question": "Encapsulation : définition + exemple ?",
+    "answer": "**Masquer les données internes** via des propriétés.\n🔑 Code : `private string nom; public string Nom { get; set; }`"
   },
   {
-    "question": "Quel est le rôle de BP2S dans le suivi des suspens ?",
-    "answer": "BP2S suit les **fails de règlement**, relance les contreparties, classe les anomalies par **impact, ancienneté, devise**, et réduit les risques de pénalité (ex : règlement CSDR)."
+    "question": "Héritage : principe + exemple ?",
+    "answer": "**Réutiliser** les attributs/méthodes d’une classe parente.\n🔑 Code : `class Chien : Animal { }`"
   },
   {
-    "question": "Quels reportings réglementaires sont pris en charge par BP2S ?",
-    "answer": "BP2S produit les reportings : **EMIR (dérivés), SFTR (REPOs), AIFMD, MiFID II, UCITS, FATCA/CRS**. Il s’assure de la qualité et conformité des données déclarées aux régulateurs (AMF, ESMA...)."
+    "question": "Polymorphisme : utilité + exemple ?",
+    "answer": "**Appeler une méthode** via une référence générique.\n🔑 Code : `Animal a = new Chien(); a.Crier();`"
   },
   {
-    "question": "Pourquoi Excel est-il encore massivement utilisé chez BP2S ?",
-    "answer": "Excel offre une **flexibilité** pour gérer les exceptions, **prototyper des rapports**, automatiser des contrôles avec **VBA**, et faire du **data cleansing**. Il reste un pont entre le SI et les utilisateurs métiers."
+    "question": "Abstraction : but + exemple ?",
+    "answer": "**Cacher les détails** d’implémentation, exposer l’essentiel.\n🔑 Code : `interface IAnimal { void Crier(); }`"
   },
   {
-    "question": "Quelles tâches opérationnelles sont faites avec Excel ?",
-    "answer": "Excel est utilisé pour : **matching d’opérations**, suivi de **suspens**, **valorisation FX**, calcul de PnL, contrôle qualité et **reporting client**. Outils : **VLOOKUP**, **SUMIFS**, **Power Query**, **macros**."
+    "question": "Quelle différence entre Thread et Task en C# ? Quand les utiliser ?",
+    "answer": "**Thread** = exécution bas niveau, manuel. **Task** = abstraction haut niveau, plus facile à gérer et chaînable avec `await`.\n🔑 Thread : `new Thread(MaMethode).Start();`\n🔑 Task : `Task.Run(() => {...});`"
   },
   {
-    "question": "Quelles macros VBA sont utiles chez BP2S ?",
-    "answer": "Automatisation de : **exports CSV**, **fusion de fichiers**, **alertes de seuils**, **préparation de reportings PnL**, **simulations de stress test (taux, FX)**, et **contrôles conditionnels** sur gros volumes de données."
+    "question": "À quoi servent `async` et `await` ? Quelle relation entre eux ?",
+    "answer": "`async` permet de déclarer une méthode asynchrone, `await` suspend la méthode sans bloquer le thread.\n🔑 Code : `async Task MaMethode() { await Task.Delay(1000); }`"
   },
   {
-    "question": "Quels risques et indicateurs sont simulés avec Excel ?",
-    "answer": "Exemples : **DV01**, **durée modifiée**, **Value at Risk simple**, **stress test FX / taux**, **calcul d’exposition devises**, **marges collatérales**. Outils : formules, solver, graphiques de simulation."
-  },
- 
-  {
-    "question": "Qu'est-ce que la VaR (Value at Risk) en gestion du risque de marché ?",
-    "answer": "**VaR (Value at Risk)** : mesure la perte maximale potentielle sur un portefeuille à un **seuil de confiance donné** (ex : 99%) sur une **durée donnée** (ex : 1 jour). Formule simplifiée : `VaR = σ * z * √t * V`. Méthodes : **paramétrique**, **historique**, **simulation de Monte Carlo**. ⚠️ Ne tient pas compte des pertes extrêmes au-delà du seuil."
+    "question": "Qu’est-ce que le parallélisme et comment le mettre en œuvre ?",
+    "answer": "**Parallélisme** = exécution simultanée sur plusieurs cœurs (CPU-bound).\n🔑 Exemple : `Parallel.Invoke(() => ..., () => ...);`, `Parallel.For(0, 100, i => {...});`"
   },
   {
-    "question": "Quelles sont les principales méthodes de calcul de la VaR ?",
-    "answer": "**Méthodes VaR** : 1) **Paramétrique** (hypothèse de distribution normale), 2) **Historique** (utilisation des données passées), 3) **Simulation de Monte Carlo** (génération de scénarios aléatoires). Chaque méthode a ses forces et ses limites selon la nature du portefeuille."
+    "question": "Différences entre `Thread.Sleep()` et `Task.Delay()` ?",
+    "answer": "`Thread.Sleep()` bloque le thread. `Task.Delay()` attend sans bloquer (asynchrone).\n🔑 Bloquant : `Thread.Sleep(1000);`\n🔑 Non bloquant : `await Task.Delay(1000);`"
   },
   {
-    "question": "Quelles sont les métriques de gestion de portefeuille pertinentes pour le Forex ?",
-    "answer": "**Métriques Forex** : Volatilité (σ), Tracking Error, Beta, Stress Test / Backtest." ,
+    "question": "Comment rendre le `Main` asynchrone et pourquoi ?",
+    "answer": "`async Main()` permet l’utilisation directe de `await` au démarrage du programme (C# 7.1+).\n🔑 Code : `static async Task Main() { await ...; }`"
   },
   {
-    "question": "Quel est le rôle du ratio de Sharpe en finance ?",
-    "answer": "**Sharpe Ratio** = `(R - Rf) / σ` : mesure la performance excédentaire par rapport à l’actif sans risque, ajustée par la **volatilité totale**. ➤ Utilisé quand les rendements sont **symétriques** et normalement distribués. ⚠️ Ne distingue pas les hausses et baisses."
+    "question": "Quels types de tâches conviennent au parallélisme avec `Parallel.For` ?",
+    "answer": "**Tâches CPU-bound indépendantes**, ex : calculs, traitement par lot, simulations.\n🔑 Code : `Parallel.For(0, n, i => { ... });`"
   },
   {
-    "question": "En quoi le ratio de Sortino est-il différent du ratio de Sharpe ?",
-    "answer": "**Sortino Ratio** = `(R - Rf) / σ-` : comme le Sharpe, mais ne prend en compte que la **volatilité négative** (**σ- = downside deviation**). ➤ Mieux adapté aux stratégies avec **rendements asymétriques**. ➤ Ex : utile pour un portefeuille Forex orienté haussier."
+    "question": "Quels sont les inconvénients de gérer les threads manuellement ?",
+    "answer": "**Complexité élevée** : création, synchronisation, erreurs. Risques de **bugs de concurrence**.\n🔑 Code : `Thread t = new Thread(...); t.Start();`"
   },
   {
-    "question": "Quel ratio de performance est utile pour mesurer le risque de perte maximale ?",
-    "answer": "**Calmar Ratio** = `Rendement annualisé / Max Drawdown` : indique la performance par rapport à la **plus forte perte subie**. ➤ Pertinent en **Forex**, où les retracements sont fréquents. ➤ Plus le ratio est élevé, meilleure est la résilience du portefeuille."
+    "question": "Qu’est-ce qu’un `Task<T>` et comment obtenir sa valeur ?",
+    "answer": "`Task<T>` est une tâche async qui retourne une **valeur**.\n🔑 Code : `async Task<int> Calcul() => 2 + 2;`\n🔑 Appel : `int res = await Calcul();`"
   },
   {
-    "question": "Comment interpréter l'Information Ratio dans une stratégie de trading ?",
-    "answer": "**Information Ratio** = `(Rp - Rb) / Tracking Error` : mesure la **surperformance** d’un portefeuille par rapport à un benchmark, corrigée du **risque de suivi**. ➤ Plus il est élevé, plus la gestion est active et efficace."
+    "question": "Quand préférer `async/await` à un thread ?",
+    "answer": "`async/await` est idéal pour les **opérations I/O non bloquantes** (fichiers, API), tandis que les threads sont adaptés aux **tâches parallèles intensives** (CPU-bound)."
   },
   {
-    "question": "Quels sont les principaux risques spécifiques au marché Forex ?",
-    "answer": "**Risques Forex** : Risque directionnel, Corrélation croisée, Effet de levier, Slippage / Liquidité, Risque macro/politique, Carry Trade Risk, Gap de marché."
+    "question": "Donne une métaphore pédagogique de `async/await` vs Thread",
+    "answer": "`Thread` = ouvrier actif qu’on contrôle manuellement. `async/await` = déléguer un travail et continuer, être averti à la fin. Comme envoyer un mail et ne pas attendre devant la boîte."
+  },
+  {
+    "question": "Qu’est-ce que LINQ en C# et à quoi sert-il ?",
+    "answer": "**LINQ** = Language Integrated Query. Permet de filtrer, projeter et agréger des collections de manière déclarative.\n🔑 Exemple : `var even = list.Where(x => x % 2 == 0);`"
+  },
+  {
+    "question": "Qu’est-ce que PLINQ et comment l'utiliser ?",
+    "answer": "**PLINQ** = Parallel LINQ. Extension de LINQ pour exécuter les requêtes **en parallèle**.\n🔑 Exemple : `var result = data.AsParallel().Where(x => x > 10);`"
+  },
+  {
+    "question": "Quand préférer `async/await` à un thread ?",
+    "answer": "`async/await` est idéal pour les **opérations I/O non bloquantes** (fichiers, API), tandis que les threads sont adaptés aux **tâches parallèles intensives** (CPU-bound)."
+  },
+  {
+    "question": "Donne une métaphore pédagogique de `async/await` vs Thread",
+    "answer": "`Thread` = ouvrier actif qu’on contrôle manuellement. `async/await` = déléguer un travail et continuer, être averti à la fin. Comme envoyer un mail et ne pas attendre devant la boîte."
   }
 
 
@@ -107,174 +118,340 @@ const basicSlides = [
 const questions = {
   moyen: [
 
-     {
-    "question": "Quel est le rôle principal de BP2S dans la chaîne financière ?",
+       {
+    "question": "Quel principe SOLID stipule qu'une classe ne doit avoir qu'une seule responsabilité ?",
     "options": [
-      "Exécuter les ordres de marché pour les traders",
-      "Fournir des services post-trade aux acteurs institutionnels",
-      "Gérer des portefeuilles pour le compte des clients",
-      "Offrir des prêts aux particuliers"
+      "Open/Closed Principle",
+      "Liskov Substitution Principle",
+      "Single Responsibility Principle",
+      "Interface Segregation Principle"
     ],
-    "answer": "Fournir des services post-trade aux acteurs institutionnels",
-    "explanation": "BP2S fournit des services post-trade : custody, middle/back office, valorisation, gestion des risques opérationnels et reporting réglementaire."
+    "answer": "Single Responsibility Principle",
+    "explanation": "Le SRP (Single Responsibility Principle) est le premier principe SOLID qui impose qu'une classe ne doit avoir qu'une seule raison de changer, c'est-à-dire une seule responsabilité."
   },
   {
-    "question": "BP2S est principalement rattaché à quel type d’acteurs ?",
+    "question": "Comment appliquer le principe Open/Closed en C# ?",
     "options": [
-      "Aux clients particuliers",
-      "Aux salles de marché (sell side)",
-      "Aux gestionnaires d’actifs et investisseurs institutionnels",
-      "Aux fintechs de paiement"
+      "En modifiant directement la classe existante",
+      "En utilisant l'héritage et l'abstraction",
+      "En copiant-collant le code",
+      "En utilisant des méthodes statiques"
     ],
-    "answer": "Aux gestionnaires d’actifs et investisseurs institutionnels",
-    "explanation": "BP2S sert le buy side (fonds, assureurs, sociétés de gestion) avec un support opérationnel post-trade."
+    "answer": "En utilisant l'héritage et l'abstraction",
+    "explanation": "Le principe Open/Closed recommande d'étendre le comportement via l'héritage ou l'abstraction (interfaces, classes abstraites) plutôt que de modifier le code existant."
   },
   {
-    "question": "Quels produits FOREX sont suivis opérationnellement par BP2S ?",
+    "question": "Quelle situation viole le principe de substitution de Liskov ?",
     "options": [
-      "Uniquement les produits dérivés",
-      "FX Spot, Forward, Swap, Options",
-      "Actions et obligations",
-      "ETF uniquement"
+      "Une sous-classe qui étend toutes les méthodes de sa classe mère",
+      "Une sous-classe qui lance une exception dans une méthode override",
+      "Une sous-classe qui ajoute de nouvelles méthodes",
+      "Une sous-classe qui implémente une interface"
     ],
-    "answer": "FX Spot, Forward, Swap, Options",
-    "explanation": "BP2S assure le suivi post-trade des produits FX utilisés pour les besoins de change et de couverture."
+    "answer": "Une sous-classe qui lance une exception dans une méthode override",
+    "explanation": "Le LSP exige qu'une sous-classe puisse remplacer sa classe mère sans altérer le comportement attendu. Lancer une exception dans une méthode override est une violation typique."
   },
   {
-    "question": "Quel est un des risques majeurs dans les opérations de change ?",
+    "question": "Quel est le but principal de l'encapsulation en POO ?",
     "options": [
-      "Risque de durée",
-      "Risque Herstatt (non-livraison contre paiement)",
-      "Risque de fiscalité",
-      "Risque de réputation"
+      "Rendre le code plus difficile à comprendre",
+      "Masquer les détails d'implémentation",
+      "Augmenter les performances",
+      "Réduire le nombre de classes"
     ],
-    "answer": "Risque Herstatt (non-livraison contre paiement)",
-    "explanation": "Le risque Herstatt correspond à un défaut de livraison dans une opération de change ; BP2S le gère via CLS et des mécanismes de compensation."
+    "answer": "Masquer les détails d'implémentation",
+    "explanation": "L'encapsulation permet de cacher les détails internes d'une classe et de n'exposer que ce qui est nécessaire, via des propriétés et méthodes publiques."
   },
   {
-    "question": "Quel est le rôle de BP2S dans une opération REPO ?",
+    "question": "Quelle syntaxe C# illustre le mieux le polymorphisme ?",
     "options": [
-      "Passer les ordres sur le marché",
-      "Assurer le post-trade : confirmation, collatéral, règlement, valorisation",
-      "Créer des produits dérivés",
-      "Agir comme contrepartie centrale"
+      "class Animal {} class Chien : Animal {}",
+      "Animal a = new Animal();",
+      "Animal a = new Chien(); a.Crier();",
+      "interface IAnimal {}"
     ],
-    "answer": "Assurer le post-trade : confirmation, collatéral, règlement, valorisation",
-    "explanation": "BP2S intervient en post-trade : validation, gestion du collatéral, règlement, valorisation mark-to-market, et reporting SFTR."
+    "answer": "Animal a = new Chien(); a.Crier();",
+    "explanation": "Le polymorphisme permet d'utiliser une instance de classe dérivée via une référence de classe de base, avec un comportement spécifique à la classe dérivée."
   },
   {
-    "question": "Qu'est-ce qu'un PnL non réalisé ?",
+    "question": "Quelle est la différence principale entre Thread et Task en C# ?",
     "options": [
-      "Un gain/perte sur une position clôturée",
-      "Une erreur comptable à corriger",
-      "Une valorisation théorique d'une position ouverte",
-      "Un dividende non versé"
+      "Thread est plus moderne que Task",
+      "Task est une abstraction de plus haut niveau",
+      "Thread ne peut pas être annulé",
+      "Task est toujours synchrone"
     ],
-    "answer": "Une valorisation théorique d'une position ouverte",
-    "explanation": "Le PnL non réalisé reflète les gains ou pertes latents sur les positions ouvertes, en fonction du mark-to-market (MTM)."
+    "answer": "Task est une abstraction de plus haut niveau",
+    "explanation": "Task représente une opération asynchrone et fournit un modèle de programmation plus simple que la gestion directe des threads, avec support natif de await/async."
   },
   {
-    "question": "Quelle plateforme est utilisée pour le matching des opérations FX ?",
+    "question": "Quand doit-on utiliser async/await plutôt que des threads ?",
     "options": [
-      "Amazon Web Services",
-      "SWIFT MT300 / FXGO / MarkitWire",
-      "MetaTrader 5",
-      "Excel uniquement"
+      "Pour les calculs intensifs sur CPU",
+      "Pour les opérations I/O bound",
+      "Pour les opérations nécessitant un contrôle précis des threads",
+      "Pour les opérations nécessitant Thread.Sleep"
     ],
-    "answer": "SWIFT MT300 / FXGO / MarkitWire",
-    "explanation": "BP2S utilise des plateformes comme SWIFT, Bloomberg FXGO et MarkitWire pour assurer la confirmation des opérations FX."
+    "answer": "Pour les opérations I/O bound",
+    "explanation": "async/await est optimisé pour les opérations I/O bound (accès réseau, fichiers) car il permet de libérer les threads pendant les attentes."
   },
   {
-    "question": "Qu’est-ce qu’un fail dans un contexte post-trade ?",
+    "question": "Quelle méthode permet d'attendre une tâche sans bloquer le thread ?",
     "options": [
-      "Une erreur de saisie client",
-      "Une perte définitive de titres",
-      "Un échec de règlement/livraison",
-      "Un bug logiciel sans impact"
+      "Thread.Sleep(1000)",
+      "Task.Delay(1000).Wait()",
+      "await Task.Delay(1000)",
+      "Thread.Yield()"
     ],
-    "answer": "Un échec de règlement/livraison",
-    "explanation": "Un 'fail' désigne une transaction non réglée à temps ; les équipes BP2S les suivent pour éviter des pénalités ou des risques opérationnels."
+    "answer": "await Task.Delay(1000)",
+    "explanation": "await Task.Delay() est la méthode non-bloquante pour attendre, contrairement à Thread.Sleep() ou Wait() qui bloquent le thread."
   },
   {
-    "question": "Pourquoi Excel est-il encore largement utilisé chez BP2S ?",
+    "question": "Quel est l'avantage principal de LINQ ?",
     "options": [
-      "Parce que les autres outils sont trop chers",
-      "Pour prototyper rapidement et gérer les cas non couverts par le SI",
-      "Parce qu'il n'y a pas d'autres solutions",
-      "Pour créer des bases de données centralisées"
+      "Améliorer les performances",
+      "Remplacer les boucles for",
+      "Fournir une syntaxe déclarative pour les requêtes",
+      "Réduire la taille du code exécutable"
     ],
-    "answer": "Pour prototyper rapidement et gérer les cas non couverts par le SI",
-    "explanation": "Excel reste indispensable pour sa flexibilité, sa rapidité d’adaptation, et sa capacité à automatiser via VBA dans les flux post-trade."
+    "answer": "Fournir une syntaxe déclarative pour les requêtes",
+    "explanation": "LINQ permet d'écrire des requêtes sur des collections de manière déclarative et lisible, similaire au SQL, plutôt qu'avec des boucles impératives."
   },
   {
-    "question": "Quel type de reporting réglementaire BP2S produit-il ?",
+    "question": "Quand doit-on utiliser PLINQ plutôt que LINQ ?",
     "options": [
-      "Déclarations fiscales personnelles",
-      "EMIR, SFTR, AIFMD, MiFID II, FATCA",
-      "Rapports internes uniquement",
-      "Prospectus des fonds"
+      "Pour les petites collections",
+      "Pour les requêtes simples",
+      "Pour les opérations CPU-bound sur grandes collections",
+      "Pour les opérations I/O bound"
     ],
-    "answer": "EMIR, SFTR, AIFMD, MiFID II, FATCA",
-    "explanation": "BP2S prend en charge le reporting règlementaire pour ses clients buy side conformément aux normes européennes et internationales."
+    "answer": "Pour les opérations CPU-bound sur grandes collections",
+    "explanation": "PLINQ (Parallel LINQ) est utile pour paralléliser le traitement de grandes collections lorsque les opérations sont intensives en CPU."
+  },
+  {
+    "question": "Comment implémenter correctement le Dependency Inversion Principle ?",
+    "options": [
+      "En instanciant directement les dépendances",
+      "En utilisant le pattern Singleton",
+      "En dépendant d'abstractions et utilisant l'injection de dépendances",
+      "En rendant toutes les méthodes statiques"
+    ],
+    "answer": "En dépendant d'abstractions et utilisant l'injection de dépendances",
+    "explanation": "Le DIP recommande de dépendre d'interfaces ou classes abstraites, avec des dépendances injectées (typiquement via le constructeur) plutôt qu'instanciées directement."
+  },
+  {
+    "question": "Quelle est la caractéristique principale d'une interface bien conçue selon l'ISP ?",
+    "options": [
+      "Elle doit contenir le plus de méthodes possible",
+      "Elle doit être petite et ciblée",
+      "Elle doit implémenter des méthodes par défaut",
+      "Elle doit hériter d'au moins une autre interface"
+    ],
+    "answer": "Elle doit être petite et ciblée",
+    "explanation": "L'Interface Segregation Principle recommande de créer des interfaces petites et spécifiques plutôt que des interfaces larges contenant des méthodes inutiles pour certains clients."
+  },
+  {
+    "question": "Quelle est la différence entre abstraction et encapsulation ?",
+    "options": [
+      "L'abstraction cache les détails, l'encapsulation montre tout",
+      "L'encapsulation cache les détails, l'abstraction simplifie le modèle",
+      "Il n'y a pas de différence",
+      "L'abstraction concerne l'héritage, l'encapsulation les interfaces"
+    ],
+    "answer": "L'encapsulation cache les détails, l'abstraction simplifie le modèle",
+    "explanation": "L'encapsulation protège les données internes, tandis que l'abstraction fournit un modèle simplifié en cachant la complexité de l'implémentation."
+  },
+  {
+    "question": "Pourquoi éviter Thread.Sleep() dans du code asynchrone ?",
+    "options": [
+      "Parce que c'est obsolète",
+      "Parce que ça bloque le thread",
+      "Parce que c'est plus lent que Task.Delay",
+      "Parce que ça consomme plus de mémoire"
+    ],
+    "answer": "Parce que ça bloque le thread",
+    "explanation": "Thread.Sleep() bloque le thread courant, ce qui annule les bénéfices de l'asynchronisme, contrairement à await Task.Delay() qui est non-bloquant."
+  },
+  {
+    "question": "Quelle est la meilleure pratique pour gérer les dépendances selon SOLID ?",
+    "options": [
+      "Utiliser le pattern Singleton partout",
+      "Instancier les dépendances dans les constructeurs",
+      "Utiliser l'injection de dépendances via des interfaces",
+      "Déclarer toutes les dépendances comme statiques"
+    ],
+    "answer": "Utiliser l'injection de dépendances via des interfaces",
+    "explanation": "L'injection de dépendances via des interfaces permet de respecter le Dependency Inversion Principle et rend le code plus testable et modulaire."
   },
   ],
-  avance: [
-     {
-    "question": "Un client buy side t’informe d’un écart de PnL anormal sur son portefeuille. Quelle est ta première réaction ?",
+  avance: 
+  [
+  {
+    "question": "Quelle violation du LSP se cache dans ce code ?\n```csharp\nclass Rectangle { virtual int Width {get;set;} virtual int Height {get;set;} }\nclass Square : Rectangle { override int Width { set { base.Width = base.Height = value; } } }\n```",
     "options": [
-      "Recalculer le PnL avec Excel à la main",
-      "Transmettre le problème au département comptable",
-      "Analyser les flux, valorisations et FX pour détecter l’origine de l’écart",
-      "Annuler l’opération litigieuse immédiatement"
+      "Square modifie le comportement des setters",
+      "Rectangle devrait être sealed",
+      "Square ne peut pas substituer Rectangle car cela brise les invariants",
+      "Aucune violation, c'est une bonne implémentation"
     ],
-    "answer": "Analyser les flux, valorisations et FX pour détecter l’origine de l’écart",
-    "explanation": "Le rôle du middle/back office est de tracer les flux (cash, titres), vérifier la valorisation, et contrôler la conversion devises avant d’escalader si nécessaire."
+    "answer": "Square ne peut pas substituer Rectangle car cela brise les invariants",
+    "explanation": "Un carré ne peut pas être un substitut valide de rectangle car modifier une dimension affecte l'autre, ce qui viole les attentes du code client conçu pour Rectangle."
   },
   {
-    "question": "Lors d’un rapprochement, tu détectes un écart de valorisation entre le système comptable et celui de marché. Que fais-tu ?",
+    "question": "Quel problème résout ce pattern dans une hiérarchie SOLID ?\n```csharp\ninterface IWorker { void Work(); }\ninterface IEater { void Eat(); }\nclass Human : IWorker, IEater { ... }\nclass Robot : IWorker { ... }\n```",
     "options": [
-      "Corriger la comptabilité manuellement",
-      "Notifier l’écart sans vérification",
-      "Comparer les sources de prix, valider les dates, vérifier les coupons/dividendes",
-      "Ignorer si l’écart est faible"
+      "Violation du SRP",
+      "Respect strict du LSP",
+      "Application de l'ISP",
+      "Optimisation pour le cache CPU"
     ],
-    "answer": "Comparer les sources de prix, valider les dates, vérifier les coupons/dividendes",
-    "explanation": "Le rapprochement compta/MTM implique une vérification rigoureuse : source de données, devises, dates de valeur, OST éventuels."
+    "answer": "Application de l'ISP",
+    "explanation": "La séparation en interfaces fines (IWorker/IEater) plutôt qu'une grosse interface 'IHumanoid' illustre parfaitement l'Interface Segregation Principle."
   },
   {
-    "question": "Que fais-tu si une opération FX spot ne se règle pas dans les temps (fail) ?",
+    "question": "Pourquoi ce code viole-t-il l'OCP ?\n```csharp\nclass ReportGenerator {\n  public void Generate(string type) {\n    if (type == \"PDF\") { /* PDF */ }\n    else if (type == \"HTML\") { /* HTML */ }\n  }\n}```",
     "options": [
-      "Laisser la contrepartie relancer",
-      "Émettre une alerte de règlement et contacter immédiatement la contrepartie",
-      "Annuler l’opération",
-      "Réexécuter l’ordre à la place du client"
+      "Il utilise des strings au lieu d'enums",
+      "Il nécessite de modifier la classe pour ajouter un nouveau type",
+      "Il ne respecte pas le SRP",
+      "Il devrait être static"
     ],
-    "answer": "Émettre une alerte de règlement et contacter immédiatement la contrepartie",
-    "explanation": "Un fail de règlement FX est critique ; il faut identifier la cause (IBAN, devise, date valeur, instructions SWIFT) et relancer les parties prenantes."
+    "answer": "Il nécessite de modifier la classe pour ajouter un nouveau type",
+    "explanation": "Pour ajouter un format (ex: CSV), il faut modifier la classe existante, ce qui viole l'Open/Closed Principle. Une solution serait d'utiliser une abstraction (IReportGenerator)."
   },
   {
-    "question": "Comment sécuriser une macro Excel destinée au calcul du PnL quotidien ?",
+    "question": "Quel est le problème de ce décorateur ?\n```csharp\nclass CachedService : IService {\n  private IService _service;\n  private Dictionary<string, object> _cache = new();\n  public CachedService(IService s) { _service = s; }\n  public object Get(string key) {\n    if (!_cache.ContainsKey(key)) _cache[key] = _service.Get(key);\n    return _cache[key];\n  }\n}```",
     "options": [
-      "Cacher les feuilles de calcul",
-      "Utiliser des mots de passe forts",
-      "Documenter le code, gérer les erreurs, limiter les entrées utilisateurs",
-      "Empêcher l'accès à Internet"
+      "Violation du SRP (cache + service)",
+      "Problème de concurrence (non thread-safe)",
+      "Les deux réponses précédentes",
+      "Aucun problème, c'est une bonne implémentation"
     ],
-    "answer": "Documenter le code, gérer les erreurs, limiter les entrées utilisateurs",
-    "explanation": "En environnement critique, une macro doit être robuste : logs, contrôles, commentaires, gestion d'erreurs, vérifications d'entrée et procédures de rollback."
+    "answer": "Les deux réponses précédentes",
+    "explanation": "1) Le cache devrait être externalisé pour respecter le SRP. 2) L'accès au dictionnaire n'est pas synchronisé, ce qui est dangereux en multi-thread."
   },
   {
-    "question": "En période de clôture mensuelle, un client demande un reporting personnalisé urgent. Comment réagis-tu ?",
+    "question": "Comment corriger ce code pour respecter le DIP ?\n```csharp\nclass OrderProcessor {\n  private SqlDatabase _db = new SqlDatabase();\n  public void Process(Order o) { _db.Save(o); }\n}```",
     "options": [
-      "Refuser la demande car ce n’est pas prévu",
-      "Demander une dérogation à ton responsable et prioriser selon impact client",
-      "Reporter à la semaine suivante",
-      "Lancer une extraction brute sans contrôle"
+      "Rendre _db static",
+      "Injecter IDatabase dans le constructeur",
+      "Implémenter un pattern Singleton",
+      "Utiliser des méthodes d'extension"
     ],
-    "answer": "Demander une dérogation à ton responsable et prioriser selon impact client",
-    "explanation": "Tu dois rester orienté client tout en respectant la hiérarchie. Il faut évaluer l’urgence, discuter des arbitrages avec ton manager, et sécuriser la production."
+    "answer": "Injecter IDatabase dans le constructeur",
+    "explanation": "Pour respecter le Dependency Inversion Principle, il faut dépendre d'une abstraction (IDatabase) injectée plutôt que de l'implémentation concrète (SqlDatabase)."
+  },
+  {
+    "question": "Quel anti-pattern illustre ce code async ?\n```csharp\nasync Task<int> Compute() {\n  var result = await Task.Run(() => {\n    Thread.Sleep(1000);\n    return 42;\n  });\n  return result;\n}```",
+    "options": [
+      "Async-over-sync",
+      "Sync-over-async",
+      "Double await inutile",
+      "Mauvaise gestion des erreurs"
+    ],
+    "answer": "Async-over-sync",
+    "explanation": "C'est un anti-pattern 'async-over-sync' : on encapsule du code synchrone (Thread.Sleep) dans Task.Run, ce qui consomme inutilement un thread pool."
+  },
+  {
+    "question": "Pourquoi ce code est-il dangereux ?\n```csharp\nasync void Button_Click(object s, EventArgs e) {\n  await SomeAsyncOperation();\n}```",
+    "options": [
+      "Les exceptions sont ingérables",
+      "Il bloque l'UI thread",
+      "Il nécessite C# 9+",
+      "Le mot-clé async est inutile"
+    ],
+    "answer": "Les exceptions sont ingérables",
+    "explanation": "async void ne permet pas d'attendre ni de catcher les exceptions correctement. Il devrait retourner Task dans les handlers d'événements."
+  },
+  {
+    "question": "Quelle technique permet de déboguer ce deadlock ?\n```csharp\nasync Task Deadlock() {\n  var task = WaitAsync();\n  task.Wait(); // Bloque ici\n}\nasync Task WaitAsync() {\n  await Task.Delay(1000);\n}```",
+    "options": [
+      "Inspecter la fenêtre Parallel Stacks",
+      "Utiliser ConfigureAwait(false)",
+      "Remplacer Wait() par await",
+      "Toutes ces solutions"
+    ],
+    "answer": "Toutes ces solutions",
+    "explanation": "1) Parallel Stacks montre les dépendances entre threads. 2) ConfigureAwait(false) évite le contexte de synchronisation. 3) await est la solution propre."
+  },
+  {
+    "question": "Quelle optimisation apporte ce code PLINQ ?\n```csharp\nvar results = data.AsParallel()\n  .WithDegreeOfParallelism(Environment.ProcessorCount)\n  .Where(x => ExpensiveFilter(x))\n  .ToList();```",
+    "options": [
+      "Meilleure gestion de la mémoire",
+      "Limitation explicite du parallélisme",
+      "Exécution séquentielle forcée",
+      "Cache des résultats intermédiaires"
+    ],
+    "answer": "Limitation explicite du parallélisme",
+    "explanation": "WithDegreeOfParallelism() évite la surcharge en limitant le nombre de threads utilisés, particulièrement utile pour les opérations CPU-bound."
+  },
+  {
+    "question": "Quel est l'effet de 'WithCancellation' dans cette requête PLINQ ?\n```csharp\nvar results = source.AsParallel()\n  .WithCancellation(cts.Token)\n  .Select(x => Transform(x));```",
+    "options": [
+      "Améliore les performances",
+      "Permet d'annuler la requête",
+      "Force l'exécution séquentielle",
+      "Active le logging détaillé"
+    ],
+    "answer": "Permet d'annuler la requête",
+    "explanation": "WithCancellation permet d'interrompre une requête PLINQ longue via un CancellationToken, essentiel pour les UIs ou services interruptibles."
+  },
+  {
+    "question": "Pourquoi préférer ce pattern pour les factories async ?\n```csharp\ninterface IAsyncFactory<T> {\n  Task<T> CreateAsync();\n}```",
+    "options": [
+      "Pour supporter l'injection de dépendances",
+      "Pour permettre l'initialisation asynchrone",
+      "Pour respecter le SRP",
+      "Pour améliorer les performances"
+    ],
+    "answer": "Pour permettre l'initialisation asynchrone",
+    "explanation": "Certaines ressources nécessitent une initialisation asynchrone (fichiers, DB). Ce pattern permet de l'encapsuler proprement plutôt que d'utiliser des constructeurs sync."
+  },
+  {
+    "question": "Quel est le risque de ce ValueTask ?\n```csharp\npublic ValueTask<int> Compute() {\n  if (_cache.TryGetValue(key, out var result))\n    return new ValueTask<int>(result); // Cas sync\n  return new ValueTask<int>(ComputeAsync()); // Cas async\n}```",
+    "options": [
+      "Double allocation mémoire",
+      "Appel simultané impossible",
+      "Le ValueTask peut être consommé une seule fois",
+      "Gestion compliquée des erreurs"
+    ],
+    "answer": "Le ValueTask peut être consommé une seule fois",
+    "explanation": "Un ValueTask ne doit être awaité qu'une seule fois. Si le résultat est réutilisé, il faut convertir en Task via .AsTask() ou recréer le ValueTask."
+  },
+  {
+    "question": "Comment garantir qu'une méthode est pure en C# ?\n```csharp\n[Pure]\nint Calculate(int a, int b) {\n  return a + b;\n}```",
+    "options": [
+      "Avec l'attribut [Pure] (System.Diagnostics.Contracts)",
+      "En la marquant static",
+      "Avec readonly struct",
+      "C'est impossible à garantir"
+    ],
+    "answer": "Avec l'attribut [Pure] (System.Diagnostics.Contracts)",
+    "explanation": "L'attribut [Pure] indique que la fonction ne modifie pas l'état observable (pas de side-effects). Les analyseurs de code peuvent vérifier cette propriété."
+  },
+  {
+    "question": "Quelle technique permet de déboguer efficacement ce code ?\n```csharp\nvar result = await FetchDataAsync().ConfigureAwait(false);\nUpdateUI(result); // Crash ici```",
+    "options": [
+      "Vérifier le SynchronizationContext",
+      "Inspecter la pile d'appels asynchrone",
+      "Utiliser Visual Studio's Parallel Stacks",
+      "Toutes ces réponses"
+    ],
+    "answer": "Toutes ces réponses",
+    "explanation": "Le crash vient probablement d'une tentative de mettre à jour l'UI depuis un thread non-UI. Ces techniques aident à tracer le flux d'exécution asynchrone."
+  },
+  {
+    "question": "Quelle est la particularité de ce pipeline LINQ ?\n```csharp\nvar query = data.Where(x => x.IsValid)\n  .AsParallel()\n  .Select(x => Transform(x))\n  .AsSequential()\n  .OrderBy(x => x.Date);```",
+    "options": [
+      "Il mélange traitement parallèle et séquentiel",
+      "Il est optimisé pour les petites collections",
+      "Il implémente le pattern Producer/Consumer",
+      "Il nécessite C# 10"
+    ],
+    "answer": "Il mélange traitement parallèle et séquentiel",
+    "explanation": "AsParallel() active le traitement parallèle pour le filtrage et la transformation, tandis que AsSequential() désactive le parallélisme pour le tri final qui nécessite un traitement séquentiel."
   }
-  ]
+]
 };
 
 

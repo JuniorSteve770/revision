@@ -1,4 +1,9 @@
+/* mecanismes des differents marchées swpa et ses jambes et contenu des jambes et jours de settlement
 /*
+
+
+
+/* - /*
 Reformulation 1 – Style concis et structuré :
 Voici une liste de flashcards. Je souhaite que tu les regroupes deux par deux, en combinant les questions et les réponses tout en respectant le format "question-réponse".
 Merci de réduire la longueur des phrases dans les réponses, tout en mettant en valeur les mots-clés essentiels.
@@ -12,6 +17,7 @@ Réécris les réponses pour qu’elles soient plus courtes, plus claires, et ri
 Regroupe les cartes par logique ou thème similaire, mais ne supprime aucune information.
 L’objectif est d’avoir un ensemble de flashcards plus compact, plus clair, et optimisé pour réviser efficacement.
 
+#############Youtube TXT
 Extraction des concepts fondamentaux
 Objectif : Identifier et organiser les idées principales, les paradigmes ou les méthodologies abordés.
 Prompt :
@@ -99,3 +105,4 @@ Format JSON attendu :
 
 Génère 2 QCM avec du code sur le thème [ex : SOLID] et 2 autres sur [ex : les design patterns], en respectant le format JSON QCM avec explication.
 Utilise des exemples concrets et pertinents pour un niveau entretien ou confirmé.
+*/
