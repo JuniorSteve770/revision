@@ -6,482 +6,413 @@ import "./Page.css";
 // Flashcards pour le niveau basic
 
 const basicSlides = [
-  {
-    "question": "Comment référencer une feuille et détecter dynamiquement la dernière ligne ?",
-    "answer": "➡️ Utilise `Set ws = Sheets(\"NomFeuille\")` pour manipuler une feuille spécifique. \n➡️ Pour trouver la dernière cellule remplie : `ws.Cells(ws.Rows.Count, 1).End(xlUp).Row`. \n📌 **Mots-clés** : Set, Sheets, xlUp, dynamique. \n📎 **Exemple** : `Set baseWs = Sheets(\"Base\")`, `lastRow = ws.Cells(Rows.Count, 1).End(xlUp).Row`. \n⚠️ **Erreur à éviter** : `.End(xlDown)` saute les cellules vides."
+
+   {
+    "question": "Quelles nouveautés ont apporté .NET 3.0 et .NET 3.5 ?",
+    "answer": " .NET 3.0 (2006) introduit **WPF** (UI), **WCF** (services), **WF** (workflow) et **CardSpace** (identité). 📊 .NET 3.5 (2007) apporte **LINQ** (requêtes intégrées au langage) et **ASP.NET AJAX** (web interactif)."
   },
   {
-    "question": "Comment créer une collection sans doublon et nommer une feuille dynamiquement ?",
-    "answer": "➡️ Crée une `Collection` avec `On Error Resume Next` + `CStr(val)` comme clé : évite les doublons. \n➡️ Nomme la feuille avec `Left(\"Client_\" & client, 31)` pour respecter la limite Excel. \n📌 **Mots-clés** : Collection, unicité, nom de feuille, Left. \n📎 **Exemple** : `uniqueClients.Add cell.Value, CStr(cell.Value)`, `reportWs.Name = Left(\"Client_\" & client, 31)`."
+    "question": "Quelles évolutions ont marqué .NET 4.0 et .NET 4.5 ?",
+    "answer": " .NET 4.0 (2010) introduit **PLINQ** et la **Task Parallel Library** pour le **parallélisme**. ⏳ .NET 4.5 (2012) intègre **async/await** et **Web API** pour les applis web modernes asynchrones."
   },
   {
-    "question": "Comment filtrer des données par critère et copier les lignes correspondantes ?",
-    "answer": "➡️ Parcours les cellules avec `For Each`, filtre avec `If cell.Value = critere` et copie la ligne : `cell.EntireRow.Copy Destination:=...`. \n📌 **Mots-clés** : boucle, filtre manuel, EntireRow, Destination. \n📎 **Exemple** : `If cell.Value = client Then cell.EntireRow.Copy Destination:=reportWs.Cells(..., 1)`. \n⚠️ **Attention** à bien gérer la ligne de destination (évite les doublons ou vides)."
+    "question": "Quelle est la différence entre .NET Framework et .NET Core ?",
+    "answer": "**.NET Framework** : pour applis Windows legacy, ❌ modulaire, ❌ open source. 🧩 **.NET Core** : multiplateforme (Win/Linux/mac), ✅ modulaire, ✅ open source. Usage : développement moderne avant .NET 5."
   },
   {
-    "question": "Comment insérer un logo et ajuster sa position dans une feuille Excel ?",
-    "answer": "➡️ Utilise `Pictures.Insert(path).Select`, puis ajuste via `.ShapeRange.Left`, `.Top`, `.Height`. \n📌 **Mots-clés** : image, ShapeRange, position. \n📎 **Exemple** : `reportWs.Pictures.Insert(\"C:\\logo.png\")`, `.Left = Range(\"F1\").Left`, `.Height = 40`. \n⚠️ Le fichier image doit exister au chemin indiqué."
+    "question": "Pourquoi .NET ≥ 5 est-il recommandé pour les projets récents ?",
+    "answer": " **.NET 5 et suivants** unifient toutes les plateformes (desktop, web, mobile, cloud), sont **modulaires**, **open source**, **cross-platform**, et **recommandés** pour tout nouveau projet."
+  },
+   {
+    "question": "Qu'est-ce que Git et pourquoi est-il indispensable dans le développement logiciel ?",
+    "answer": " Git est un système de contrôle de version **distribué**. Il permet de suivre l’historique des modifications de code, collaborer avec d'autres développeurs via des **branches**, fusionner des versions avec **merge**, et expérimenter sans risquer le code principal. Exemple : un développeur crée une branche `feature-login`, code dessus, puis fusionne via une Pull Request. 🔑 Mots-clés : commit, branche, merge, revert, versioning distribué."
   },
   {
-    "question": "Comment configurer une mise en page propre pour l'impression ?",
-    "answer": "➡️ Utilise `.PageSetup` avec `.Orientation`, `.Zoom = False`, `.FitToPagesWide = 1`. \n📌 **Mots-clés** : PageSetup, impression, FitToPage. \n📎 **Exemple** : `With ws.PageSetup ... End With`. \n⚠️ N’oublie pas de désactiver `Zoom` pour que les options d’ajustement s’appliquent."
+    "question": "Qu'est-ce qu'un pipeline CI/CD et pourquoi est-il essentiel ?",
+    "answer": " Un pipeline CI/CD est une **chaîne automatisée** qui permet de tester, compiler, et déployer une application. CI = Continuous Integration : exécution de tests unitaires/linting à chaque commit. CD = Continuous Delivery/Deployment : déploiement automatique vers staging/production. Exemple : GitHub Actions déclenche un build et un test dès qu’un push est fait sur `main`. 🔑 Concepts : jobs, steps, runners, artefacts, stages."
   },
   {
-    "question": "Comment informer l'utilisateur à la fin de l'exécution d'une macro ?",
-    "answer": "➡️ Utilise `MsgBox \"Texte\", vbInformation` pour confirmer la réussite ou notifier un état. \n📌 **Mots-clés** : MsgBox, feedback, utilisateur. \n📎 **Exemple** : `MsgBox \"Reportings générés avec succès !\"`. \n⚠️ Ajoute une icône (`vbInformation`) pour une interface plus claire."
-  },
- {
-    "question": "Comment référencer une feuille et détecter la dernière ligne non vide ?",
-    "answer": "**Référencer** : `Set ws = Sheets(\"NomFeuille\")` permet de manipuler une feuille existante. \n**Dernière ligne** : `Cells(Rows.Count, 1).End(xlUp).Row` trouve la dernière cellule remplie d’une colonne. \nMots-clés : `Set`, `Sheets`, `xlUp`, dynamique. \nExemple : `Set baseWs = Sheets(\"Base\")` / `lastRow = ws.Cells(Rows.Count, 1).End(xlUp).Row`."
+    "question": "Quelle est la différence entre GitHub Actions et GitLab CI/CD ?",
+    "answer": " GitHub Actions est un outil d’automatisation **intégré à GitHub**, utilisant des fichiers `.yml` dans `.github/workflows/`. GitLab CI/CD repose sur un fichier `.gitlab-ci.yml`, avec une vue pipeline intégrée. GitLab permet des étapes conditionnelles complexes, GitHub est plus simple à configurer pour les petits projets. 🔑 Mots-clés : déclencheur (`on: push`), runner, cache, matrix build."
   },
   {
-    "question": "Comment créer une collection unique et générer une feuille avec nom dynamique ?",
-    "answer": "**Collection unique** : `uniqueClients.Add val, CStr(val)` + `On Error Resume Next` évite les doublons. \n**Nom dynamique** : `reportWs.Name = Left(\"Client_\" & client, 31)` limite à 31 caractères. \nMots-clés : `Collection`, `unicité`, `gestion d'erreur`, `nom de feuille`. \nExemple : `Sheets.Add`, `CStr(val)`."
+    "question": "Quels sont les composants d’un workflow GitHub Actions ?",
+    "answer": " Un workflow GitHub Actions est composé de : **events** (déclencheurs : push, PR, cron), **jobs** (unités d'exécution), **steps** (commandes), **actions** (réutilisables). Exemple : un job nommé `test` contient 3 steps : `checkout`, `install`, `run tests`. 🔑 Syntaxe : YAML, environnement GitHub-hosted, secrets pour les tokens."
   },
   {
-    "question": "Comment filtrer manuellement et copier des lignes selon un critère ?",
-    "answer": "Boucle sur les cellules : `If cell.Value = critere Then cell.EntireRow.Copy Destination:=...`. \nMots-clés : `filtrage`, `boucle`, `EntireRow`, `Destination`. \nExemple : copie uniquement les lignes du client sélectionné."
+    "question": "Qu'est-ce qu'une API REST et pourquoi est-elle largement utilisée ?",
+    "answer": " Une **API REST** repose sur le protocole **HTTP** et suit des conventions : chaque ressource (ex: /users/12) est accessible via des **verbes** (GET, POST, PUT, DELETE). Elle est **stateless** : chaque requête contient toutes les informations nécessaires. Avantages : simple, lisible, compatible avec les navigateurs. Exemple : `GET /api/products` retourne une liste de produits au format JSON. 🔑 Mots-clés : endpoint, URI, stateless, JSON, status code HTTP."
   },
   {
-    "question": "Comment insérer une image avec positionnement personnalisé ?",
-    "answer": "Utilise `Pictures.Insert(path).Select`, puis ajuste via `.ShapeRange`. \nMots-clés : `insertion image`, `ShapeRange`, `positionnement`. \nExemple : `.Left = Range(\"F1\").Left`, `.Height = 40`."
+    "question": "Quelles sont les différences fondamentales entre REST, SOAP et gRPC ?",
+    "answer": " **REST** : HTTP + JSON, simple à consommer. **SOAP** : XML + WSDL, utilisé dans les systèmes anciens (banques, ERP). **gRPC** : HTTP/2 + Protobuf, très rapide et compact, idéal pour microservices internes. REST est mieux pour les APIs web publiques, gRPC pour l'interne haute performance. 🔑 Mots-clés : Protobuf, stateless, contrat, XML vs JSON, compatibilité navigateur."
   },
   {
-    "question": "Comment configurer la mise en page pour impression ?",
-    "answer": "Utilise `PageSetup` avec `.Orientation = xlPortrait`, `.Zoom = False`, `.FitToPagesWide = 1`. \nMots-clés : `mise en page`, `impression`, `FitToPages`. \nExemple : une page de large, plusieurs pages de haut possibles."
+    "question": "Pourquoi utiliser gRPC dans une architecture microservices ?",
+    "answer": " gRPC utilise **HTTP/2** et **Protocol Buffers**, ce qui permet une **communication binaire rapide**, du **streaming** bidirectionnel et une **vérification forte des types**. Il est idéal dans un réseau d’entreprise entre microservices : login, panier, paiement. Exemple : `rpc Checkout (CartRequest) returns (PaymentStatus)` avec `.proto` généré automatiquement. 🔑 Concepts : stub, service definition, contract first, streaming."
   },
   {
-    "question": "Comment afficher un message de confirmation en fin de macro ?",
-    "answer": "Utilise `MsgBox \"Texte\", vbInformation`. \nMots-clés : `MsgBox`, `interface utilisateur`, `feedback`. \nExemple : `MsgBox \"Reportings générés avec succès !\"` informe l'utilisateur."
+    "question": "Qu’est-ce qu’un fichier .proto en gRPC et à quoi sert-il ?",
+    "answer": " Le fichier `.proto` définit le contrat du service gRPC. Il décrit les messages (`message`) et les appels (`rpc`) de manière **typée et structurée**, ensuite compilé automatiquement pour générer du code client et serveur. 🔑 Exemple : `message User { int32 id = 1; string name = 2; }` suivi de `service UserService { rpc GetUser (UserRequest) returns (User); }`."
+  },
+   {
+    "question": "Qu'est-ce que SQL et pourquoi est-il indispensable ?",
+    "answer": " SQL est un **langage déclaratif** qui permet de manipuler des bases de données relationnelles. Il permet d’effectuer des requêtes (`SELECT`), insérer des données (`INSERT`), modifier (`UPDATE`) et supprimer (`DELETE`). Exemple : `SELECT name FROM clients WHERE pays = 'France';` 🔑 Concepts : table, colonne, ligne, schéma, CRUD."
+  },
+  {
+    "question": "Qu'est-ce que le modèle relationnel dans une base de données ?",
+    "answer": " Le modèle relationnel repose sur l'organisation des données en **tables**, liées entre elles par des **clés étrangères**. Chaque table représente une entité (ex: `users`, `orders`). 🔑 Avantage : cohérence, requêtes complexes avec `JOIN`, intégrité des données. Exemple : `orders.user_id` référence `users.id`."
+  },
+  {
+    "question": "Que signifie le principe ACID dans les bases de données relationnelles ?",
+    "answer": " ACID = **Atomicité** (tout ou rien), **Cohérence** (respect des règles), **Isolation** (pas de conflits entre transactions), **Durabilité** (les données sont persistantes même après crash). Cela garantit l'intégrité des transactions. Exemple : transfert bancaire entre deux comptes."
+  },
+  {
+    "question": "Pourquoi PostgreSQL est-il souvent préféré à MySQL ou SQL Server ?",
+    "answer": " PostgreSQL est **open source**, très **conforme au standard SQL**, offre des types avancés (JSON, géodonnées), des index efficaces, des vues matérialisées et un moteur transactionnel robuste. SQL Server est puissant mais propriétaire. 🔑 Usage : systèmes critiques, data warehouses, projets cloud-first."
+  },
+  {
+    "question": "Quel est le rôle des index en SQL ?",
+    "answer": " Un **index** améliore les performances de lecture en accélérant les recherches sur une ou plusieurs colonnes. Comparable à l’index d’un livre. Exemple : `CREATE INDEX idx_name ON clients(name);` 🔑 Types : B-tree (par défaut), Hash, GIN (PostgreSQL)."
   },
 
-{
-    "question": "Comment vérifier une sélection ET itérer sur les cellules en VBA ?",
-    "answer": "1. Vérification : `TypeName(Selection) <> \"Range\"` (Mots-clés : **TypeName, validation**)\n2. Itération : `For Each cell In plage` (Mots-clés : **boucle, Range**)"
-  },
-  {
-    "question": "Comment gérer un tableau dynamique ET vérifier les valeurs numériques ?",
-    "answer": "1. Tableau : `ReDim valeurs(1 To N)` / `ReDim Preserve` pour conserver (Mots-clés : **redimensionnement, tableau**)\n2. Vérification : `IsNumeric(cell.Value) And Not IsEmpty(cell.Value)` (Mots-clés : **validation, numérique**)"
-  },
-  {
-    "question": "Quelles fonctions statistiques utiliser ET comment implémenter la coloration ?",
-    "answer": "1. Stats : `Application.WorksheetFunction.Average/Median/Min/Max` (Ex: `moyenne = Average(valeurs)`)\n2. Coloration : `Select Case True` avec `Interior.Color` (Ex: `vbGreen` si > moyenne)"
-  },
-  {
-    "question": "Comment déclarer une subroutine ET quitter prématurément ?",
-    "answer": "1. Déclaration : `Sub NomMacro()` (Mots-clés : **début de macro**)\n2. Sortie : `Exit Sub` pour interruption (Mots-clés : **contrôle de flux**)"
-  },
-  {
-    "question": "Quels types de données utiliser ET comment afficher des messages ?",
-    "answer": "1. Types : `Range` (cellules), `Double` (décimaux), `Long` (entiers)\n2. Messages : `MsgBox \"Texte\", vbInformation` (Mots-clés : **interface utilisateur**)"
-  },
-  {
-    "question": "Comment initialiser une feuille Excel et trouver la dernière ligne utilisée en VBA ?",
-    "answer": "Syntaxe : `Set ws = Sheets(\"NomFeuille\")` et `lastRow = ws.Cells(ws.Rows.Count, \"A\").End(xlUp).Row`\nMots-clés : Référence de feuille, xlUp, dynamique\nExemple : Trouve la dernière ligne non-vide de la colonne A"
-  },
-  {
-    "question": "Quelle méthode utiliser pour collecter des critères utilisateurs avec gestion des champs vides ?",
-    "answer": "Syntaxe : `InputBox()` avec vérification de chaîne vide\nMots-clés : Interaction utilisateur, validation\nExemple : `nomCritere = InputBox(\"Entrez un nom\")` puis `IIf(nomCritere <> \"\", critère, \"\")`"
-  },
-  {
-    "question": "Comment implémenter un filtre automatique avec critères partiels et dates en VBA ?",
-    "answer": "Syntaxe : `.AutoFilter Field:=n, Criteria1:=\"*texte*\"` pour partiel ou date exacte\nMots-clés : AutoFilter, joker (*), IIf\nExemple : Filtre colonne 1 sur nom partiel : `\"*\" & nomCritere & \"*\"`"
-  },
-  {
-    "question": "Quelle technique permet de copier uniquement les résultats filtrés vers une nouvelle feuille ?",
-    "answer": "Syntaxe : `.SpecialCells(xlCellTypeVisible).Copy`\nMots-clés : Cellules visibles, copie filtrée\nExemple : Copie uniquement les lignes filtrées vers nouvelle feuille"
-  },
-  {
-    "question": "Comment créer dynamiquement une feuille de résultats avec horodatage unique ?",
-    "answer": "Syntaxe : `Sheets.Add` + `Format(Now, \"yyyymmdd_hhnnss\")`\nMots-clés : Horodatage, nom unique\nExemple : `wsResult.Name = \"Résultats_20240510_143022\"`"
-  },
-  {
-    "question": "Quelle structure VBA optimise la gestion des plages filtrées ?",
-    "answer": "Bloc `With` pour éviter les répétitions\nMots-clés : With-End With, optimisation\nExemple : Applique multiples filtres sur même plage sans répéter la référence"
-  },
-  {
-    "question": "Comment réinitialiser proprement des filtres existants en VBA ?",
-    "answer": "Syntaxe : `If ws.AutoFilterMode Then ws.AutoFilterMode = False`\nMots-clés : Nettoyage, réinitialisation\nExemple : Supprime tout filtre actif avant nouvelle application"
-  },
-  {
-    "question": "Comment notifier l'utilisateur avec le nom exact de la feuille résultat ?",
-    "answer": "Syntaxe : `MsgBox` avec concaténation de `ws.Name`\nMots-clés : Feedback utilisateur, communication\nExemple : Affiche \"Résultats dans 'Feuille1'\""
-  },
-  {
-    "question": "Quel opérateur permet de gérer conditionnellement des critères vides ?",
-    "answer": "Fonction `IIf(condition, si_vrai, si_faux)`\nMots-clés : Condition inline, ternaire\nExemple : `Criteria1:=IIf(critere=\"\", \"*\", critere)`"
-  },
-  {
-    "question": "Pourquoi utiliser un horodatage dans le nom des feuilles résultats ?",
-    "answer": "Avantages : Évite les conflits de noms, traçabilité\nFormat : AAAAMMJJ_HHMMSS\nExemple : \"Resultats_20240510_150045\" pour 15:00:45 le 10/05/2024"
-  },
-  {
-    "question": "Comment détecter dynamiquement la plage source pour un TCD en VBA ?",
-    "answer": "Utilise `lastRow = ws.Cells(ws.Rows.Count, 1).End(xlUp).Row` et `lastCol = ws.Cells(1, ws.Columns.Count).End(xlToLeft).Column`. Mots-clés : xlUp, xlToLeft, plage dynamique. Exemple : Trouve la dernière ligne/colonne utilisée dans la feuille 'Base'."
-  },
-  {
-    "question": "Comment créer un cache de données pour un TCD ?",
-    "answer": "Utilise `Set pc = ThisWorkbook.PivotCaches.Create(SourceType:=xlDatabase, SourceData:=plage)`. Mots-clés : PivotCache, xlDatabase. Exemple : Crée un cache sur une plage définie automatiquement."
-  },
-  {
-    "question": "Comment affecter les champs à un TCD (ligne, colonne, valeur) ?",
-    "answer": "Utilise `.PivotFields(\"X\").Orientation = xlRowField/xlColumnField/xlDataField`. Mots-clés : Orientation, PivotFields. Exemple : `.PivotFields(\"Montant\").Function = xlSum` pour sommer les montants."
-  },
-  {
-    "question": "Quelle structure VBA simplifie la configuration d’un TCD ?",
-    "answer": "Utilise `With pt ... End With` pour regrouper les réglages. Mots-clés : With-End With, PivotTable. Exemple : Permet d'ajuster tous les paramètres du TCD dans un bloc unique."
-  },
-  {
-    "question": "Comment créer une feuille de résultats horodatée ?",
-    "answer": "Utilise `Sheets.Add` + `Format(Now, \"yyyymmdd_hhnnss\")`. Mots-clés : Horodatage, nom unique. Exemple : Nom de feuille généré automatiquement comme \"TCD_20240510_143022\"."
-  },
-  {
-    "question": "Comment récupérer les champs du TCD via l'utilisateur ?",
-    "answer": "Utilise `InputBox` pour demander chaque champ. Mots-clés : Interaction utilisateur. Exemple : `champLigne = InputBox(\"Champ de ligne\")` permet une saisie manuelle."
-  },
-  {
-    "question": "Comment définir la position du TCD dans une feuille ?",
-    "answer": "Utilise `CreatePivotTable TableDestination:=ws.Range(\"A3\")`. Mots-clés : Ancrage, positionnement. Exemple : Le TCD commence en cellule A3 de la feuille résultat."
-  },
-  {
-    "question": "Comment appliquer une fonction d’agrégation dans un TCD ?",
-    "answer": "Utilise `.PivotFields(\"X\").Function = xlSum/xlCount/xlAverage`. Mots-clés : Agrégation, fonction. Exemple : `xlSum` additionne les montants dans le champ de valeur."
-  },
+
+  
 ];
 // QCM pour les niveaux moyen et avancé
 const questions = {
   moyen: [
    {
-    "question": "Quelle instruction permet de détecter la dernière ligne non vide dans une colonne ?",
+    "question": "Quel est le rôle principal de Git dans un projet logiciel ?",
     "options": [
-      "Cells(1, 1).End(xlDown).Row",
-      "Cells(Rows.Count, 1).End(xlUp).Row",
-      "Rows(1).End(xlToLeft).Row",
-      "Columns(1).End(xlUp).Row"
+      "Gérer les déploiements automatiques",
+      "Assurer la sécurité du code source",
+      "Suivre les modifications et versions du code",
+      "Compiler les programmes"
     ],
-    "answer": "B",
-    "explanation": "`Cells(Rows.Count, 1).End(xlUp).Row` remonte depuis le bas de la colonne pour trouver la dernière cellule non vide."
+    "answer": "Suivre les modifications et versions du code",
+    "explanation": "Git est un système de versionnage distribué qui permet de suivre l’évolution du code, gérer des branches et fusionner les modifications en toute sécurité."
   },
   {
-    "question": "Quelle méthode permet de créer un cache de données pour un TCD ?",
+    "question": "Que signifie CI dans CI/CD ?",
     "options": [
-      "CreateObject(\"Pivot.Cache\")",
-      "ThisWorkbook.PivotCaches.Create(...)",
-      "Sheets(\"Feuille\").PivotTable.CreateCache(...)",
-      "New PivotCache()"
+      "Code Integration",
+      "Continuous Integration",
+      "Centralized Integration",
+      "Checked Integration"
     ],
-    "answer": "B",
-    "explanation": "`ThisWorkbook.PivotCaches.Create` est la méthode standard pour créer un cache de données avant d'initialiser un TCD."
+    "answer": "Continuous Integration",
+    "explanation": "CI signifie 'Continuous Integration', un processus d’automatisation permettant de tester et valider du code à chaque modification dans le dépôt."
   },
   {
-    "question": "Quel mot-clé VBA empêche l’arrêt du code en cas d’erreur ?",
+    "question": "Quel fichier déclenche les workflows dans GitHub Actions ?",
     "options": [
-      "Stop On Error",
-      "Resume Error",
-      "On Error Resume Next",
-      "Try Catch"
+      ".gitlab-ci.yml",
+      "docker-compose.yml",
+      "workflow.json",
+      ".github/workflows/*.yml"
     ],
-    "answer": "C",
-    "explanation": "`On Error Resume Next` permet d’ignorer les erreurs et de continuer l’exécution, utile pour les ajouts uniques dans une Collection."
+    "answer": ".github/workflows/*.yml",
+    "explanation": "Les workflows GitHub Actions sont définis dans des fichiers YAML placés dans le dossier `.github/workflows/`."
   },
   {
-    "question": "Comment insérer une image dans une feuille Excel ?",
+    "question": "Quel composant n'est pas propre à un pipeline CI/CD ?",
     "options": [
-      "InsertImage()",
-      "Shape.Insert()",
-      "Pictures.Insert(path)",
-      "Range.AddImage(path)"
+      "Jobs",
+      "Branches",
+      "Stages",
+      "Runners"
     ],
-    "answer": "C",
-    "explanation": "`Pictures.Insert(path)` est la méthode utilisée pour insérer une image à partir d’un chemin local."
+    "answer": "Branches",
+    "explanation": "Les branches appartiennent à Git, pas directement aux pipelines CI/CD qui se composent plutôt de jobs, stages et runners."
   },
   {
-    "question": "Quelle propriété permet d’appliquer une fonction de somme sur un champ de TCD ?",
+    "question": "Quelle est la différence entre GitHub Actions et GitLab CI/CD ?",
     "options": [
-      ".Orientation = xlSum",
-      ".Function = xlSum",
-      ".AddField(\"Somme\")",
-      ".Calculation = xlSum"
+      "GitLab CI est uniquement pour Python",
+      "GitHub Actions est propriétaire de GitLab",
+      "GitHub Actions est intégré à GitHub, GitLab CI est intégré à GitLab",
+      "GitHub Actions ne permet pas le déploiement"
     ],
-    "answer": "B",
-    "explanation": "On utilise `.Function = xlSum` sur un champ défini comme `xlDataField` pour agréger les valeurs."
+    "answer": "GitHub Actions est intégré à GitHub, GitLab CI est intégré à GitLab",
+    "explanation": "GitHub Actions fonctionne dans GitHub, tandis que GitLab CI/CD est natif de GitLab. Tous deux permettent tests et déploiement via des fichiers YAML."
   },
   {
-    "question": "Quel format de date garantit un nom de feuille unique avec horodatage ?",
+    "question": "Quel format d'échange est utilisé par défaut dans une API REST ?",
     "options": [
-      "Now()",
-      "Format(Now, \"ddmmyyyy\")",
-      "Format(Now, \"yyyymmdd_hhnnss\")",
-      "Date & Time"
+      "YAML",
+      "JSON",
+      "Protobuf",
+      "CSV"
     ],
-    "answer": "C",
-    "explanation": "`Format(Now, \"yyyymmdd_hhnnss\")` garantit un nom unique et triable selon l’ordre chronologique."
+    "answer": "JSON",
+    "explanation": "Les APIs REST utilisent généralement le format JSON car il est léger, lisible et largement supporté."
   },
   {
-    "question": "Quelle syntaxe permet d’itérer sur une plage de cellules ?",
+    "question": "Qu’est-ce qu’une API stateless ?",
     "options": [
-      "While cell in Range",
-      "For Each cell In plage",
-      "Each cell Do",
-      "Loop cell from plage"
+      "Qui utilise des identifiants",
+      "Qui conserve l'état de session",
+      "Qui n'a pas de sécurité",
+      "Qui ne conserve pas l'état entre les requêtes"
     ],
-    "answer": "B",
-    "explanation": "`For Each cell In plage` est la syntaxe correcte pour boucler sur chaque cellule d'une plage définie."
+    "answer": "Qui ne conserve pas l'état entre les requêtes",
+    "explanation": "Une API stateless ne stocke pas d'informations de session ; chaque requête contient toutes les infos nécessaires à son traitement."
   },
   {
-    "question": "Quelle fonction teste si une cellule contient un nombre ?",
+    "question": "Quel protocole est utilisé par gRPC ?",
     "options": [
-      "IsValue(cell)",
-      "IsNumber(cell)",
-      "IsNumeric(cell.Value)",
-      "IsDigit(cell)"
+      "HTTP/1.1",
+      "SOAP",
+      "HTTP/2",
+      "FTP"
     ],
-    "answer": "C",
-    "explanation": "`IsNumeric(cell.Value)` retourne True si la cellule contient un nombre valide."
+    "answer": "HTTP/2",
+    "explanation": "gRPC utilise HTTP/2 pour permettre des communications rapides, bidirectionnelles et multiplexées entre services."
   },
   {
-    "question": "Quelle structure VBA est utilisée pour éviter de répéter un objet dans un bloc ?",
+    "question": "Pourquoi utiliser gRPC plutôt que REST ?",
     "options": [
-      "If...Then",
-      "Do...Loop",
-      "With...End With",
-      "For...Each"
+      "Car il est basé sur XML",
+      "Car il est plus lent",
+      "Pour des communications internes très rapides",
+      "Pour remplacer SOAP"
     ],
-    "answer": "C",
-    "explanation": "`With...End With` permet de référencer un objet une seule fois et d’y appliquer plusieurs propriétés ou méthodes."
+    "answer": "Pour des communications internes très rapides",
+    "explanation": "gRPC est optimisé pour des appels entre services internes grâce à HTTP/2 et Protobuf."
   },
   {
-    "question": "Quel mot-clé permet de quitter une Sub prématurément ?",
+    "question": "Que contient un fichier .proto en gRPC ?",
     "options": [
-      "Stop",
-      "Exit Sub",
-      "Return",
-      "End"
+      "Le code source du serveur",
+      "La définition des routes REST",
+      "La documentation API",
+      "La définition des messages et services"
     ],
-    "answer": "B",
-    "explanation": "`Exit Sub` arrête immédiatement l’exécution d’une subroutine sans aller jusqu’à la fin du bloc."
-  },
-  {
-    "question": "Quelle fonction permet de collecter un critère depuis l’utilisateur ?",
-    "options": [
-      "Input()",
-      "MsgBox()",
-      "InputBox()",
-      "ReadLine()"
-    ],
-    "answer": "C",
-    "explanation": "`InputBox()` affiche une boîte de saisie à l’utilisateur et retourne la valeur saisie."
-  },
-  {
-    "question": "Quel opérateur permet une condition courte dans une seule ligne ?",
-    "options": [
-      "IIf()",
-      "If Then",
-      "Switch()",
-      "Select Case"
-    ],
-    "answer": "A",
-    "explanation": "`IIf(condition, vrai, faux)` agit comme un opérateur ternaire pour des expressions rapides."
-  },
-  {
-    "question": "Quelle méthode permet de copier uniquement les lignes visibles d’un filtre ?",
-    "options": [
-      ".Copy",
-      ".RangeVisible.Copy",
-      ".SpecialCells(xlCellTypeVisible).Copy",
-      ".Filter.CopyVisible"
-    ],
-    "answer": "C",
-    "explanation": "`SpecialCells(xlCellTypeVisible)` cible uniquement les lignes visibles après un filtre automatique."
-  },
-  {
-    "question": "Quel objet VBA permet de contenir des éléments uniques ?",
-    "options": [
-      "Array",
-      "Collection",
-      "List",
-      "Dictionary"
-    ],
-    "answer": "B",
-    "explanation": "Une `Collection` peut contenir des valeurs uniques si une clé (`CStr(val)`) est utilisée pour éviter les doublons."
-  },
-  {
-    "question": "Comment éviter un filtre actif avant de relancer un nouveau filtre ?",
-    "options": [
-      "Filter.Clear()",
-      "ws.Filters.Reset()",
-      "If ws.AutoFilterMode Then ws.AutoFilterMode = False",
-      "Range.Unfilter()"
-    ],
-    "answer": "C",
-    "explanation": "La condition `If ws.AutoFilterMode Then ws.AutoFilterMode = False` supprime tout filtre actif avant d’en appliquer un nouveau."
-  },
-  {
-    "question": "Pourquoi limiter un nom de feuille à 31 caractères en VBA ?",
-    "options": [
-      "Pour améliorer la lisibilité du code",
-      "Parce qu'Excel refuse tout nom de feuille de plus de 31 caractères",
-      "Pour éviter les erreurs de compilation",
-      "Parce que les macros ne reconnaissent que les 31 premiers caractères"
-    ],
-    "answer": "B",
-    "explanation": "Excel impose une limite stricte de 31 caractères pour le nom des feuilles. Dépasser cette limite génère une erreur à l’exécution."
-  },
-  {
-    "question": "Quel est l’intérêt de copier uniquement les lignes visibles d’un filtre ?",
-    "options": [
-      "Pour éviter les erreurs de format",
-      "Pour accélérer la macro",
-      "Pour ne pas copier les lignes masquées par le filtre",
-      "Pour trier automatiquement les données"
-    ],
-    "answer": "C",
-    "explanation": "Seules les lignes visibles représentent les résultats pertinents du filtre. Copier tout inclurait les lignes cachées, ce qui fausserait l’analyse."
-  },
-  {
-    "question": "Dans quel cas utiliser `InputBox()` est préférable à un champ de saisie manuel ?",
-    "options": [
-      "Lorsque l'utilisateur doit sélectionner une cellule",
-      "Lorsque la saisie utilisateur est obligatoire dans une boucle automatique",
-      "Lorsque tu veux éviter d’ouvrir une feuille spécifique",
-      "Lorsque tu veux collecter un critère rapidement sans interface graphique complexe"
-    ],
-    "answer": "D",
-    "explanation": "`InputBox()` est idéal pour demander une valeur ponctuelle, comme un nom ou une date, sans interface lourde ni formulaire personnalisé."
-  },
-  {
-    "question": "Pourquoi utiliser `With...End With` dans une macro VBA ?",
-    "options": [
-      "Pour tester une condition sur plusieurs lignes",
-      "Pour initialiser plusieurs objets à la fois",
-      "Pour appliquer plusieurs instructions sur un même objet sans le répéter",
-      "Pour optimiser les boucles imbriquées"
-    ],
-    "answer": "C",
-    "explanation": "`With...End With` évite de répéter l’objet à chaque ligne, ce qui améliore la lisibilité et les performances du code."
-  },
-  {
-    "question": "Quelle est la meilleure manière de structurer une macro de reporting pour plusieurs clients ?",
-    "options": [
-      "Faire un copier-coller manuel pour chaque feuille",
-      "Créer une feuille vide et utiliser des formules Excel",
-      "Parcourir les clients et générer dynamiquement les feuilles avec filtre et copie",
-      "Utiliser une boucle Do Until avec une boîte de message"
-    ],
-    "answer": "C",
-    "explanation": "L’approche dynamique avec boucle, filtre et copie permet d’automatiser totalement la génération de rapports personnalisés, sans intervention manuelle."
+    "answer": "La définition des messages et services",
+    "explanation": "Un fichier `.proto` définit les types de messages et les services (RPC) utilisés dans une application gRPC."
   }
   ],
   avance: [
     {
-    "question": "Quel code permet de copier uniquement les lignes visibles après un filtre automatique ?",
+    "question": "Quel est le rôle principal de Git dans un projet logiciel ?",
     "options": [
-      "plage.Copy",
-      "plage.SpecialCells(xlCellTypeVisible).Copy",
-      "plage.Rows.Hidden = False",
-      "plage.VisibleCells.Copy"
+      "Gérer les déploiements automatiques",
+      "Assurer la sécurité du code source",
+      "Suivre les modifications et versions du code",
+      "Compiler les programmes"
     ],
-    "answer": "B",
-    "explanation": "`SpecialCells(xlCellTypeVisible)` cible uniquement les lignes visibles — c’est la méthode correcte après filtrage."
+    "answer": "Suivre les modifications et versions du code",
+    "explanation": "Git est un système de versionnage distribué qui permet de suivre l’évolution du code, gérer des branches et fusionner les modifications en toute sécurité."
   },
   {
-    "question": "Quel code permet de récupérer la dernière ligne non vide dans la colonne A ?",
+    "question": "Que signifie CI dans CI/CD ?",
     "options": [
-      "ws.Range(\"A1\").End(xlDown).Row",
-      "ws.Range(\"A:A\").Rows.Count",
-      "ws.Cells(Rows.Count, 1).End(xlUp).Row",
-      "ws.Columns(\"A\").End(xlDown).Row"
+      "Code Integration",
+      "Continuous Integration",
+      "Centralized Integration",
+      "Checked Integration"
     ],
-    "answer": "C",
-    "explanation": "`Cells(Rows.Count, 1).End(xlUp).Row` remonte depuis le bas de la colonne pour trouver la dernière cellule utilisée."
+    "answer": "Continuous Integration",
+    "explanation": "CI signifie 'Continuous Integration', un processus d’automatisation permettant de tester et valider du code à chaque modification dans le dépôt."
   },
   {
-    "question": "Quel code permet de générer un nom de feuille avec date et heure ?",
+    "question": "Quel fichier déclenche les workflows dans GitHub Actions ?",
     "options": [
-      "Sheets.Add.Name = Date()",
-      "ws.Name = Time()",
-      "ws.Name = Format(Now, \"dd-mm-yyyy\")",
-      "ws.Name = Format(Now, \"yyyymmdd_hhnnss\")"
+      ".gitlab-ci.yml",
+      "docker-compose.yml",
+      "workflow.json",
+      ".github/workflows/*.yml"
     ],
-    "answer": "D",
-    "explanation": "Le format `yyyymmdd_hhnnss` assure un nom horodaté unique compatible avec Excel."
+    "answer": ".github/workflows/*.yml",
+    "explanation": "Les workflows GitHub Actions sont définis dans des fichiers YAML placés dans le dossier `.github/workflows/`."
   },
   {
-    "question": "Quel code permet d'ajouter un champ 'Montant' en valeurs dans un TCD ?",
+    "question": "Quel composant n'est pas propre à un pipeline CI/CD ?",
     "options": [
-      "pt.AddField \"Montant\"",
-      "pt.PivotFields(\"Montant\").Orientation = xlDataField",
-      "pt.Fields(\"Montant\").Aggregate = Sum",
-      "pt.AddDataField(\"Montant\")"
+      "Jobs",
+      "Branches",
+      "Stages",
+      "Runners"
     ],
-    "answer": "B",
-    "explanation": "Pour définir un champ de valeurs dans un TCD, il faut définir `.Orientation = xlDataField` sur le champ."
+    "answer": "Branches",
+    "explanation": "Les branches appartiennent à Git, pas directement aux pipelines CI/CD qui se composent plutôt de jobs, stages et runners."
   },
   {
-    "question": "Quel code permet de tester si une valeur est numérique et non vide ?",
+    "question": "Quelle est la différence entre GitHub Actions et GitLab CI/CD ?",
     "options": [
-      "If IsNumeric(cell.Value)",
-      "If cell.Value <> \"\"",
-      "If Not IsEmpty(cell.Value) And IsNumeric(cell.Value)",
-      "If IsNumber(cell.Value)"
+      "GitLab CI est uniquement pour Python",
+      "GitHub Actions est propriétaire de GitLab",
+      "GitHub Actions est intégré à GitHub, GitLab CI est intégré à GitLab",
+      "GitHub Actions ne permet pas le déploiement"
     ],
-    "answer": "C",
-    "explanation": "La combinaison `Not IsEmpty` + `IsNumeric` garantit que la cellule est remplie et contient bien un nombre."
+    "answer": "GitHub Actions est intégré à GitHub, GitLab CI est intégré à GitLab",
+    "explanation": "GitHub Actions fonctionne dans GitHub, tandis que GitLab CI/CD est natif de GitLab. Tous deux permettent tests et déploiement via des fichiers YAML."
   },
   {
-    "question": "Que fait le code suivant ?\n`Set ws = Sheets(\"Base\")`",
+    "question": "Quel format d'échange est utilisé par défaut dans une API REST ?",
     "options": [
-      "Supprime la feuille nommée 'Base'",
-      "Crée une nouvelle feuille appelée 'Base'",
-      "Crée un raccourci vers la feuille nommée 'Base'",
-      "Active la feuille nommée 'Base'"
+      "YAML",
+      "JSON",
+      "Protobuf",
+      "CSV"
     ],
-    "answer": "C",
-    "explanation": "`Set ws = Sheets(\"Base\")` signifie que `ws` est un alias vers cette feuille, mais ne l’active pas automatiquement."
+    "answer": "JSON",
+    "explanation": "Les APIs REST utilisent généralement le format JSON car il est léger, lisible et largement supporté."
   },
   {
-    "question": "Que fait ce code ?\n`If ws.AutoFilterMode Then ws.AutoFilterMode = False`",
+    "question": "Qu’est-ce qu’une API stateless ?",
     "options": [
-      "Applique un filtre",
-      "Réinitialise tout filtre actif sur la feuille",
-      "Vérifie s’il y a des filtres mais ne fait rien",
-      "Active le filtre automatique"
+      "Qui utilise des identifiants",
+      "Qui conserve l'état de session",
+      "Qui n'a pas de sécurité",
+      "Qui ne conserve pas l'état entre les requêtes"
     ],
-    "answer": "B",
-    "explanation": "Ce code désactive tout filtre actif, ce qui est utile avant de poser de nouveaux critères."
+    "answer": "Qui ne conserve pas l'état entre les requêtes",
+    "explanation": "Une API stateless ne stocke pas d'informations de session ; chaque requête contient toutes les informations nécessaires."
   },
   {
-    "question": "Quel est le rôle de ce code ?\n`uniqueClients.Add val, CStr(val)` avec `On Error Resume Next`",
+    "question": "Quel protocole est utilisé par gRPC ?",
     "options": [
-      "Ajoute tous les doublons dans la collection",
-      "Ignore les erreurs pour éviter les valeurs vides",
-      "Ajoute uniquement les valeurs uniques dans une Collection",
-      "Trie automatiquement les clients par nom"
+      "HTTP/1.1",
+      "SOAP",
+      "HTTP/2",
+      "FTP"
     ],
-    "answer": "C",
-    "explanation": "L'utilisation de la valeur comme clé (`CStr(val)`) combinée à l'ignorance des erreurs empêche les doublons."
+    "answer": "HTTP/2",
+    "explanation": "gRPC utilise HTTP/2 pour permettre des communications rapides, bidirectionnelles et multiplexées entre services."
   },
   {
-    "question": "Quel est l’effet de ce code ?\n`With ws.PageSetup: .Zoom = False: .FitToPagesWide = 1: End With`",
+    "question": "Pourquoi utiliser gRPC plutôt que REST ?",
     "options": [
-      "Réduit le zoom d'affichage à 1%",
-      "Imprime sur une seule ligne verticale",
-      "Adapte la feuille à la largeur d'une page à l'impression",
-      "Réinitialise le zoom par défaut"
+      "Car il est basé sur XML",
+      "Car il est plus lent",
+      "Pour des communications internes très rapides",
+      "Pour remplacer SOAP"
     ],
-    "answer": "C",
-    "explanation": "`FitToPagesWide = 1` limite l'impression à une page de large, utile pour les tableaux horizontaux."
+    "answer": "Pour des communications internes très rapides",
+    "explanation": "gRPC est optimisé pour des appels entre services internes grâce à HTTP/2 et Protobuf."
   },
   {
-    "question": "Que fait ce code ?\n`MsgBox \"Reportings générés avec succès !\", vbInformation`",
+    "question": "Que contient un fichier .proto en gRPC ?",
     "options": [
-      "Affiche une erreur système",
-      "Affiche un message avec icône d'information",
-      "Lance une boîte de saisie",
-      "Envoie un e-mail automatique"
+      "Le code source du serveur",
+      "La définition des routes REST",
+      "La documentation API",
+      "La définition des messages et services"
     ],
-    "answer": "B",
-    "explanation": "`vbInformation` affiche une icône bleue avec un message de confirmation utilisateur."
+    "answer": "La définition des messages et services",
+    "explanation": "Un fichier `.proto` définit les types de messages et les services (RPC) utilisés dans une application gRPC."
+  },
+  {
+    "question": "Qu'est-ce que SQL ?",
+    "options": [
+      "Un système de fichiers",
+      "Un langage de programmation orienté objet",
+      "Un langage pour interroger des bases de données relationnelles",
+      "Un protocole réseau sécurisé"
+    ],
+    "answer": "Un langage pour interroger des bases de données relationnelles",
+    "explanation": "SQL (Structured Query Language) est utilisé pour lire, insérer, mettre à jour et supprimer des données dans des bases relationnelles."
+  },
+  {
+    "question": "Quel mot-clé SQL permet de joindre plusieurs tables ?",
+    "options": [
+      "MERGE",
+      "COMBINE",
+      "JOIN",
+      "ATTACH"
+    ],
+    "answer": "JOIN",
+    "explanation": "JOIN est utilisé pour combiner des lignes provenant de deux ou plusieurs tables, en utilisant une condition commune."
+  },
+  {
+    "question": "Quel est l'intérêt de créer un index sur une colonne en SQL ?",
+    "options": [
+      "Gagner de l'espace disque",
+      "Accélérer les requêtes de lecture",
+      "Protéger la colonne contre les suppressions",
+      "Ajouter des permissions utilisateur"
+    ],
+    "answer": "Accélérer les requêtes de lecture",
+    "explanation": "Un index accélère les opérations de lecture en réduisant le nombre de lignes à scanner dans la table."
+  },
+  {
+    "question": "Quel est le rôle de la clause WHERE dans une requête SQL ?",
+    "options": [
+      "Filtrer les lignes selon une condition",
+      "Créer une table temporaire",
+      "Ajouter une colonne à la table",
+      "Lier deux bases de données"
+    ],
+    "answer": "Filtrer les lignes selon une condition",
+    "explanation": "La clause WHERE permet de spécifier des conditions sur les lignes à sélectionner ou à modifier."
+  },
+  {
+    "question": "Quelle commande permet d’insérer une ligne dans une table ?",
+    "options": [
+      "INSERT",
+      "ADD",
+      "UPDATE",
+      "SELECT"
+    ],
+    "answer": "INSERT",
+    "explanation": "INSERT INTO permet d’ajouter de nouvelles lignes dans une table existante."
+  },
+  {
+    "question": "Que signifie l'acronyme ACID ?",
+    "options": [
+      "Association, Cohérence, Index, Durabilité",
+      "Atomicité, Cohérence, Isolation, Durabilité",
+      "Autonomie, Cohérence, Inversion, Disponibilité",
+      "Accessibilité, Connexion, Indépendance, Disponibilité"
+    ],
+    "answer": "Atomicité, Cohérence, Isolation, Durabilité",
+    "explanation": "ACID est un ensemble de propriétés qui garantissent la fiabilité des transactions dans une base de données."
+  },
+  {
+    "question": "Pourquoi choisir PostgreSQL pour un projet open source ?",
+    "options": [
+      "Car il est payant",
+      "Pour sa compatibilité avec Excel",
+      "Pour ses performances, sa richesse fonctionnelle et sa licence libre",
+      "Car il est uniquement compatible Windows"
+    ],
+    "answer": "Pour ses performances, sa richesse fonctionnelle et sa licence libre",
+    "explanation": "PostgreSQL est une base robuste, riche en types avancés, et très utilisée dans les projets open source."
+  },
+  {
+    "question": "Dans une base relationnelle, une clé primaire sert à :",
+    "options": [
+      "Lier deux tables entre elles",
+      "Identifier de manière unique chaque ligne d'une table",
+      "Créer une nouvelle colonne",
+      "Sauvegarder la table automatiquement"
+    ],
+    "answer": "Identifier de manière unique chaque ligne d'une table",
+    "explanation": "La clé primaire permet d’assurer l’unicité et l’intégrité des données d’une table."
+  },
+  {
+    "question": "Quelle clause permet de trier les résultats d'une requête SQL ?",
+    "options": [
+      "SORT BY",
+      "ORDER BY",
+      "GROUP BY",
+      "FILTER"
+    ],
+    "answer": "ORDER BY",
+    "explanation": "ORDER BY trie les résultats d’une requête selon une ou plusieurs colonnes, en ordre croissant ou décroissant."
+  },
+  {
+    "question": "Quelle clause SQL regroupe les lignes ayant des valeurs identiques ?",
+    "options": [
+      "UNION",
+      "MERGE",
+      "GROUP BY",
+      "COLLECT"
+    ],
+    "answer": "GROUP BY",
+    "explanation": "GROUP BY regroupe les lignes par valeur commune, souvent utilisée avec des fonctions d’agrégation comme COUNT ou SUM."
   },
   ]
 };

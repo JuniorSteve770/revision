@@ -2,7 +2,7 @@
 /*
 
 
-
+ redige sur ton "Interface standard de chat"
 /* - /*
 Reformulation 1 – Style concis et structuré :
 Voici une liste de flashcards. Je souhaite que tu les regroupes deux par deux, en combinant les questions et les réponses tout en respectant le format "question-réponse".

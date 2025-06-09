@@ -9,6 +9,13 @@ const HomePage = () => {
       <h1 className="home-page-title">Page de Révisions</h1>
 
       <div className="home-page-buttons">
+          {/* Bouton Projet 0 */}
+        <Link to="/project0">
+          <button className="home-page-button" id="project0-button">
+            Ecole
+          </button>
+        </Link>
+
         {/* Bouton Projet 1 */}
         <Link to="/project1">
           <button className="home-page-button" id="project1-button">
@@ -19,7 +26,7 @@ const HomePage = () => {
         {/* Bouton Projet 2 */}
         <Link to="/project2">
           <button className="home-page-button" id="project2-button">
-          P2:VbaSql
+          P2:Stage
           </button>
         </Link>
 

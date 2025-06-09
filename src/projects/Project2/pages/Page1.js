@@ -3,303 +3,449 @@
 import React, { useState, useEffect } from "react";
 import "./Page.css";
 // partie 
-// Flashcards pour le niveau basic
+// https://www.youtube.com/watch?v=s9Qh9fWeOAk
 
 const basicSlides = [
-  {
-  "question": "Pourquoi éviter 'Select' et 'Activate' en VBA ?",
-  "answer": "Ces méthodes :\n1. Ralentissent l'exécution (manipulation UI inutile)\n2. Sont fragiles (dépendent de la sélection active)\n3. Alternative : Travailler directement avec les objets\nExemple à éviter :\nRange(\"A1\").Select\nSelection.Value = 10\n\nExemple propre :\nRange(\"A1\").Value = 10\nMots-clés : Performance, Bonnes pratiques"
-},
 {
-    "question": "Contrôle de flux : Différence entre Exit For/Exit Sub ET Optimisation des performances",
-    "answer": "1) Exit For : Sortie de boucle\n   Exit Sub : Sortie de procédure\n   Exemple : If condition Then Exit For\n\n2) Optimisation :\n   - ScreenUpdating=False\n   - Calculs manuels\n   - Tableaux mémoire\nMots-clés : Flow control, Performance"
+    "question": "Qu’est-ce que l’architecture client-serveur et comment le DNS permet-il au client de localiser un serveur ?",
+    "answer": "📡 Le modèle client-serveur repose sur un client (navigateur/app) qui envoie une requête à un serveur en écoute. Le DNS (Domain Name System) convertit les noms lisibles (ex: google.com) en adresses IP pour localiser le serveur cible. Exemple : accéder à un site web depuis un navigateur passe par une requête DNS."
   },
   {
-    "question": "Structures de boucle : For Each/For Next/Do While ET Gestion d'erreurs",
-    "answer": "1) Boucles :\n   - For Each (Collections)\n   - For Next (Compteur)\n   - Do While (Condition)\n\n2) Gestion erreurs :\n   On Error GoTo Handler\n   ...\nHandler:\n   MsgBox Err.Description\nMots-clés : Loop structures, Error handling"
+    "question": "Quelle est la différence entre proxy et reverse proxy, et quel est leur rôle dans un réseau ?",
+    "answer": "🔁 Le proxy protège le client (anonymat, filtrage), tandis que le reverse proxy protège les serveurs (distribution des requêtes, sécurité, caching). Il redirige les requêtes entrantes vers le bon serveur backend selon des règles définies (ex: load balancing)."
   },
   {
-    "question": "Structures de données : Collections vs Tableaux ET Dictionnaires",
-    "answer": "1) Collections :\n   - Redimension dynamique\n   - Méthodes Add/Remove\n\n2) Dictionnaires :\n   - Clés uniques\n   - Performance O(1)\n   - Exists/Keys/Items\nMots-clés : Data structures, Efficiency"
+    "question": "Qu’est-ce que la latence réseau et comment un CDN permet-il de la réduire ?",
+    "answer": "⏱ La latence est le temps entre la requête d’un client et la réponse du serveur, influencée par la distance et la charge. 🌍 Un CDN (Content Delivery Network) réduit la latence en servant les fichiers (images, vidéos, scripts) depuis des nœuds proches de l’utilisateur."
   },
   {
-    "question": "Algorithmes : Recherche binaire ET Bonnes pratiques de nommage",
-    "answer": "1) Recherche binaire :\n   While low<=high\n      mid=(low+high)\\2\n      ...\n   Wend (O(log n))\n\n2) Nommage :\n   - Préfixes (str, i, dbl)\n   - camelCase\n   - MAJ pour constantes\nMots-clés : Algorithms, Coding standards"
+    "question": "Quelle est la différence entre HTTP et HTTPS et pourquoi est-elle cruciale pour la sécurité ?",
+    "answer": "🔐 HTTPS chiffre les échanges via SSL/TLS, empêchant leur interception, contrairement à HTTP. Indispensable pour les données sensibles (ex: formulaires de paiement)."
   },
   {
-    "question": "Tableaux dynamiques ET Techniques de débogage",
-    "answer": "1) Tableaux :\n   Redim Preserve arr(1 To n)\n\n2) Débogage :\n   - Points d'arrêt (F9)\n   - Fenêtre Exécution (Ctrl+G)\n   - Debug.Print\nMots-clés : Arrays, Debugging"
+    "question": "Quel est le rôle d’un API Gateway et en quoi REST facilite-t-il la structuration des échanges ?",
+    "answer": "🛡 L'API Gateway centralise les requêtes vers les microservices (authentification, sécurité, contrôle). 🧱 REST structure les API autour de ressources et utilise des verbes HTTP standards (GET, POST, PUT, DELETE), en mode stateless."
   },
   {
-    "question": "Modularité : Subs vs Functions ET Sécurité des fichiers",
-    "answer": "1) Subs : Actions\n   Functions : Retours\n   Exemple : Function CalcTTC(ht)\n\n2) Sécurité :\n   - ReadOnly\n   - Validation Dir()\n   - Gestion erreurs\nMots-clés : Procedures, File security"
-  },
-{
-    "question": "Comment traiter des plages non contiguës ET optimiser les performances pour grandes plages ?",
-    "answer": "1) Plages discontinues :\nFor Each area In Selection.Areas\n   'Traitement...\nNext area\n\n2) Optimisation :\n- ScreenUpdating=False\n- Traitement par blocs avec Step\n- Utiliser des tableaux mémoire\nMots-clés : Areas, Performance, Bulk operations"
+    "question": "Pourquoi GraphQL est-il souvent préféré à REST dans les interfaces complexes ?",
+    "answer": "🎯 GraphQL permet aux clients de demander exactement les champs nécessaires, en une seule requête, réduisant la surcharge réseau. Exemple : récupérer un utilisateur et ses posts récents en un seul appel."
   },
   {
-    "question": "Gestion de colonnes de tailles différentes ET validation croisée",
-    "answer": "1) Taille variable :\nmaxRow = Application.Max(lastRowA, lastRowB)\n\n2) Validation :\nFor i=1 To maxRow\n   If Cells(i,1)<>Cells(i,2) Then 'Différence...\nMots-clés : Robustesse, Dynamic ranges"
+    "question": "Comment fonctionne le cache-aside et quel est le rôle du TTL dans cette stratégie ?",
+    "answer": "⚡️ Le cache-aside vérifie d’abord le cache (ex: Redis), puis la base, puis stocke le résultat. ⏳ Le TTL (Time To Live) fixe combien de temps la donnée reste dans le cache, évitant les données obsolètes. Exemple : taux de change mis en cache pour 10 minutes."
   },
   {
-    "question": "Boucles avancées : Séquences croissantes ET nested loops optimisés",
-    "answer": "1) Séquences :\nIf Cells(i,1)<Cells(i+1,1) Then i=i+2 'Saut\n\n2) Nested loops :\nFor i=1 To lastRow\n   For j=i+1 To lastRow 'Évite redondance\nMots-clés : Algorithmie, Optimisation"
+    "question": "Comment l’indexation et la réplication améliorent-elles les performances d'une base de données ?",
+    "answer": "📚 L’indexation crée des pointeurs vers les données sur des colonnes fréquentes, accélérant les lectures. 🔁 La réplication duplique la base principale vers des réplicas en lecture seule pour répartir la charge et assurer la continuité en cas de panne."
   },
   {
-    "question": "Structures de données : Collections ET Dictionnaires",
-    "answer": "1) Collections :\n- Add/Remove/Count\n- Données hétérogènes\n\n2) Dictionnaires :\n- Exists/Keys/Items\n- O(1) pour recherches\nMots-clés : Hash table, Flexibilité"
+    "question": "Qu’est-ce que le sharding et en quoi diffère-t-il de la scalabilité verticale ?",
+    "answer": "⚙️ Le sharding divise horizontalement les données (ex: par ID utilisateur) sur plusieurs serveurs. 🌆 La scalabilité verticale augmente les ressources d’un seul serveur, tandis que l’horizontale (sharding) répartit la charge sur plusieurs machines."
   },
   {
-    "question": "Gestion d'erreurs professionnelle ET debugging",
-    "answer": "1) Error handling :\nOn Error GoTo ErrorHandler\n...\nErrorHandler:\n   Log Err.Description\n\n2) Debugging :\n- Points d'arrêt (F9)\n- Fenêtre Exécution (Ctrl+G)\nMots-clés : Robustesse, Debug.Print"
+    "question": "Quel est le rôle d’un Load Balancer et comment aide-t-il à répartir la charge ?",
+    "answer": "🔀 Le Load Balancer distribue intelligemment les requêtes entre plusieurs serveurs backend selon des algorithmes (round-robin, least connections), assurant performance et résilience."
   },
   {
-    "question": "Initialisation de matrices ET tableaux dynamiques",
-    "answer": "1) Matrice 20x20 :\nDim mat(1 To 20,1 To 20)\n\n2) Redim :\nReDim Preserve arr(1 To newSize)\nMots-clés : Multidimensionnel, Resizing"
+    "question": "Quelle est la différence entre WebSocket et Webhook dans les communications temps réel ?",
+    "answer": "🔄 WebSocket : connexion persistante et bidirectionnelle pour les apps temps réel (ex: chat, trading). 🔔 Webhook : notification automatique d’un serveur vers un autre lors d’un événement (ex: confirmation de paiement Stripe)."
   },
   {
-    "question": "Patterns avancés : Fuzzy matching ET recherche binaire",
-    "answer": "1) Fuzzy :\nIf matches/Len(str)>=seuil Then...\n\n2) Binaire :\nWhile low<=high\n   mid=(low+high)\\2\n   '...\nMots-clés : Algorithmes, O(log n)"
+    "question": "Qu’exprime le théorème CAP dans un système distribué et quels compromis implique-t-il ?",
+    "answer": "⚖️ CAP : un système distribué ne peut garantir simultanément la Cohérence (C), la Disponibilité (A) et la Tolérance au Partitionnement (P). Il faut choisir deux sur trois selon les priorités du système."
   },
   {
-    "question": "Contrôle de flux : Exit For/Sub ET structures de boucles",
-    "answer": "1) Sorties :\n- Exit For (boucle)\n- Exit Sub (procédure)\n\n2) Boucles :\n- For Each (collections)\n- Do While (condition)\nMots-clés : Flow control, Best practices"
+    "question": "Pourquoi utilise-t-on une Message Queue et comment elle améliore la résilience des microservices ?",
+    "answer": "📨 Une Message Queue (ex: Kafka, RabbitMQ) permet aux services de communiquer de façon asynchrone et non bloquante, évitant les appels directs et favorisant la tolérance aux pannes et pics de trafic."
   },
   {
-    "question": "Bonnes pratiques : Commentaires ET nommage",
-    "answer": "1) Commentaires :\n'****************************************************************\n' BUT : [Fonction]\n\n2) Variables :\nstrNom, iCount, dblMontant\nMots-clés : Maintenance, Lisibilité"
+    "question": "Qu’est-ce que l’idempotence et pourquoi est-elle critique pour les appels API sensibles ?",
+    "answer": "✅ Une opération est idempotente si elle produit le même résultat même si elle est répétée. Essentiel pour éviter les effets secondaires comme un double paiement sur rafraîchissement de page."
   },
   {
-    "question": "Modularité : Subs vs Functions ET sécurité fichiers",
-    "answer": "1) Subs : Actions\nFunctions : Retour valeur\n\n2) Sécurité :\n- ReadOnly:=True\n- Validation Dir()\nMots-clés : Réutilisabilité, File access"
+    "question": "Pourquoi mettre en place un rate limiting dans une architecture web ?",
+    "answer": "🚫 Le rate limiting limite le nombre de requêtes par utilisateur/IP dans un intervalle (ex: 100/min) pour éviter les abus ou attaques. Algorithmes : Token Bucket, Fixed Window, Sliding Window."
   },
 ];
 // QCM pour les niveaux moyen et avancé
 const questions = {
   moyen: [
 
-   {
-    "question": "Quelle méthode permet de quitter immédiatement toute une procédure VBA ?",
+    {
+    "question": "Quel est le rôle principal d'un serveur dans une architecture client-serveur ?",
     "options": [
-      "A. Exit For",
-      "B. Exit Function",
-      "C. Exit Sub",
-      "D. End"
+      "Contrôler les DNS publics",
+      "Effectuer des requêtes vers le client",
+      "Attendre et répondre aux requêtes du client",
+      "Générer des adresses IP pour les clients"
     ],
-    "answer": "C",
-    "explanation": "Exit Sub termine l'exécution de la procédure courante. Exit For ne sort que de la boucle actuelle, Exit Sub est la bonne réponse car plus globale qu'Exit Function qui ne s'applique qu'aux fonctions. End est à éviter car peut causer des problèmes de nettoyage."
+    "answer": "Attendre et répondre aux requêtes du client",
+    "explanation": "Dans l’architecture client-serveur, le serveur reste actif pour répondre aux requêtes entrantes des clients comme les navigateurs ou applications."
   },
   {
-    "question": "Quelle technique NE fait PAS partie des optimisations recommandées pour les macros VBA ?",
+    "question": "Pourquoi utilise-t-on un DNS ?",
     "options": [
-      "A. Désactiver ScreenUpdating",
-      "B. Utiliser des tableaux mémoire",
-      "C. Activer Calculation automatique",
-      "D. Traiter par blocs de données"
+      "Pour sécuriser les communications HTTP",
+      "Pour convertir une adresse IP en nom de domaine",
+      "Pour attribuer des ports aux serveurs",
+      "Pour résoudre un nom de domaine en adresse IP"
     ],
-    "answer": "C",
-    "explanation": "Il faut au contraire désactiver les calculs automatiques (xlCalculationManual) pour optimiser les performances. Les autres options sont des bonnes pratiques d'optimisation."
+    "answer": "Pour résoudre un nom de domaine en adresse IP",
+    "explanation": "Le DNS traduit les noms de domaine en adresses IP afin que les clients puissent localiser les serveurs sur Internet."
   },
   {
-    "question": "Quelle structure de boucle est la plus adaptée pour itérer sur une collection d'objets ?",
+    "question": "Quelle différence majeure distingue un proxy d’un reverse proxy ?",
     "options": [
-      "A. For Next",
-      "B. Do Until",
-      "C. For Each",
-      "D. While Wend"
+      "Le reverse proxy chiffre les données, le proxy non",
+      "Le proxy protège les serveurs, le reverse proxy protège les clients",
+      "Le proxy relaie les requêtes du client, le reverse proxy les requêtes vers les serveurs",
+      "Le proxy est utilisé uniquement en local"
     ],
-    "answer": "C",
-    "explanation": "For Each est spécialement conçu pour itérer sur des collections (Range, Worksheets, etc.). For Next utilise un compteur numérique, Do Until et While Wend sont des boucles conditionnelles."
+    "answer": "Le proxy relaie les requêtes du client, le reverse proxy les requêtes vers les serveurs",
+    "explanation": "Le proxy agit pour le client, tandis que le reverse proxy est placé devant les serveurs pour gérer le trafic entrant."
   },
   {
-    "question": "Quelle syntaxe correcte pour gérer les erreurs en VBA ?",
+    "question": "Quel est le principal objectif d’un CDN ?",
     "options": [
-      "A. On Error Resume",
-      "B. On Error GoTo Label",
-      "C. Try Catch Finally",
-      "D. Error Handle"
+      "Accélérer les traitements SQL",
+      "Chiffrer les communications",
+      "Réduire la latence via la distribution géographique",
+      "Filtrer les paquets réseau"
     ],
-    "answer": "B",
-    "explanation": "La syntaxe correcte est On Error GoTo Label. VBA n'utilise pas Try-Catch (syntaxe C#). On Error Resume existe mais sans gestion structurée."
+    "answer": "Réduire la latence via la distribution géographique",
+    "explanation": "Un CDN sert les contenus statiques à partir de serveurs proches de l’utilisateur final, réduisant ainsi la latence."
   },
   {
-    "question": "Quel avantage principal offre un Dictionary par rapport à une Collection ?",
+    "question": "Que permet le protocole HTTPS par rapport à HTTP ?",
     "options": [
-      "A. Méthode Remove plus efficace",
-      "B. Test d'existence de clé (Exists)",
-      "C. Meilleure gestion des doublons",
-      "D. Tri automatique des éléments"
+      "Plus de vitesse",
+      "Compression des réponses",
+      "Chiffrement des données échangées",
+      "Passage automatique via CDN"
     ],
-    "answer": "B",
-    "explanation": "La méthode Exists permet de vérifier une clé en O(1). Les Collections nécessitent un parcours manuel pour cette vérification. Les autres options sont incorrectes ou secondaires."
+    "answer": "Chiffrement des données échangées",
+    "explanation": "HTTPS ajoute une couche de sécurité en chiffrant les données via SSL/TLS pour protéger les communications entre client et serveur."
   },
   {
-    "question": "Quelle complexité algorithmique pour une recherche binaire bien implémentée ?",
+    "question": "À quoi sert une API Gateway dans une architecture microservices ?",
     "options": [
-      "A. O(1)",
-      "B. O(n)",
-      "C. O(log n)",
-      "D. O(n²)"
+      "À héberger les bases de données",
+      "À effectuer le load balancing uniquement",
+      "À centraliser l’authentification, le routage et la surveillance des appels API",
+      "À stocker les fichiers volumineux"
     ],
-    "answer": "C",
-    "explanation": "La recherche binaire a une complexité logarithmique O(log n) car elle divise l'espace de recherche par 2 à chaque itération. C'est bien plus efficace qu'une recherche linéaire O(n)."
+    "answer": "À centraliser l’authentification, le routage et la surveillance des appels API",
+    "explanation": "L’API Gateway gère les appels clients, applique la sécurité, la journalisation et répartit les requêtes vers les bons microservices."
   },
   {
-    "question": "Quelle convention de nommage est recommandée pour une variable de type String ?",
+    "question": "Quelle propriété caractérise les API REST ?",
     "options": [
-      "A. sNom",
-      "B. strNom",
-      "C. stringNom",
-      "D. NomStr"
+      "Stateless et orientées ressource",
+      "Basées sur WebSocket",
+      "Utilisent toujours GraphQL",
+      "Couplées à une seule base NoSQL"
     ],
-    "answer": "B",
-    "explanation": "Le préfixe 'str' est la convention standard pour les String (strNom). 's' est trop court, 'string' trop long, et le suffixe 'Str' moins lisible."
+    "answer": "Stateless et orientées ressource",
+    "explanation": "Les APIs REST sont sans état (stateless) et utilisent les verbes HTTP pour manipuler des ressources (GET, POST, etc.)."
   },
   {
-    "question": "Comment redimensionner un tableau en conservant son contenu existant ?",
+    "question": "Quel est le principal avantage de GraphQL par rapport à REST ?",
     "options": [
-      "A. ReDim",
-      "B. ReDim Keep",
-      "C. ReDim Preserve",
-      "D. Resize Array"
+      "La suppression automatique du cache",
+      "L’obligation d’utiliser XML",
+      "La possibilité de demander exactement les données nécessaires",
+      "L’usage unique dans les bases SQL"
     ],
-    "answer": "C",
-    "explanation": "ReDim Preserve est la seule syntaxe valide pour redimensionner en gardant les données. ReDim seul réinitialise le tableau. Les autres options n'existent pas en VBA."
+    "answer": "La possibilité de demander exactement les données nécessaires",
+    "explanation": "GraphQL permet au client de spécifier les champs à retourner, ce qui optimise les performances et réduit le surcoût réseau."
   },
   {
-    "question": "Quel outil permet d'inspecter des valeurs pendant l'exécution en VBA ?",
+    "question": "Quel est le rôle du cache dans une architecture web ?",
     "options": [
-      "A. Immediate Window (Ctrl+G)",
-      "B. Data Inspector",
-      "C. Variable Explorer",
-      "D. Code Profiler"
+      "Sauvegarder les bases de données",
+      "Répliquer les serveurs",
+      "Accélérer l’accès aux données fréquemment demandées",
+      "Créer des adresses IP temporaires"
     ],
-    "answer": "A",
-    "explanation": "La fenêtre Exécution (Immediate Window) accessible par Ctrl+G permet d'évaluer des expressions et variables durant le débogage. Les autres outils n'existent pas dans l'IDE VBA standard."
+    "answer": "Accélérer l’accès aux données fréquemment demandées",
+    "explanation": "Le cache permet de stocker temporairement les données afin de réduire les temps de réponse et la charge sur les bases de données."
   },
   {
-    "question": "Quelle pratique améliore la sécurité des accès fichiers en VBA ?",
+    "question": "À quoi sert le TTL (Time To Live) dans le cache ?",
     "options": [
-      "A. Toujours utiliser ReadOnly:=False",
-      "B. Supprimer le fichier après usage",
-      "C. Valider l'existence avec Dir() avant ouverture",
-      "D. Désactiver les alertes Excel"
+      "Bloquer les utilisateurs inactifs",
+      "Limiter le nombre de requêtes",
+      "Définir combien de temps une donnée reste dans le cache",
+      "Gérer la réplication"
     ],
-    "answer": "C",
-    "explanation": "La validation avec Dir() évite les erreurs sur fichiers inexistants. ReadOnly:=True est recommandé (pas False). La suppression est risquée et désactiver les alertes réduit la sécurité."
+    "answer": "Définir combien de temps une donnée reste dans le cache",
+    "explanation": "Le TTL permet d’éviter que le cache ne renvoie des données périmées en fixant une durée de validité."
+  },
+  {
+    "question": "Qu’est-ce que l’indexation en base de données ?",
+    "options": [
+      "Sauvegarde automatique de la base",
+      "Duplication des données",
+      "Optimisation de la lecture via un pointeur sur colonnes clés",
+      "Mise à jour automatique des relations"
+    ],
+    "answer": "Optimisation de la lecture via un pointeur sur colonnes clés",
+    "explanation": "L’index permet de retrouver plus rapidement les lignes concernées sans balayer toute la table."
+  },
+  {
+    "question": "Pourquoi utiliser la réplication en base de données ?",
+    "options": [
+      "Pour écrire plus rapidement",
+      "Pour supprimer les sauvegardes",
+      "Pour améliorer la lecture et la tolérance aux pannes",
+      "Pour ajouter un CDN"
+    ],
+    "answer": "Pour améliorer la lecture et la tolérance aux pannes",
+    "explanation": "La réplication crée des copies de la base pour répartir les lectures et prendre le relais en cas de panne du serveur principal."
+  },
+  {
+    "question": "Qu’est-ce que le sharding ?",
+    "options": [
+      "Compression des bases SQL",
+      "Partitionnement horizontal des données sur plusieurs serveurs",
+      "Envoi de logs vers un CDN",
+      "Définition d’un TTL automatique"
+    ],
+    "answer": "Partitionnement horizontal des données sur plusieurs serveurs",
+    "explanation": "Le sharding consiste à diviser les données en fragments (shards) selon une clé (ex: ID client) pour répartir la charge."
+  },
+  {
+    "question": "Quand préfère-t-on la scalabilité horizontale à la verticale ?",
+    "options": [
+      "Quand les bases sont trop petites",
+      "Quand on souhaite réduire les performances",
+      "Quand un serveur atteint ses limites physiques",
+      "Quand on veut éviter HTTPS"
+    ],
+    "answer": "Quand un serveur atteint ses limites physiques",
+    "explanation": "La scalabilité horizontale permet d’ajouter plusieurs machines pour gérer une charge croissante, au contraire de la verticale."
+  },
+  {
+    "question": "Quel est le rôle d’un load balancer ?",
+    "options": [
+      "Créer un cache pour le client",
+      "Répandre la charge entre plusieurs serveurs backend",
+      "Générer des adresses IP aléatoires",
+      "Superviser les bases NoSQL"
+    ],
+    "answer": "Répandre la charge entre plusieurs serveurs backend",
+    "explanation": "Un load balancer distribue intelligemment les requêtes pour éviter la surcharge d’un seul serveur."
+  },
+  {
+    "question": "Quel protocole permet une communication bidirectionnelle en temps réel ?",
+    "options": [
+      "HTTPS",
+      "WebSocket",
+      "DNS",
+      "REST"
+    ],
+    "answer": "WebSocket",
+    "explanation": "WebSocket établit une connexion persistante qui permet au serveur d’envoyer des données au client sans requête active."
+  },
+  {
+    "question": "Quel mécanisme permet à un service de notifier un autre service lorsqu’un événement survient ?",
+    "options": [
+      "GraphQL",
+      "Polling",
+      "Webhook",
+      "Load Balancer"
+    ],
+    "answer": "Webhook",
+    "explanation": "Le webhook permet une notification automatique sans devoir interroger régulièrement l’autre service (contrairement au polling)."
+  },
+  {
+    "question": "Que dit le théorème CAP ?",
+    "options": [
+      "On peut tout avoir : performance, sécurité et latence",
+      "On ne peut pas garantir en même temps cohérence, disponibilité et tolérance aux pannes réseau",
+      "Les bases SQL ne peuvent pas être scalables",
+      "Chaque microservice doit avoir son API Gateway"
+    ],
+    "answer": "On ne peut pas garantir en même temps cohérence, disponibilité et tolérance aux pannes réseau",
+    "explanation": "Le théorème CAP impose un compromis dans les systèmes distribués entre 3 propriétés fondamentales."
+  },
+  {
+    "question": "Pourquoi utilise-t-on une Message Queue ?",
+    "options": [
+      "Pour relier deux bases SQL",
+      "Pour stocker des images",
+      "Pour décorréler le producteur du consommateur",
+      "Pour enregistrer les sessions utilisateur"
+    ],
+    "answer": "Pour décorréler le producteur du consommateur",
+    "explanation": "La file de message permet une communication asynchrone où le producteur n’attend pas que le message soit traité."
   },
   ],
   avance: [
      {
-    "question": "Quel outil permet d'exécuter du code pas à pas en sautant les appels de procédures ?",
+    "question": "Quel est le but du rate limiting ?",
     "options": [
-      "A. Step Into (F8)",
-      "B. Step Over (Maj+F8)",
-      "C. Step Out (Ctrl+Maj+F8)",
-      "D. Run To Cursor (Ctrl+F8)"
+      "Ajouter des Webhooks",
+      "Améliorer la réplication",
+      "Limiter les abus et protéger les services contre la surcharge",
+      "Répliquer les API Gateways"
     ],
-    "answer": "B",
-    "explanation": "Step Over (Maj+F8) exécute la procédure appelée sans entrer dans son code, contrairement à Step Into. Step Out sort de la procédure courante, Run To Cursor exécute jusqu'au point d'insertion."
+    "answer": "Limiter les abus et protéger les services contre la surcharge",
+    "explanation": "Le rate limiting empêche un utilisateur ou un bot d’envoyer trop de requêtes et de nuire à la performance du système."
   },
   {
-    "question": "Quelle fenêtre permet d'évaluer instantanément des expressions pendant le débogage ?",
+    "question": "Que signifie l’idempotence dans une API ?",
     "options": [
-      "A. Fenêtre Exécution (Ctrl+G)",
-      "B. Fenêtre Espion",
-      "C. Fenêtre Variables locales",
-      "D. Fenêtre Projet"
+      "Chaque requête doit avoir un cache",
+      "Les requêtes POST doivent être aléatoires",
+      "Une requête répétée produit le même résultat sans effet secondaire",
+      "La base NoSQL est figée"
     ],
-    "answer": "A",
-    "explanation": "La fenêtre Exécution (Immediate Window) permet d'évaluer des expressions avec ? ou Print. Les fenêtres Espion et Variables locales sont en lecture seule."
+    "answer": "Une requête répétée produit le même résultat sans effet secondaire",
+    "explanation": "C’est essentiel pour éviter les doublons en cas de rechargement ou d’échec de communication (ex: paiement)."
   },
   {
-    "question": "Comment ajouter un espion sur une variable complexe comme un objet Collection ?",
+    "question": "Quel type de stockage est adapté aux images et vidéos volumineuses ?",
     "options": [
-      "A. Via Watch Window > Add Watch",
-      "B. Debug.AddEspion",
-      "C. En préfixant la variable par 'Watch:'",
-      "D. Impossible pour les Collections"
+      "Base SQL",
+      "CDN",
+      "Blob Storage",
+      "API REST"
     ],
-    "answer": "A",
-    "explanation": "La fenêtre Espion (Watch Window) permet d'ajouter des surveillances même pour des objets complexes. Il faut sélectionner 'Add Watch' et configurer le contexte."
+    "answer": "Blob Storage",
+    "explanation": "Le Blob Storage (ex : Amazon S3) permet de stocker de grands fichiers non structurés avec un accès rapide via URL."
   },
   {
-    "question": "Quelle technique permet de tracer l'exécution sans points d'arrêt ?",
+    "question": "Quel type d’API est le plus adapté pour une application mobile qui nécessite peu de données bien ciblées ?",
     "options": [
-      "A. Debug.Print",
-      "B. MsgBox",
-      "C. LogEvent API",
-      "D. Stop instruction"
+      "REST",
+      "GraphQL",
+      "WebSocket",
+      "SOAP"
     ],
-    "answer": "A",
-    "explanation": "Debug.Print envoie des traces vers la fenêtre Exécution sans bloquer l'exécution comme MsgBox. Stop équivaut à un point d'arrêt codé en dur."
+    "answer": "GraphQL",
+    "explanation": "GraphQL permet de récupérer uniquement les données nécessaires, ce qui optimise la bande passante et la batterie côté mobile."
   },
   {
-    "question": "Comment déboguer un événement Worksheet_Change qui se déclenche trop souvent ?",
+    "question": "Pourquoi préfère-t-on souvent dénormaliser certaines tables en lecture intensive ?",
     "options": [
-      "A. Désactiver les événements avant le traitement",
-      "B. Utiliser Application.EnableEvents = False",
-      "C. Ajouter un flag booléen de contrôle",
-      "D. Toutes ces réponses"
+      "Pour réduire la taille des tables",
+      "Pour éviter les index",
+      "Pour éviter les jointures coûteuses",
+      "Pour améliorer l’authentification"
     ],
-    "answer": "D",
-    "explanation": "Toutes ces techniques sont valables : désactivation temporaire des événements, flag pour ignorer les déclenchements récursifs, ou désactivation globale contrôlée."
+    "answer": "Pour éviter les jointures coûteuses",
+    "explanation": "Dénormaliser consiste à regrouper les données souvent accédées ensemble, ce qui accélère les requêtes."
   },
   {
-    "question": "Quel outil permet d'inspecter la pile d'appels (call stack) en VBA ?",
+    "question": "Lors d’un entretien, on vous demande d’optimiser un site web lent pour les utilisateurs internationaux. Que proposez-vous en priorité ?",
     "options": [
-      "A. Fenêtre Call Stack (Ctrl+L)",
-      "B. Debug.CallStack",
-      "C. Log manuel avec des étiquettes",
-      "D. VBA ne gère pas la pile d'appels"
+      "Augmenter le TTL des cookies",
+      "Ajouter des serveurs plus puissants dans un datacenter",
+      "Intégrer un CDN pour rapprocher les contenus statiques des utilisateurs",
+      "Migrer toute l’application vers une base NoSQL"
     ],
-    "answer": "A",
-    "explanation": "La fenêtre Call Stack (Ctrl+L) affiche la hiérarchie des appels. Elle n'est visible qu'en mode débogage avec des points d'arrêt actifs."
+    "answer": "Intégrer un CDN pour rapprocher les contenus statiques des utilisateurs",
+    "explanation": "Un CDN réduit significativement la latence en servant les ressources statiques à partir de nœuds géographiquement proches des utilisateurs."
   },
   {
-    "question": "Comment capturer une erreur sans interrompre l'exécution ?",
+    "question": "Vous devez concevoir une API destinée à des services front-end variés (mobile, web, dashboard). Quelle technologie est la plus adaptée ?",
     "options": [
-      "A. On Error Resume Next",
-      "B. Try/Catch hidden",
-      "C. ErrorHandler global",
-      "D. IgnoreErrors instruction"
+      "REST avec JSON",
+      "SOAP avec XML",
+      "GraphQL",
+      "FTP"
     ],
-    "answer": "A",
-    "explanation": "On Error Resume Next permet de continuer après une erreur. VBA n'a pas de Try/Catch. Un handler global nécessite toujours On Error."
+    "answer": "GraphQL",
+    "explanation": "GraphQL est particulièrement adapté lorsque les clients ont des besoins de données différents : il permet de spécifier exactement les champs nécessaires."
   },
   {
-    "question": "Quelle méthode pour déboguer une macro lancée via un bouton Excel ?",
+    "question": "En entretien, on vous interroge sur la cohérence dans un système distribué. Que signifie 'consistency' dans le théorème CAP ?",
     "options": [
-      "A. Point d'arrêt avant l'appel",
-      "B. Déclencher manuellement depuis l'IDE",
-      "C. Ajouter un paramètre de débogage",
-      "D. Toutes ces réponses"
+      "Chaque nœud est disponible 24h/24",
+      "Tous les nœuds voient les mêmes données en même temps",
+      "Les messages sont toujours ordonnés",
+      "La base est sauvegardée toutes les heures"
     ],
-    "answer": "D",
-    "explanation": "Toutes ces techniques fonctionnent : point d'arrêt stratégique, exécution contrôlée depuis l'éditeur, ou paramètre conditionnel pour activer le mode debug."
+    "answer": "Tous les nœuds voient les mêmes données en même temps",
+    "explanation": "Dans CAP, 'Consistency' signifie qu’après un succès d’écriture, toutes les lectures suivantes retournent la même donnée à travers tous les nœuds."
   },
   {
-    "question": "Comment inspecter les propriétés d'un objet Excel non reconnu en mode débogage ?",
+    "question": "Un recruteur vous demande comment vous gérez un trafic API qui explose temporairement. Que recommandez-vous ?",
     "options": [
-      "A. Utiliser TypeName() dans la fenêtre Exécution",
-      "B. Ajouter à la fenêtre Espion avec l'option 'All Properties'",
-      "C. Activer l'explorateur d'objets",
-      "D. Convertir en Dictionary"
+      "Refuser toutes les requêtes",
+      "Passer sur une base SQL plus rapide",
+      "Mettre en place un système de rate limiting et un cache",
+      "Recompiler le backend"
     ],
-    "answer": "B",
-    "explanation": "La fenêtre Espion permet d'explorer toutes les propriétés via l'option dédiée. TypeName donne juste le type, pas les détails."
+    "answer": "Mettre en place un système de rate limiting et un cache",
+    "explanation": "Le rate limiting protège les ressources, tandis que le cache soulage les bases en servant les données fréquentes plus rapidement."
   },
   {
-    "question": "Quelle pratique évite le débogage fastidieux des erreurs 'Objet requis' ?",
+    "question": "Quelle solution privilégier pour rendre un système hautement disponible même en cas de panne réseau entre datacenters ?",
     "options": [
-      "A. Toujours utiliser Option Explicit",
-      "B. Vérifier Is Nothing avant usage",
-      "C. Activer 'Break on All Errors'",
-      "D. Toutes ces réponses"
+      "Base unique centralisée",
+      "Load balancer régional sans réplication",
+      "Architecture multi-région avec tolérance au partitionnement",
+      "API REST stateless dans un monolithe"
     ],
-    "answer": "D",
-    "explanation": "Option Explicit force la déclaration des variables, Is Nothing teste les objets, et 'Break on All Errors' dans les options VBA intercepte les erreurs tôt."
+    "answer": "Architecture multi-région avec tolérance au partitionnement",
+    "explanation": "Pour la haute disponibilité, il faut répliquer les services sur plusieurs régions avec des systèmes capables de fonctionner en partition."
+  },
+  {
+    "question": "Dans une architecture microservices, pourquoi recommande-t-on d’utiliser une file de message comme Kafka ?",
+    "options": [
+      "Pour interroger les bases de données directement",
+      "Pour synchroniser les caches",
+      "Pour permettre une communication asynchrone entre services",
+      "Pour empêcher les erreurs HTTP"
+    ],
+    "answer": "Pour permettre une communication asynchrone entre services",
+    "explanation": "Les files de messages permettent de découpler les services et d’absorber les pics de charge sans blocage entre producteurs et consommateurs."
+  },
+  {
+    "question": "Un entretien technique vous demande d'expliquer pourquoi une base SQL avec schéma strict peut poser problème à grande échelle. Que répondez-vous ?",
+    "options": [
+      "Parce que SQL est trop lent en général",
+      "Car les schémas rigides limitent l’évolution rapide des données et nuisent à la flexibilité",
+      "Parce que la syntaxe est trop complexe",
+      "Parce que les bases SQL n’indexent pas les données"
+    ],
+    "answer": "Car les schémas rigides limitent l’évolution rapide des données et nuisent à la flexibilité",
+    "explanation": "Dans les applications en évolution rapide, les bases NoSQL offrent une flexibilité de schéma supérieure, facilitant les changements de structure."
+  },
+  {
+    "question": "Comment garantir qu’un appel API ne soit pas exécuté deux fois accidentellement (ex: double paiement) ?",
+    "options": [
+      "Utiliser WebSocket",
+      "Ajouter une clé idempotente à chaque requête",
+      "Limiter les appels à 1 requête par IP",
+      "Passer à GraphQL"
+    ],
+    "answer": "Ajouter une clé idempotente à chaque requête",
+    "explanation": "L’idempotence garantit qu’un appel répété ne produit pas d’effet secondaire. On identifie les requêtes uniques avec une clé idempotente."
+  },
+  {
+    "question": "Vous êtes face à une API lente dont les requêtes lisent des données rarement mises à jour. Quelle solution prioritaire proposez-vous ?",
+    "options": [
+      "Remplacer REST par GraphQL",
+      "Réécrire l’application en C++",
+      "Mettre en cache les réponses les plus fréquentes",
+      "Désactiver la pagination"
+    ],
+    "answer": "Mettre en cache les réponses les plus fréquentes",
+    "explanation": "Mettre en cache les résultats de lecture permet d’éviter des accès redondants à la base de données et d’améliorer les temps de réponse."
+  },
+  {
+    "question": "Comment réagir si un serveur principal (primary DB) tombe dans un système avec réplication ?",
+    "options": [
+      "Redémarrer la machine",
+      "Promouvoir une réplique en nouveau master",
+      "Réinstaller la base",
+      "Attendre la synchronisation manuelle"
+    ],
+    "answer": "Promouvoir une réplique en nouveau master",
+    "explanation": "Une bonne architecture de réplication permet à une réplique de devenir la nouvelle base principale pour garantir la continuité du service."
   }
    
   ]
