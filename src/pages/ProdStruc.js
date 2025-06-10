@@ -286,7 +286,7 @@ const Results = ({ scores }) => {
 };
 
 // Page principale
-const Page4 = () => {
+const Blogs = () => {
   const [level, setLevel] = useState("basic");
   const [currentSlide, setCurrentSlide] = useState(0);
   const [currentQuestion, setCurrentQuestion] = useState(0);
@@ -382,5 +382,6 @@ const Page4 = () => {
   );
 };
 
+export default Blogs;
 
-export default Page4;
+

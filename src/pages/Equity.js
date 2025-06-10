@@ -1,8 +1,5 @@
-// src/projects/Project1/pages/Page3.js
-
 import React, { useState, useEffect } from "react";
 import "./QCMStyles.css";
-
 
 // Flashcards pour le niveau basic
 const basicSlides = [
@@ -296,7 +293,7 @@ const Results = ({ scores }) => {
 };
 
 // Page principale
-const Page6 = () => {
+const OOp_Python = () => {
   const [level, setLevel] = useState("basic");
   const [currentSlide, setCurrentSlide] = useState(0);
   const [currentQuestion, setCurrentQuestion] = useState(0);
@@ -392,5 +389,4 @@ const Page6 = () => {
   );
 };
 
-
-export default Page6;
+export default OOp_Python;

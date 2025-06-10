@@ -1,5 +1,3 @@
-// src/projects/Project1/pages/Page3.js
-
 import React, { useState, useEffect } from "react";
 import "./QCMStyles.css";
 
@@ -360,7 +358,7 @@ const Results = ({ scores }) => {
 };
 
 // Page principale
-const Page7 = () => {
+const Blogs = () => {
   const [level, setLevel] = useState("basic");
   const [currentSlide, setCurrentSlide] = useState(0);
   const [currentQuestion, setCurrentQuestion] = useState(0);
@@ -456,4 +454,4 @@ const Page7 = () => {
   );
 };
 
-export default Page7;
+export default Blogs;

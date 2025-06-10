@@ -290,7 +290,7 @@ const Results = ({ scores }) => {
 };
 
 // Page principale
-const Page1 = () => {
+const SignUp = () => {
   const [level, setLevel] = useState("basic");
   const [currentSlide, setCurrentSlide] = useState(0);
   const [currentQuestion, setCurrentQuestion] = useState(0);
@@ -388,4 +388,5 @@ IRON CONDOR 🔹 Niveau : {level.toUpperCase()}
   );
 };
 
-export default Page1;
+export default SignUp;
+
