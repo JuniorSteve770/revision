@@ -10,6 +10,7 @@ const Project2Navbar = () => {
       <Link to="/project2/page2" style={{ margin: '0 10px' }}>Page 2</Link>
       <Link to="/project2/page3" style={{ margin: '0 10px' }}>Page 03</Link>
       <Link to="/project2/page4" style={{ margin: '0 10px' }}>Page 04</Link>
+      <Link to="/project2/page5" style={{ margin: '0 10px' }}>ML ecometri</Link>
     </nav>
   );
 };

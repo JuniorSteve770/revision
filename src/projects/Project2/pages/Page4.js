@@ -7,6 +7,26 @@ import "./Page.css";
 const basicSlides = [
 
   {
+    "question": "REST vs SOAP - Avantages clés & cas d'usage",
+    "answer": "REST : Simple, scalable (JSON/HTTP). Ex: APIs web/mobile.\nSOAP : Sécurité/contrats stricts (XML/WSDL). Ex: banque/santé."
+  },
+  {
+    "question": "HTTP/2 - 3 optimisations majeures vs HTTP/1.1",
+    "answer": "1) Multiplexage (requêtes parallèles)\n2) Compression headers\n3) Server push (pré-chargement ressources)."
+  },
+  {
+    "question": "GraphQL - Problème résolu & limite principale",
+    "answer": "+ Évite over/under-fetching (requêtes sur-mesure)\n- Risque de N+1 queries (solution: Dataloader)."
+  },
+  {
+    "question": "REST + HTTP/2 - Synergie clé",
+    "answer": "HTTP/2 compense les faiblesses de REST (latence multiples appels) via le multiplexage. Ex: app mobile avec nombreux endpoints."
+  },
+  {
+    "question": "SOAP vs GraphQL - Format données & flexibilité",
+    "answer": "SOAP : XML rigide (WSDL obligatoire)\nGraphQL : JSON flexible (schéma client-driven)."
+  },
+  {
     "question": "C# et SDK .NET | Définition et utilisation",
     "answer": "C# : Langage orienté objet moderne (Microsoft) pour web, desktop, mobile, cloud et jeux (Unity). SDK .NET : Outils incluant compilateur C#, bibliothèques et CLI pour compiler/exécuter du code."
   },
@@ -17,18 +37,6 @@ const basicSlides = [
   {
     "question": "Environnements de développement & types d'applications en C#",
     "answer": "IDE : Visual Studio (complet) ou VS Code (léger). Applications possibles : console, web (ASP.NET), API, mobile (Xamarin), jeux (Unity)."
-  },
-  {
-    "question": "Variables et opérateurs en C# | Bases",
-    "answer": "Variables : `int x = 10;`. Opérateurs arithmétiques : `+ - * / %`. Comparaison : `== != < > <= >=`."
-  },
-  {
-    "question": "Structures de contrôle en C# | Conditions et boucles",
-    "answer": "Conditions : `if/else`, `switch-case`. Boucles : `for`, `while`, `foreach` (pour collections)."
-  },
-  {
-    "question": "Tableaux et strings en C# | Opérations courantes",
-    "answer": "Tableau : `int[] t = {1, 2, 3};`. Strings : `ToUpper()`, `Length`, `Replace()`."
   },
   {
     "question": "Dates et énumérations en C# | Utilisation",
@@ -100,6 +108,116 @@ const basicSlides = [
 // QCM pour les niveaux moyen et avancé
 const questions = {
   moyen: [
+     {
+    "question": "Quel est l'avantage principal de REST par rapport à SOAP ?",
+    "options": [
+      "Meilleure sécurité avec WSDL",
+      "Support natif des transactions ACID",
+      "Simplicité et compatibilité avec le caching HTTP",
+      "Requêtes en XML strict"
+    ],
+    "answer": "Simplicité et compatibilité avec le caching HTTP",
+    "explanation": "REST utilise JSON/HTTP, ce qui le rend plus léger et scalable que SOAP (basé sur XML). Son stateless nature permet aussi un caching efficace."
+  },
+  {
+    "question": "Quelle fonctionnalité de HTTP/2 réduit la latence des APIs REST ?",
+    "options": [
+      "Le format XML",
+      "Le multiplexage (multiplexing)",
+      "Les schémas WSDL",
+      "Les subscriptions GraphQL"
+    ],
+    "answer": "Le multiplexage (multiplexing)",
+    "explanation": "HTTP/2 permet d'envoyer plusieurs requêtes en parallèle sur une même connexion, réduisant la latence des apps avec nombreux appels REST (ex: mobile)."
+  },
+  {
+    "question": "Pourquoi GraphQL évite-t-il l'over-fetching ?",
+    "options": [
+      "Il impose un format XML",
+      "Le client demande uniquement les champs nécessaires",
+      "Il utilise exclusivement HTTP/1.1",
+      "Il génère automatiquement un WSDL"
+    ],
+    "answer": "Le client demande uniquement les champs nécessaires",
+    "explanation": "Contrairement à REST (réponses prédéfinies), GraphQL permet des requêtes sur-mesure, optimisant le transfert de données."
+  },
+  {
+    "question": "Dans quel cas privilégier SOAP plutôt que GraphQL ?",
+    "options": [
+      "Pour une API mobile avec faible bande passante",
+      "Pour un système bancaire nécessitant des contrats stricts (WSDL)",
+      "Pour une application temps-réel avec subscriptions",
+      "Pour une API publique simple à documenter"
+    ],
+    "answer": "Pour un système bancaire nécessitant des contrats stricts (WSDL)",
+    "explanation": "SOAP excelle dans les environnements enterprise où la sécurité (WS-Security) et les contrats rigides (WSDL) sont critiques (ex: transactions financières)."
+  },
+  {
+    "question": "Quel outil résout le problème N+1 de GraphQL ?",
+    "options": [
+      "Postman",
+      "Dataloader",
+      "Swagger",
+      "SOAP UI"
+    ],
+    "answer": "Dataloader",
+    "explanation": "Dataloader regroupe (batching) et cache les requêtes pour éviter les appels redondants lors de la résolution de champs imbriqués."
+  },
+  {
+    "question": "Quelle technologie utilise exclusivement XML ?",
+    "options": [
+      "REST",
+      "GraphQL",
+      "SOAP",
+      "HTTP/2"
+    ],
+    "answer": "SOAP",
+    "explanation": "SOAP impose le XML pour les requêtes/réponses et s'appuie sur WSDL pour décrire l'API, contrairement à REST/GraphQL (flexibles)."
+  },
+  {
+    "question": "Quelle amélioration HTTP/2 bénéficie directement à REST ?",
+    "options": [
+      "Les subscriptions temps-réel",
+      "Le server push (pré-chargement des ressources)",
+      "Le support natif de GraphQL",
+      "L'élimination du besoin de caching"
+    ],
+    "answer": "Le server push (pré-chargement des ressources)",
+    "explanation": "HTTP/2 permet au serveur d'envoyer des ressources anticipées (ex: CSS/JS), réduisant les allers-retours pour les apps REST classiques."
+  },
+  {
+    "question": "Quel est un désavantage de GraphQL ?",
+    "options": [
+      "Impossible à utiliser avec HTTP/2",
+      "Requêtes complexes peuvent surcharger le serveur",
+      "Nécessite obligatoirement un WSDL",
+      "Limitée aux APIs enterprise"
+    ],
+    "answer": "Requêtes complexes peuvent surcharger le serveur",
+    "explanation": "Des requêtes imbriquées (ex: récursives) ou mal optimisées (N+1) peuvent impacter les performances, d'où l'importance de outils comme Dataloader."
+  },
+  {
+    "question": "Quelle combinaison est idéale pour une API mobile ?",
+    "options": [
+      "SOAP + XML",
+      "REST + HTTP/1.1",
+      "GraphQL + HTTP/2",
+      "WSDL + Dataloader"
+    ],
+    "answer": "GraphQL + HTTP/2",
+    "explanation": "GraphQL minimise le traffic (idéal pour mobile) et HTTP/2 améliore les performances avec le multiplexage, même sur réseaux lents."
+  },
+  {
+    "question": "Quelle technologie est associée à 'stateless' et 'resource-based' ?",
+    "options": [
+      "SOAP",
+      "GraphQL",
+      "REST",
+      "WSDL"
+    ],
+    "answer": "REST",
+    "explanation": "REST repose sur des ressources (URLs) et est stateless : chaque requête contient toutes les infos nécessaires, simplifiant la scalabilité."
+  },
     {
         "question": "Quelle est la sortie du code suivant ?\n\n```csharp\nint x = 10;\nint y = x;\ny = 20;\nConsole.WriteLine(x);```",
         "options": [

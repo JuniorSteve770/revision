@@ -4,6 +4,26 @@ import "./QCMStyles.css";
 // Flashcards pour Produits structurés
 const basicSlides = [
   {
+    "question": "REST vs SOAP - Avantages clés & cas d'usage",
+    "answer": "REST : Simple, scalable (JSON/HTTP). Ex: APIs web/mobile.\nSOAP : Sécurité/contrats stricts (XML/WSDL). Ex: banque/santé."
+  },
+  {
+    "question": "HTTP/2 - 3 optimisations majeures vs HTTP/1.1",
+    "answer": "1) Multiplexage (requêtes parallèles)\n2) Compression headers\n3) Server push (pré-chargement ressources)."
+  },
+  {
+    "question": "GraphQL - Problème résolu & limite principale",
+    "answer": "+ Évite over/under-fetching (requêtes sur-mesure)\n- Risque de N+1 queries (solution: Dataloader)."
+  },
+  {
+    "question": "REST + HTTP/2 - Synergie clé",
+    "answer": "HTTP/2 compense les faiblesses de REST (latence multiples appels) via le multiplexage. Ex: app mobile avec nombreux endpoints."
+  },
+  {
+    "question": "SOAP vs GraphQL - Format données & flexibilité",
+    "answer": "SOAP : XML rigide (WSDL obligatoire)\nGraphQL : JSON flexible (schéma client-driven)."
+  },
+  {
     "question": "Qu'est-ce qu'un produit structuré à capital garanti ?",
     "answer": "Un produit financier qui protège tout ou partie du capital investi, souvent en combinant une obligation avec des dérivés. Exemple : les obligations à capital garanti."
   },
@@ -43,6 +63,135 @@ const basicSlides = [
     "question": "Pourquoi les produits structurés ont-ils souvent des frais élevés ?",
     "answer": "Ils combinent plusieurs instruments (obligations + dérivés) et nécessitent une gestion active pour ajuster les barrières ou les protections."
   },
+  {
+  "question": "Qu'est-ce qu'une API ? Donnez un exemple concret.",
+  "answer": "Interface de programmation permettant à des systèmes de communiquer. Ex : API météo qui renvoie des données JSON à un site web."
+},
+{
+    "question": "REST - 6 contraintes architecturales",
+    "answer": "1. Client-Serveur 2. Sans état (stateless) 3. Cacheable 4. Interface uniforme 5. Système en couches 6. Code à la demande (optionnel)"
+  },
+  {
+    "question": "Méthodes HTTP et équivalence CRUD",
+    "answer": "GET (Read), POST (Create), PUT/PATCH (Update), DELETE (Delete). Ex : GET /api/users/1"
+  },
+  {
+    "question": "Bonnes pratiques REST (3 exemples)",
+    "answer": "1. Noms au pluriel (/users) 2. Codes HTTP (200 OK, 404 Not Found) 3. Versioning (/v1/users)"
+  },
+  {
+  "question": "WebSocket vs REST : cas d'usage",
+  "answer": "REST : requêtes ponctuelles (chargement page). WebSocket : communication temps réel (chat, notifications). Ex : const socket = new WebSocket('ws://example.com');"
+  }, 
+  {
+    "question": "GraphQL - 3 avantages clés",
+    "answer": "1. Requêtes sur-mesure 2. Évitement du sur-chargement 3. Schéma typé. Ex : query { user(id:1) { name } }"
+  },
+  {
+    "question": "Différence Résolveurs (GraphQL) vs Contrôleurs (REST)",
+    "answer": "Résolveur : fonction par champ. Contrôleur : fonction par endpoint. GraphQL permet d'éviter les multiples appels REST."
+  },
+  {
+  "question": "gRPC - Caractéristiques techniques",
+  "answer": "Protocole RPC haute performance :\n- Utilise HTTP/2 et Protobuf\n- Orienté streaming\n- Idéal microservices. Ex : service UserService { rpc GetUser (UserRequest) returns (User); }"
+  },{
+    "question": "JSON vs XML - Comparaison technique",
+    "answer": "JSON : léger, facile à parser, base de JS. XML : verbose, namespaces, schémas XSD. Ex XML : <user><id>1</id></user>"
+  },
+  {
+    "question": "Protobuf (gRPC) vs JSON - Quand choisir ?",
+    "answer": "Protobuf : perf binaire (microservices). JSON : lisibilité (APIs web). Ex Protobuf : message User { int32 id = 1; }"
+  },
+  {
+  "question": "Tableau comparatif : REST vs GraphQL vs gRPC",
+  "answer": "| Critère       | REST       | GraphQL    | gRPC       |\n|--------------|------------|------------|------------|\n| Format       | JSON/XML   | GraphQL    | Protobuf   |\n| Performance  | Moyenne    | Flexible   | Élevée     |\n| Cas d'usage  | APIs web   | Data complexe | Microservices |"
+}, 
+{
+    "question": "Sécurité API - 3 mesures essentielles",
+    "answer": "1. HTTPS 2. Authentification (JWT/OAuth) 3. Rate limiting"
+  },
+  {
+    "question": "Versioning API - 2 méthodes",
+    "answer": "1. URI (/v1/users) 2. Headers (Accept: application/vnd.api.v1+json)"
+  },
+  {
+  "question": "Outils pour tester/documenter les APIs",
+  "answer": "Postman (tests), Swagger/OpenAPI (docs), Insomnia (alternatif à Postman), Wireshark (debug gRPC)"
+},
+{
+    "question": "Exemple architecture moderne combinant ces technologies",
+    "answer": "Frontend → GraphQL (aggregation) → Microservices gRPC\nWebSocket → Notifications temps réel\nStockage : JSON pour configs, Protobuf pour données internes"
+  },
+  {
+    "question": "Erreur courante à éviter avec WebSockets",
+    "answer": "Oublier la gestion reconnexion : implémenter heartbeat et retry logic. Ex : socket.addEventListener('close', () => reconnect());"
+  },
+  {
+    "question": "Tests Unitaires - Définition et objectif",
+    "answer": "Valider le bon fonctionnement isolé des composants (fonctions, classes). Objectif : détecter les bugs tôt et documenter le code."
+  },
+  {
+    "question": "Étape 1 : Préparation",
+    "answer": "1. Isoler le composant à tester\n2. Mocker les dépendances externes (BD, API)\n3. Définir cas de test (valides/invalides)"
+  },
+  {
+    "question": "Étape 2 : Implémentation",
+    "answer": "1. Écrire le test (AAA : Arrange-Act-Assert)\nEx (JavaScript) :\ntest('add(2,3) retourne 5', () => {\n  expect(add(2,3)).toBe(5);\n})"
+  },
+  {
+    "question": "Étape 3 : Exécution",
+    "answer": "1. Lancer les tests (jest, pytest, etc.)\n2. Vérifier la couverture de code (>80% idéal)\n3. Analyser les logs d'échec"
+  },
+  {
+    "question": "Outils populaires",
+    "answer": "JavaScript : Jest/Jasmine\nPython : pytest/unittest\nJava : JUnit\nC# : xUnit/NUnit"
+  },
+  {
+    "question": "CI/CD - Définition en 2 parties",
+    "answer": "CI : Automatiser build + tests à chaque commit\nCD : Livraison automatique en préprod/prod"
+  },
+  {
+    "question": "Étape 1 : Intégration Continue (CI)",
+    "answer": "1. Trigger sur push/PR\n2. Build le projet\n3. Lancer les tests unitaires/intégration\n4. Générer des artefacts (Docker, .jar)"
+  },
+  {
+    "question": "Étape 2 : Livraison Continue (CD)",
+    "answer": "1. Déployer en staging\n2. Tests E2E/Smoke\n3. Approbation manuelle/auto\n4. Rollout prod (canary/blue-green)"
+  },
+  {
+    "question": "Exemple de pipeline (GitHub Actions)",
+    "answer": "name: CI/CD\non: push\njobs:\n  build:\n    runs-on: ubuntu-latest\n    steps:\n      - uses: actions/checkout@v4\n      - run: npm install && npm test"
+  },
+  {
+    "question": "Outils clés",
+    "answer": "CI : Jenkins, GitHub Actions, GitLab CI\nCD : ArgoCD, Spinnaker, Flux\nMonitoring : Prometheus, Datadog"
+  },
+  {
+    "question": "Validation - Objectif global",
+    "answer": "S'assurer que la release est stable et répond aux exigences avant la prod"
+  },
+  {
+    "question": "Étape 1 : Environnement de staging",
+    "answer": "1. Copie conforme de la prod (data, configs)\n2. Déploiement de la nouvelle version\n3. Tests automatisés (E2E, performance)"
+  },
+  {
+    "question": "Étape 2 : Tests Manuels",
+    "answer": "1. Checklist UX/UI\n2. Scénarios métier critiques\n3. Tests cross-devices/browsers"
+  },
+  {
+    "question": "Étape 3 : Revue et Approbation",
+    "answer": "1. Analyse métriques (erreurs, perf)\n2. Validation PO/QA\n3. Go/No-Go meeting"
+  },
+  {
+    "question": "Techniques de déploiement safe",
+    "answer": "1. Feature flags\n2. Déploiement canari (5% des users)\n3. Rollback automatique si échec"
+  },
+  {
+  "question": "Tableau : Rôles des 3 processus",
+  "answer": "| Process           | Phase          | Outils Type       | Responsable      |\n|-------------------|----------------|-------------------|------------------|\n| Tests Unitaires   | Développement  | Jest, JUnit       | Devs             |\n| CI/CD            | Intégration    | Jenkins, GitHub   | DevOps           |\n| Validation Prod  | Pré-Prod       | Selenium, Datadog | QA/PO            |"
+},
+
+  
 ];
 
 // QCM pour les niveaux moyen et avancé
