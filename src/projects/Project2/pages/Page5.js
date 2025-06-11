@@ -173,7 +173,53 @@ const basicSlides = [
   {
     "question": "Réseaux de Neurones vs Modèles Linéaires - Quand choisir ?",
     "answer": "Réseaux : Données complexes (images/texte). Linéaires : Données structurées + interprétabilité critique."
+  },
+  {
+    "question": "Accuracy vs Précision - Quand les utiliser ?",
+    "answer": "Accuracy : Équilibre des classes (ex: 50% vrai/faux). Précision : Coût des faux positifs élevé (ex: spam)."
+  },
+  {
+    "question": "Rappel (Recall) vs F1-Score - Interprétation",
+    "answer": "Rappel : Détection des vrais positifs (ex: maladies). F1-Score : Harmonique précision/rappel pour classes déséquilibrées."
+  },
+  {
+    "question": "AUC-ROC vs Courbe Precision-Recall",
+    "answer": "AUC-ROC : Performances globales (toutes classes). Precision-Recall : Classes très déséquilibrées (ex: fraude 1%)."
+  },
+  {
+    "question": "MAE vs RMSE - Sensibilité aux outliers",
+    "answer": "MAE : Erreur absolue (robuste). RMSE : Pénalise les grosses erreurs (ex: prévisions extrêmes)."
+  },
+  {
+    "question": "R² (R-squared) - Interprétation",
+    "answer": "Proportion de variance expliquée (0-1). 1=parfait fit, 0=pire que la moyenne."
+  },
+   {
+    "question": "Silhouette Score - Utilité",
+    "answer": "Mesure de cohésion/séparation des clusters (-1 à 1). >0.5 = bonne structure."
+  },
+  {
+    "question": "Inertie (K-Means) - Limite",
+    "answer": "Somme des distances au centroïde. Minimiser mais risque de surajustement (k élevé)."
+  },
+  {
+    "question": "Log-Loss - Cas d'usage",
+    "answer": "Classification probabiliste (ex: scores 0.8 au lieu de 1). Pénalise la confiance erronée."
+  },
+  {
+    "question": "Matrice de Confusion - Avantage clé",
+    "answer": "Visualisation des vrais/faux positifs/négatifs. Base pour calculer précision/rappel."
+  },
+  {
+    "question": "Cohen's Kappa - Utilité",
+    "answer": "Accord corrigé du hasard (-1 à 1). >0.6 = bon modèle malgré déséquilibre."
+  },
+  {
+    "question": "Métrique Fβ-Score - Paramètre β",
+    "answer": "β>1 : Priorité rappel (ex: diagnostic cancer). β<1 : Priorité précision (ex: spam)."
   }
+
+
 
   
 ];
@@ -404,17 +450,116 @@ const questions = {
   avance: [
 
     
-    {
-      "question": "Comment effectuer une requête LINQ pour sélectionner tous les clients dont le nom commence par 'A' ?",
-      "options": [
-        "var result = clients.Where(c => c.Name.StartsWith(\"A\"));",
-        "var result = clients.Select(c => c.Name == \"A\");",
-        "var result = clients.FindAll(c => c.Name == \"A\");",
-        "var result = clients.Get(c => c.Name.StartsWith(\"A\"));"
-      ],
-      "answer": "var result = clients.Where(c => c.Name.StartsWith(\"A\"));",
-      "explanation": "La méthode 'Where' de LINQ permet de filtrer les éléments d'une collection en fonction d'une condition spécifiée."
-    }
+      {
+    "question": "Pourquoi XGBoost est-il souvent préféré à un SVM sur des données tabulaires ?",
+    "options": [
+      "Parce qu'il est plus lent mais plus simple",
+      "Car il ne nécessite pas de nettoyage des données",
+      "XGBoost gère mieux les données manquantes et est souvent plus performant",
+      "SVM est plus flexible pour les gros datasets"
+    ],
+    "answer": "XGBoost gère mieux les données manquantes et est souvent plus performant",
+    "explanation": "XGBoost excelle sur les données tabulaires grâce à ses capacités de gestion des valeurs manquantes, de régularisation, et son efficacité en termes de performances."
+  },
+  {
+    "question": "Quelle méthode est classée comme apprentissage semi-supervisé ?",
+    "options": [
+      "Régression logistique",
+      "K-Means",
+      "Label Propagation",
+      "PCA"
+    ],
+    "answer": "Label Propagation",
+    "explanation": "Label Propagation exploite un petit ensemble de données labellisées et propage les étiquettes aux données non labellisées via des relations de similarité."
+  },
+  {
+    "question": "Quel élément peut être utilisé comme variable explicative dans un modèle de vente basé sur les séries temporelles ?",
+    "options": [
+      "Composantes principales issues d'une ACP",
+      "Résidus d’un modèle ARIMA",
+      "Centres des clusters K-Means",
+      "Résultats d’un DBSCAN"
+    ],
+    "answer": "Résidus d’un modèle ARIMA",
+    "explanation": "Les résidus captent les variations non expliquées, ce qui permet à d'autres modèles d’apprendre des signaux résiduels pertinents."
+  },
+  {
+    "question": "Quelle métrique est la plus fiable pour un dataset très déséquilibré en classification ?",
+    "options": [
+      "Précision (Accuracy)",
+      "F1-Score",
+      "R²",
+      "Erreur quadratique moyenne"
+    ],
+    "answer": "F1-Score",
+    "explanation": "Le F1-Score combine précision et rappel, ce qui en fait une mesure robuste quand les classes sont déséquilibrées."
+  },
+  {
+    "question": "Quelle technique permet une sélection automatique de variables pertinentes ?",
+    "options": [
+      "PCA",
+      "K-Means",
+      "Lasso (régression L1)",
+      "SVM"
+    ],
+    "answer": "Lasso (régression L1)",
+    "explanation": "Lasso effectue une régularisation L1 qui pousse certains coefficients de variables à zéro, réalisant ainsi une sélection automatique."
+  },
+  {
+    "question": "Quel modèle est spécifiquement adapté pour gérer la saisonnalité dans les séries temporelles ?",
+    "options": [
+      "Régression linéaire",
+      "SARIMA",
+      "KNN",
+      "Isolation Forest"
+    ],
+    "answer": "SARIMA",
+    "explanation": "SARIMA modélise explicitement les effets saisonniers avec des paramètres dédiés pour la tendance et la périodicité."
+  },
+  {
+    "question": "Quel algorithme est le plus adapté à la détection d’anomalies dans des transactions ?",
+    "options": [
+      "Régression linéaire",
+      "Isolation Forest",
+      "K-Means",
+      "t-SNE"
+    ],
+    "answer": "Isolation Forest",
+    "explanation": "Isolation Forest identifie les anomalies en isolant les points rares rapidement à travers des arbres de décision aléatoires."
+  },
+  {
+    "question": "Comment visualiser les variables les plus influentes dans un modèle de forêt aléatoire ?",
+    "options": [
+      "Courbe ROC",
+      "Feature Importance via Gini",
+      "Matrice de confusion",
+      "PCA"
+    ],
+    "answer": "Feature Importance via Gini",
+    "explanation": "La réduction moyenne d’impureté (indice Gini) permet d’identifier l’influence relative de chaque variable dans les arbres."
+  },
+  {
+    "question": "Quel prétraitement est crucial avant d'utiliser un SVM avec noyau RBF ?",
+    "options": [
+      "Supprimer les doublons",
+      "Normalisation (moyenne=0, écart-type=1)",
+      "Ajout de bruit gaussien",
+      "Réduction de dimension par t-SNE"
+    ],
+    "answer": "Normalisation (moyenne=0, écart-type=1)",
+    "explanation": "Les distances dans le noyau RBF sont sensibles à l’échelle des variables. La normalisation prévient toute domination d’une variable."
+  },
+  {
+    "question": "Quel type de réseau de neurones est conçu pour le traitement de séquences comme en NLP ?",
+    "options": [
+      "CNN",
+      "RNN / LSTM",
+      "MLP",
+      "Autoencodeur"
+    ],
+    "answer": "RNN / LSTM",
+    "explanation": "Les RNN/LSTM permettent de conserver une mémoire temporelle, idéale pour traiter les séquences textuelles ou temporelles."
+  }
   ]
 };
 
