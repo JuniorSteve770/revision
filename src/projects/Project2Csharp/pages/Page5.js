@@ -6,7 +6,7 @@ import "./Page.css";
 
 const basicSlides = [
 
-    {
+  {
     "question": "Quelle est la première étape pour combiner économétrie et ML ?",
     "answer": "Définir l'objectif économique et choisir un cadre théorique (ex: modèle de demande, théorie des prix)"
   },
@@ -142,7 +142,7 @@ const basicSlides = [
     "question": "Quand utiliser LDA (Latent Dirichlet Allocation) ?",
     "answer": "Pour modéliser des topics (thèmes) dans des données textuelles (ex : analyse de documents)."
   },
-{
+  {
     "question": "Qu'est-ce qu'un modèle Semi-Supervisé ?",
     "answer": "Une approche combinant peu de données étiquetées et beaucoup de données non étiquetées (ex : Self-Training, Label Propagation)."
   },

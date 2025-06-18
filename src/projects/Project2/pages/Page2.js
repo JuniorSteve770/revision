@@ -7,412 +7,438 @@ import "./Page.css";
 
 const basicSlides = [
 
-   {
-    "question": "Quelles nouveautés ont apporté .NET 3.0 et .NET 3.5 ?",
-    "answer": " .NET 3.0 (2006) introduit **WPF** (UI), **WCF** (services), **WF** (workflow) et **CardSpace** (identité). 📊 .NET 3.5 (2007) apporte **LINQ** (requêtes intégrées au langage) et **ASP.NET AJAX** (web interactif)."
+ {
+    "question": "Quels sont les progiciels couramment utilisés pour le traitement post-trade front-to-back ?",
+    "answer": "Summit, SOPHIS, Calypso, Murex et d'autres progiciels permettent une intégration front-to-back avec traçabilité de bout en bout des opérations de marché."
   },
   {
-    "question": "Quelles évolutions ont marqué .NET 4.0 et .NET 4.5 ?",
-    "answer": " .NET 4.0 (2010) introduit **PLINQ** et la **Task Parallel Library** pour le **parallélisme**. ⏳ .NET 4.5 (2012) intègre **async/await** et **Web API** pour les applis web modernes asynchrones."
+    "question": "Quelles sont les trois étapes principales du traitement post-trade ?",
+    "answer": "1) Booking du trade, 2) Contrôle Middle Office, 3) Transmission aux infrastructures (CSD/ICSD via messages SWIFT)."
   },
   {
-    "question": "Quelle est la différence entre .NET Framework et .NET Core ?",
-    "answer": "**.NET Framework** : pour applis Windows legacy, ❌ modulaire, ❌ open source. 🧩 **.NET Core** : multiplateforme (Win/Linux/mac), ✅ modulaire, ✅ open source. Usage : développement moderne avant .NET 5."
+    "question": "Quels messages SWIFT sont utilisés pour les instructions de settlement ?",
+    "answer": "MT540 à MT543 pour les instructions de settlement, MT548 pour le statut, et MT578 pour les trades matched/unmatched."
   },
   {
-    "question": "Pourquoi .NET ≥ 5 est-il recommandé pour les projets récents ?",
-    "answer": " **.NET 5 et suivants** unifient toutes les plateformes (desktop, web, mobile, cloud), sont **modulaires**, **open source**, **cross-platform**, et **recommandés** pour tout nouveau projet."
-  },
-   {
-    "question": "Qu'est-ce que Git et pourquoi est-il indispensable dans le développement logiciel ?",
-    "answer": " Git est un système de contrôle de version **distribué**. Il permet de suivre l’historique des modifications de code, collaborer avec d'autres développeurs via des **branches**, fusionner des versions avec **merge**, et expérimenter sans risquer le code principal. Exemple : un développeur crée une branche `feature-login`, code dessus, puis fusionne via une Pull Request. 🔑 Mots-clés : commit, branche, merge, revert, versioning distribué."
+    "question": "Quelles sont les spécificités du traitement post-trade pour les Gov Bonds ?",
+    "answer": "Déposés via Euroclear/Clearstream ou T2S, avec gestion spécifique des strips, maturité, et risk-weighted assets (RWA)."
   },
   {
-    "question": "Qu'est-ce qu'un pipeline CI/CD et pourquoi est-il essentiel ?",
-    "answer": " Un pipeline CI/CD est une **chaîne automatisée** qui permet de tester, compiler, et déployer une application. CI = Continuous Integration : exécution de tests unitaires/linting à chaque commit. CD = Continuous Delivery/Deployment : déploiement automatique vers staging/production. Exemple : GitHub Actions déclenche un build et un test dès qu’un push est fait sur `main`. 🔑 Concepts : jobs, steps, runners, artefacts, stages."
+    "question": "Quel module des progiciels gère le collatéral dans les opérations REPO ?",
+    "answer": "Le module Collateral Management suit le collatéral, les appels de marge et les haircuts dans les opérations REPO."
   },
   {
-    "question": "Quelle est la différence entre GitHub Actions et GitLab CI/CD ?",
-    "answer": " GitHub Actions est un outil d’automatisation **intégré à GitHub**, utilisant des fichiers `.yml` dans `.github/workflows/`. GitLab CI/CD repose sur un fichier `.gitlab-ci.yml`, avec une vue pipeline intégrée. GitLab permet des étapes conditionnelles complexes, GitHub est plus simple à configurer pour les petits projets. 🔑 Mots-clés : déclencheur (`on: push`), runner, cache, matrix build."
+    "question": "Qu'est-ce qu'un Buy-in dans le contexte post-trade ?",
+    "answer": "Mécanisme imposé par CSDR si un règlement échoue après 4 jours: la contrepartie défaillante est remplacée par un achat sur le marché pour honorer le deal."
   },
   {
-    "question": "Quels sont les composants d’un workflow GitHub Actions ?",
-    "answer": " Un workflow GitHub Actions est composé de : **events** (déclencheurs : push, PR, cron), **jobs** (unités d'exécution), **steps** (commandes), **actions** (réutilisables). Exemple : un job nommé `test` contient 3 steps : `checkout`, `install`, `run tests`. 🔑 Syntaxe : YAML, environnement GitHub-hosted, secrets pour les tokens."
+    "question": "Quel est le rôle des ICSD comme Euroclear et Clearstream ?",
+    "answer": "Ce sont des banques dépositaires internationales qui gèrent les titres, les instructions et les flux de règlement-livraison."
   },
   {
-    "question": "Qu'est-ce qu'une API REST et pourquoi est-elle largement utilisée ?",
-    "answer": " Une **API REST** repose sur le protocole **HTTP** et suit des conventions : chaque ressource (ex: /users/12) est accessible via des **verbes** (GET, POST, PUT, DELETE). Elle est **stateless** : chaque requête contient toutes les informations nécessaires. Avantages : simple, lisible, compatible avec les navigateurs. Exemple : `GET /api/products` retourne une liste de produits au format JSON. 🔑 Mots-clés : endpoint, URI, stateless, JSON, status code HTTP."
+    "question": "Qu'entend-on par 'Cut-off' dans le processus post-trade ?",
+    "answer": "Heure limite d'envoi des instructions de règlement pour garantir un settlement le jour même (ex: 15h CET pour Euroclear)."
   },
   {
-    "question": "Quelles sont les différences fondamentales entre REST, SOAP et gRPC ?",
-    "answer": " **REST** : HTTP + JSON, simple à consommer. **SOAP** : XML + WSDL, utilisé dans les systèmes anciens (banques, ERP). **gRPC** : HTTP/2 + Protobuf, très rapide et compact, idéal pour microservices internes. REST est mieux pour les APIs web publiques, gRPC pour l'interne haute performance. 🔑 Mots-clés : Protobuf, stateless, contrat, XML vs JSON, compatibilité navigateur."
+    "question": "Comment les progiciels gèrent-ils les corporate actions ?",
+    "answer": "Via un module dédié qui intègre les événements sur titres comme les dividendes, splits et fusions, et met à jour les positions en conséquence."
   },
   {
-    "question": "Pourquoi utiliser gRPC dans une architecture microservices ?",
-    "answer": " gRPC utilise **HTTP/2** et **Protocol Buffers**, ce qui permet une **communication binaire rapide**, du **streaming** bidirectionnel et une **vérification forte des types**. Il est idéal dans un réseau d’entreprise entre microservices : login, panier, paiement. Exemple : `rpc Checkout (CartRequest) returns (PaymentStatus)` avec `.proto` généré automatiquement. 🔑 Concepts : stub, service definition, contract first, streaming."
+    "question": "Quel est le rôle du DOM (Domestic Market) dans le post-trade ?",
+    "answer": "Marché local souvent lié au CSD national (ex: Borsa Italiana/Monte Titoli), gérant les opérations et settlements domestiques."
   },
   {
-    "question": "Qu’est-ce qu’un fichier .proto en gRPC et à quoi sert-il ?",
-    "answer": " Le fichier `.proto` définit le contrat du service gRPC. Il décrit les messages (`message`) et les appels (`rpc`) de manière **typée et structurée**, ensuite compilé automatiquement pour générer du code client et serveur. 🔑 Exemple : `message User { int32 id = 1; string name = 2; }` suivi de `service UserService { rpc GetUser (UserRequest) returns (User); }`."
-  },
-   {
-    "question": "Qu'est-ce que SQL et pourquoi est-il indispensable ?",
-    "answer": " SQL est un **langage déclaratif** qui permet de manipuler des bases de données relationnelles. Il permet d’effectuer des requêtes (`SELECT`), insérer des données (`INSERT`), modifier (`UPDATE`) et supprimer (`DELETE`). Exemple : `SELECT name FROM clients WHERE pays = 'France';` 🔑 Concepts : table, colonne, ligne, schéma, CRUD."
+    "question": "Quelle est la différence entre un CSD et un ICSD ?",
+    "answer": "Un CSD (Central Securities Depository) gère les titres d'un marché domestique (ex: Euroclear France), tandis qu'un ICSD (International CSD) comme Euroclear Bank ou Clearstream Luxembourg gère les titres internationaux et multi-devises."
   },
   {
-    "question": "Qu'est-ce que le modèle relationnel dans une base de données ?",
-    "answer": " Le modèle relationnel repose sur l'organisation des données en **tables**, liées entre elles par des **clés étrangères**. Chaque table représente une entité (ex: `users`, `orders`). 🔑 Avantage : cohérence, requêtes complexes avec `JOIN`, intégrité des données. Exemple : `orders.user_id` référence `users.id`."
+    "question": "Comment le module SSI fonctionne-t-il dans Summit/SOPHIS ?",
+    "answer": "Le module SSI (Standard Settlement Instructions) stocke les paramètres des comptes custodians et contreparties pour générer automatiquement les instructions SWIFT (ex: MT54x) sans saisie manuelle."
   },
   {
-    "question": "Que signifie le principe ACID dans les bases de données relationnelles ?",
-    "answer": " ACID = **Atomicité** (tout ou rien), **Cohérence** (respect des règles), **Isolation** (pas de conflits entre transactions), **Durabilité** (les données sont persistantes même après crash). Cela garantit l'intégrité des transactions. Exemple : transfert bancaire entre deux comptes."
+    "question": "Quels sont les 3 types de settlement pour les equities ?",
+    "answer": "1) DVP (Delivery vs Payment), 2) RVP (Receive vs Payment), 3) Free of Payment (FoP) - selon si le transfert de titres et cash est lié ou non."
   },
   {
-    "question": "Pourquoi PostgreSQL est-il souvent préféré à MySQL ou SQL Server ?",
-    "answer": " PostgreSQL est **open source**, très **conforme au standard SQL**, offre des types avancés (JSON, géodonnées), des index efficaces, des vues matérialisées et un moteur transactionnel robuste. SQL Server est puissant mais propriétaire. 🔑 Usage : systèmes critiques, data warehouses, projets cloud-first."
+    "question": "Pourquoi les repos utilisent-ils souvent un collateral management tripartite ?",
+    "answer": "Pour déléguer la gestion du collatéral (sélection, valorisation, substitutions) à un tiers neutre (ex: Euroclear GC Pooling), réduisant le risque de contrepartie et automatisant les appels de marge."
   },
   {
-    "question": "Quel est le rôle des index en SQL ?",
-    "answer": " Un **index** améliore les performances de lecture en accélérant les recherches sur une ou plusieurs colonnes. Comparable à l’index d’un livre. Exemple : `CREATE INDEX idx_name ON clients(name);` 🔑 Types : B-tree (par défaut), Hash, GIN (PostgreSQL)."
+    "question": "Que signifie 'Fail de règlement' et comment le gère-t-on ?",
+    "answer": "Échec du settlement à J+2 (pour les equities). Le progiciel relance l'instruction modifiée, applique des pénalités CSDR, et peut déclencher un buy-in si le fail persiste."
   },
-
-
+  {
+    "question": "Quel est l'impact de T2S sur le post-trade en Europe ?",
+    "answer": "Target2-Securities harmonise le settlement en Europe via une plateforme unique (en banque centrale money), réduisant les coûts et les délais pour les cross-border settlements."
+  },
+  {
+    "question": "Comment les corporate actions sont-elles traitées dans Calypso ?",
+    "answer": "Via un module dédié qui : 1) Capture les annonces (SWIFT MT564), 2) Met à jour les positions, 3) Gère les élections (options de corporate actions), 4) Génère les instructions de paiement."
+  },
+  {
+    "question": "Quels champs sont obligatoires pour le booking d'un trade repo ?",
+    "answer": "ISIN du collatéral, taux repo, date de démarrage/terme, contrepartie, haircut, type de collatéral (GC/specific), et compte custodian pour le settlement."
+  },
+  {
+    "question": "Quelle est la différence entre MT540 et MT543 en SWIFT ?",
+    "answer": "MT540 = instruction de settlement initiale, MT543 = modification/cancellation d'une instruction existante (ex: pour corriger un fail)."
+  },
+  {
+    "question": "Comment Summit gère-t-il les coupons d'obligations ?",
+    "answer": "1) Calcule l'intérêt couru (ACT/ACT ou 30/360), 2) Génère un événement à la date de coupon, 3) Émet une instruction SWIFT MT54x pour le paiement via le custodian."
+  },
+  {
+    "question": "Qu'est-ce que le 'position keeping' et pourquoi est-il critique ?",
+    "answer": "Suivi en temps réel des positions titres/cash par portefeuille. Critique pour : 1) Le risque (couverture), 2) La liquidité, 3) La conformité (limites réglementaires)."
+  },
+  {
+    "question": "Qui sont les acteurs clés dans le traitement d'un equity trade ?",
+    "answer": "1) Le broker (exécution), 2) Le CSD local (settlement), 3) La contrepartie, 4) Le custodian (tenue de compte), 5) Le MO (vérification)."
+  },
+  {
+    "question": "Pourquoi les Gov Bonds ont-ils un traitement post-trade spécifique ?",
+    "answer": "Car ils : 1) Sont souvent déposés en ICSD, 2) Ont des règles de collateral particulières (ex: haircut 0% pour EGBs), 3) Sont utilisés pour la liquidité bancaire (LCR/NSFR)."
+  },
+  {
+    "question": "Comment un système comme Calypso intègre-t-il la comptabilité ?",
+    "answer": "Via un module générant des écritures : 1) Au trading date (comptes d'ordre), 2) Au settlement date (mouvements réels), selon les normes IFRS ou locales."
+  }
   
 ];
 // QCM pour les niveaux moyen et avancé
 const questions = {
   moyen: [
-   {
-    "question": "Quel est le rôle principal de Git dans un projet logiciel ?",
+  {
+    "question": "Quel est le rôle principal d’un progiciel comme Summit ou SOPHIS dans le post-trade ?",
     "options": [
-      "Gérer les déploiements automatiques",
-      "Assurer la sécurité du code source",
-      "Suivre les modifications et versions du code",
-      "Compiler les programmes"
+      "Effectuer l’analyse financière des actifs",
+      "Garantir une traçabilité front-to-back de l’opération",
+      "Optimiser les rendements des portefeuilles",
+      "Répartir les tâches entre traders"
     ],
-    "answer": "Suivre les modifications et versions du code",
-    "explanation": "Git est un système de versionnage distribué qui permet de suivre l’évolution du code, gérer des branches et fusionner les modifications en toute sécurité."
+    "answer": "Garantir une traçabilité front-to-back de l’opération",
+    "explanation": "Les progiciels front-to-back assurent un suivi complet de la transaction, du booking initial jusqu’à l’intégration comptable."
   },
   {
-    "question": "Que signifie CI dans CI/CD ?",
+    "question": "Quel message SWIFT est utilisé pour transmettre une instruction de règlement ?",
     "options": [
-      "Code Integration",
-      "Continuous Integration",
-      "Centralized Integration",
-      "Checked Integration"
+      "MT103",
+      "MT548",
+      "MT540",
+      "MT799"
     ],
-    "answer": "Continuous Integration",
-    "explanation": "CI signifie 'Continuous Integration', un processus d’automatisation permettant de tester et valider du code à chaque modification dans le dépôt."
+    "answer": "MT540",
+    "explanation": "Les messages MT540 à MT543 sont utilisés pour transmettre les instructions de règlement DVP/RVP dans les systèmes post-trade."
   },
   {
-    "question": "Quel fichier déclenche les workflows dans GitHub Actions ?",
+    "question": "Quelle étape suit généralement le booking d’un trade par le Front Office ?",
     "options": [
-      ".gitlab-ci.yml",
-      "docker-compose.yml",
-      "workflow.json",
-      ".github/workflows/*.yml"
+      "Le règlement par Clearstream",
+      "Le contrôle Middle Office",
+      "L’intégration comptable",
+      "L’envoi automatique au client"
     ],
-    "answer": ".github/workflows/*.yml",
-    "explanation": "Les workflows GitHub Actions sont définis dans des fichiers YAML placés dans le dossier `.github/workflows/`."
+    "answer": "Le contrôle Middle Office",
+    "explanation": "Le Middle Office vérifie les paramètres du trade, enrichit les données (SSI, broker ID…) et génère les instructions de règlement."
   },
   {
-    "question": "Quel composant n'est pas propre à un pipeline CI/CD ?",
+    "question": "Quelle est une fonctionnalité clé du module ‘Collateral Management’ ?",
     "options": [
-      "Jobs",
-      "Branches",
-      "Stages",
-      "Runners"
+      "Gérer les dividendes",
+      "Calculer les taux d’intérêt",
+      "Suivre les appels de marge",
+      "Attribuer les ISIN"
     ],
-    "answer": "Branches",
-    "explanation": "Les branches appartiennent à Git, pas directement aux pipelines CI/CD qui se composent plutôt de jobs, stages et runners."
+    "answer": "Suivre les appels de marge",
+    "explanation": "Le module de gestion du collatéral surveille les appels de marge, les haircuts, et assure l’allocation dynamique des garanties."
   },
   {
-    "question": "Quelle est la différence entre GitHub Actions et GitLab CI/CD ?",
+    "question": "Quel type d’actif nécessite une gestion des strips et des Risk-Weighted Assets (RWA) ?",
     "options": [
-      "GitLab CI est uniquement pour Python",
-      "GitHub Actions est propriétaire de GitLab",
-      "GitHub Actions est intégré à GitHub, GitLab CI est intégré à GitLab",
-      "GitHub Actions ne permet pas le déploiement"
+      "Equity",
+      "Cash",
+      "Government Bonds",
+      "Repos"
     ],
-    "answer": "GitHub Actions est intégré à GitHub, GitLab CI est intégré à GitLab",
-    "explanation": "GitHub Actions fonctionne dans GitHub, tandis que GitLab CI/CD est natif de GitLab. Tous deux permettent tests et déploiement via des fichiers YAML."
+    "answer": "Government Bonds",
+    "explanation": "Les obligations d’État (Gov Bonds) ont des particularités post-trade comme la gestion des strips et le calcul de leur pondération en risque."
   },
   {
-    "question": "Quel format d'échange est utilisé par défaut dans une API REST ?",
+    "question": "Quelle conséquence peut entraîner un cut-off raté ?",
     "options": [
-      "YAML",
-      "JSON",
-      "Protobuf",
-      "CSV"
+      "Le trade est annulé",
+      "Le settlement est repoussé à J+1",
+      "Une instruction MT578 est générée",
+      "Le deal passe directement au DOM"
     ],
-    "answer": "JSON",
-    "explanation": "Les APIs REST utilisent généralement le format JSON car il est léger, lisible et largement supporté."
+    "answer": "Le settlement est repoussé à J+1",
+    "explanation": "Si l’instruction de règlement est envoyée après l’heure limite (cut-off), le règlement est décalé au jour de règlement suivant."
   },
   {
-    "question": "Qu’est-ce qu’une API stateless ?",
+    "question": "Quel acteur est responsable du règlement-livraison en monnaie banque centrale via T2S ?",
     "options": [
-      "Qui utilise des identifiants",
-      "Qui conserve l'état de session",
-      "Qui n'a pas de sécurité",
-      "Qui ne conserve pas l'état entre les requêtes"
+      "Broker",
+      "CSD local",
+      "Clearstream Triparty",
+      "T2S"
     ],
-    "answer": "Qui ne conserve pas l'état entre les requêtes",
-    "explanation": "Une API stateless ne stocke pas d'informations de session ; chaque requête contient toutes les infos nécessaires à son traitement."
+    "answer": "T2S",
+    "explanation": "T2S est une plateforme européenne de règlement en monnaie centrale, connectant les CSDs comme Euroclear ou Clearstream."
   },
   {
-    "question": "Quel protocole est utilisé par gRPC ?",
+    "question": "En cas de fail prolongé, quel mécanisme est déclenché selon CSDR ?",
     "options": [
-      "HTTP/1.1",
-      "SOAP",
-      "HTTP/2",
-      "FTP"
+      "Rebooking",
+      "Buy-In",
+      "Blocking",
+      "MT578"
     ],
-    "answer": "HTTP/2",
-    "explanation": "gRPC utilise HTTP/2 pour permettre des communications rapides, bidirectionnelles et multiplexées entre services."
+    "answer": "Buy-In",
+    "explanation": "Le Buy-In consiste à acheter l’actif sur le marché pour compenser un fail persistant au-delà de 4 jours ouvrés, selon la régulation CSDR."
   },
   {
-    "question": "Pourquoi utiliser gRPC plutôt que REST ?",
+    "question": "Quel message SWIFT informe d’un échec ou succès de règlement ?",
     "options": [
-      "Car il est basé sur XML",
-      "Car il est plus lent",
-      "Pour des communications internes très rapides",
-      "Pour remplacer SOAP"
+      "MT103",
+      "MT548",
+      "MT540",
+      "MT599"
     ],
-    "answer": "Pour des communications internes très rapides",
-    "explanation": "gRPC est optimisé pour des appels entre services internes grâce à HTTP/2 et Protobuf."
+    "answer": "MT548",
+    "explanation": "Le message MT548 est utilisé pour notifier le statut d’une instruction de règlement : settled, pending, failed, etc."
   },
   {
-    "question": "Que contient un fichier .proto en gRPC ?",
+    "question": "Quel module progiciel permet de configurer les comptes de règlement des contreparties ?",
     "options": [
-      "Le code source du serveur",
-      "La définition des routes REST",
-      "La documentation API",
-      "La définition des messages et services"
+      "Accounting",
+      "Trade Blotter",
+      "SSI",
+      "Position Keeping"
     ],
-    "answer": "La définition des messages et services",
-    "explanation": "Un fichier `.proto` définit les types de messages et les services (RPC) utilisés dans une application gRPC."
+    "answer": "SSI",
+    "explanation": "Le module SSI (Standard Settlement Instructions) centralise les données de règlement (comptes, banques, dépositaires) par contrepartie."
   }
   ],
   avance: [
-    {
-    "question": "Quel est le rôle principal de Git dans un projet logiciel ?",
+     {
+    "question": "Quel est le rôle d’un ICSD comme Euroclear Bank ?",
     "options": [
-      "Gérer les déploiements automatiques",
-      "Assurer la sécurité du code source",
-      "Suivre les modifications et versions du code",
-      "Compiler les programmes"
+      "Gérer les ordres de marché primaire",
+      "Fournir des analyses financières",
+      "Assurer la conservation et le règlement-livraison de titres internationaux",
+      "Calculer les intérêts courus"
     ],
-    "answer": "Suivre les modifications et versions du code",
-    "explanation": "Git est un système de versionnage distribué qui permet de suivre l’évolution du code, gérer des branches et fusionner les modifications en toute sécurité."
+    "answer": "Assurer la conservation et le règlement-livraison de titres internationaux",
+    "explanation": "Les ICSDs (International Central Securities Depositories) comme Euroclear Bank gèrent la détention et le règlement des titres à l’échelle internationale."
   },
   {
-    "question": "Que signifie CI dans CI/CD ?",
+    "question": "Quel type de message SWIFT est généré pour notifier le matching ou non-matching d’un trade ?",
     "options": [
-      "Code Integration",
-      "Continuous Integration",
-      "Centralized Integration",
-      "Checked Integration"
+      "MT540",
+      "MT548",
+      "MT578",
+      "MT202"
     ],
-    "answer": "Continuous Integration",
-    "explanation": "CI signifie 'Continuous Integration', un processus d’automatisation permettant de tester et valider du code à chaque modification dans le dépôt."
+    "answer": "MT578",
+    "explanation": "Le message MT578 informe du statut de matching d’une transaction (matched/unmatched) dans les systèmes de règlement."
   },
   {
-    "question": "Quel fichier déclenche les workflows dans GitHub Actions ?",
+    "question": "Quel type d’actif implique une gestion du netting des paiements ?",
     "options": [
-      ".gitlab-ci.yml",
-      "docker-compose.yml",
-      "workflow.json",
-      ".github/workflows/*.yml"
+      "Gov Bonds",
+      "Equities",
+      "Cash",
+      "Repos"
     ],
-    "answer": ".github/workflows/*.yml",
-    "explanation": "Les workflows GitHub Actions sont définis dans des fichiers YAML placés dans le dossier `.github/workflows/`."
+    "answer": "Cash",
+    "explanation": "Les paiements en cash peuvent être regroupés (netting) pour optimiser les flux financiers dans les systèmes de trésorerie."
   },
   {
-    "question": "Quel composant n'est pas propre à un pipeline CI/CD ?",
+    "question": "Quelle est la conséquence directe d’un fail de règlement ?",
     "options": [
-      "Jobs",
-      "Branches",
-      "Stages",
-      "Runners"
+      "Aucun impact",
+      "Une pénalité et reprocessing de l’instruction",
+      "Le trade est annulé automatiquement",
+      "Les titres sont revendus"
     ],
-    "answer": "Branches",
-    "explanation": "Les branches appartiennent à Git, pas directement aux pipelines CI/CD qui se composent plutôt de jobs, stages et runners."
+    "answer": "Une pénalité et reprocessing de l’instruction",
+    "explanation": "Un fail déclenche des pénalités CSDR et nécessite un retraitement de l’instruction dans le progiciel BO (Back Office)."
   },
   {
-    "question": "Quelle est la différence entre GitHub Actions et GitLab CI/CD ?",
+    "question": "Quel module d’un progiciel est responsable du suivi des positions cash et titres ?",
     "options": [
-      "GitLab CI est uniquement pour Python",
-      "GitHub Actions est propriétaire de GitLab",
-      "GitHub Actions est intégré à GitHub, GitLab CI est intégré à GitLab",
-      "GitHub Actions ne permet pas le déploiement"
+      "Trade Blotter",
+      "Settlement Engine",
+      "Position Keeping",
+      "Collateral Management"
     ],
-    "answer": "GitHub Actions est intégré à GitHub, GitLab CI est intégré à GitLab",
-    "explanation": "GitHub Actions fonctionne dans GitHub, tandis que GitLab CI/CD est natif de GitLab. Tous deux permettent tests et déploiement via des fichiers YAML."
+    "answer": "Position Keeping",
+    "explanation": "Ce module permet de visualiser et suivre les positions détenues en titres ou en liquidités dans le portefeuille du client ou de la banque."
   },
   {
-    "question": "Quel format d'échange est utilisé par défaut dans une API REST ?",
+    "question": "Quel acteur assure le lien entre une entreprise émettrice et les marchés pour ses actions ?",
     "options": [
-      "YAML",
-      "JSON",
-      "Protobuf",
-      "CSV"
+      "Clearstream",
+      "Corporate Broking",
+      "CSD",
+      "Broker Retail"
     ],
-    "answer": "JSON",
-    "explanation": "Les APIs REST utilisent généralement le format JSON car il est léger, lisible et largement supporté."
+    "answer": "Corporate Broking",
+    "explanation": "Le corporate broker accompagne les sociétés cotées dans leurs relations avec les investisseurs et le marché (dividendes, émissions, fusions…)."
   },
   {
-    "question": "Qu’est-ce qu’une API stateless ?",
+    "question": "Quel est le rôle d’un CSD local comme Euroclear France ?",
     "options": [
-      "Qui utilise des identifiants",
-      "Qui conserve l'état de session",
-      "Qui n'a pas de sécurité",
-      "Qui ne conserve pas l'état entre les requêtes"
+      "Effectuer les trades de marché",
+      "Gérer la trésorerie centrale",
+      "Assurer le règlement-livraison des titres domestiques",
+      "Proposer des produits dérivés"
     ],
-    "answer": "Qui ne conserve pas l'état entre les requêtes",
-    "explanation": "Une API stateless ne stocke pas d'informations de session ; chaque requête contient toutes les informations nécessaires."
+    "answer": "Assurer le règlement-livraison des titres domestiques",
+    "explanation": "Un CSD (Central Securities Depository) local gère les titres d’un marché domestique et leur règlement-livraison."
   },
   {
-    "question": "Quel protocole est utilisé par gRPC ?",
+    "question": "Quelle instruction SWIFT est utilisée pour un paiement interbancaire en cash ?",
     "options": [
-      "HTTP/1.1",
-      "SOAP",
-      "HTTP/2",
-      "FTP"
+      "MT103",
+      "MT540",
+      "MT548",
+      "MT202"
     ],
-    "answer": "HTTP/2",
-    "explanation": "gRPC utilise HTTP/2 pour permettre des communications rapides, bidirectionnelles et multiplexées entre services."
+    "answer": "MT202",
+    "explanation": "Le message MT202 est utilisé pour les paiements interbancaires liés à des règlements de titres ou à des opérations de trésorerie."
   },
   {
-    "question": "Pourquoi utiliser gRPC plutôt que REST ?",
+    "question": "Quel outil ou canal est principalement utilisé pour transmettre les instructions aux CSD ?",
     "options": [
-      "Car il est basé sur XML",
-      "Car il est plus lent",
-      "Pour des communications internes très rapides",
-      "Pour remplacer SOAP"
+      "Email sécurisé",
+      "API REST",
+      "Module SWIFT intégré au progiciel",
+      "FTP externe"
     ],
-    "answer": "Pour des communications internes très rapides",
-    "explanation": "gRPC est optimisé pour des appels entre services internes grâce à HTTP/2 et Protobuf."
+    "answer": "Module SWIFT intégré au progiciel",
+    "explanation": "Les instructions sont transmises via le module SWIFT (MT540-549) intégré aux progiciels comme Summit, SOPHIS ou Calypso."
   },
   {
-    "question": "Que contient un fichier .proto en gRPC ?",
+    "question": "Que se passe-t-il en cas d’erreur de booking détectée en post-trade ?",
     "options": [
-      "Le code source du serveur",
-      "La définition des routes REST",
-      "La documentation API",
-      "La définition des messages et services"
+      "Le trade est annulé dans le marché",
+      "L’erreur est corrigée via rebooking ou workflow MO",
+      "Une nouvelle devise est automatiquement affectée",
+      "Le settlement est validé malgré l’erreur"
     ],
-    "answer": "La définition des messages et services",
-    "explanation": "Un fichier `.proto` définit les types de messages et les services (RPC) utilisés dans une application gRPC."
+    "answer": "L’erreur est corrigée via rebooking ou workflow MO",
+    "explanation": "Le Middle Office peut corriger l’erreur via un rebooking ou une annulation suivie d’une nouvelle saisie dans le système."
   },
   {
-    "question": "Qu'est-ce que SQL ?",
+    "question": "Quel est l’objectif principal du module Collateral Management dans un progiciel post-trade ?",
     "options": [
-      "Un système de fichiers",
-      "Un langage de programmation orienté objet",
-      "Un langage pour interroger des bases de données relationnelles",
-      "Un protocole réseau sécurisé"
+      "Suivre les flux de trésorerie",
+      "Gérer les appels de marge et les garanties (collatéral)",
+      "Générer les écritures comptables",
+      "Valider les ordres de trading"
     ],
-    "answer": "Un langage pour interroger des bases de données relationnelles",
-    "explanation": "SQL (Structured Query Language) est utilisé pour lire, insérer, mettre à jour et supprimer des données dans des bases relationnelles."
+    "answer": "Gérer les appels de marge et les garanties (collatéral)",
+    "explanation": "Le module Collateral Management assure le suivi des garanties apportées, des appels de marge et des haircuts pour sécuriser les opérations financières."
   },
   {
-    "question": "Quel mot-clé SQL permet de joindre plusieurs tables ?",
+    "question": "Quelle est la fonction principale du Settlement Engine dans les progiciels comme Summit ou Calypso ?",
     "options": [
-      "MERGE",
-      "COMBINE",
-      "JOIN",
-      "ATTACH"
+      "Créer les ordres de trading",
+      "Générer automatiquement les instructions de règlement-livraison SWIFT",
+      "Calculer les intérêts courus",
+      "Réaliser les contrôles de conformité"
     ],
-    "answer": "JOIN",
-    "explanation": "JOIN est utilisé pour combiner des lignes provenant de deux ou plusieurs tables, en utilisant une condition commune."
+    "answer": "Générer automatiquement les instructions de règlement-livraison SWIFT",
+    "explanation": "Le Settlement Engine produit les messages SWIFT MT54x nécessaires au règlement des opérations post-trade."
   },
   {
-    "question": "Quel est l'intérêt de créer un index sur une colonne en SQL ?",
+    "question": "Quelle est la conséquence d’un cut-off raté pour une instruction de règlement ?",
     "options": [
-      "Gagner de l'espace disque",
-      "Accélérer les requêtes de lecture",
-      "Protéger la colonne contre les suppressions",
-      "Ajouter des permissions utilisateur"
+      "L’instruction est annulée définitivement",
+      "Le règlement est repoussé au jour ouvré suivant (J+1)",
+      "Le trade est automatiquement remboursé",
+      "Le client reçoit une pénalité"
     ],
-    "answer": "Accélérer les requêtes de lecture",
-    "explanation": "Un index accélère les opérations de lecture en réduisant le nombre de lignes à scanner dans la table."
+    "answer": "Le règlement est repoussé au jour ouvré suivant (J+1)",
+    "explanation": "Si l’instruction est envoyée après l’heure limite (cut-off), le règlement est reporté au prochain jour ouvré pour garantir la bonne exécution."
   },
   {
-    "question": "Quel est le rôle de la clause WHERE dans une requête SQL ?",
+    "question": "Quel type de message SWIFT informe du statut d’un règlement (ex: matched, settled) ?",
     "options": [
-      "Filtrer les lignes selon une condition",
-      "Créer une table temporaire",
-      "Ajouter une colonne à la table",
-      "Lier deux bases de données"
+      "MT548",
+      "MT103",
+      "MT202",
+      "MT540"
     ],
-    "answer": "Filtrer les lignes selon une condition",
-    "explanation": "La clause WHERE permet de spécifier des conditions sur les lignes à sélectionner ou à modifier."
+    "answer": "MT548",
+    "explanation": "Le message MT548 informe des statuts de settlement comme matched, settled, pending ou cancelled."
   },
   {
-    "question": "Quelle commande permet d’insérer une ligne dans une table ?",
+    "question": "Que désigne le terme « Buy-in » dans la gestion des incidents post-trade ?",
     "options": [
-      "INSERT",
-      "ADD",
-      "UPDATE",
-      "SELECT"
+      "L’achat de titres en bourse pour une nouvelle position",
+      "L’obligation d’acheter sur le marché pour couvrir un fail de règlement persistant",
+      "La clôture anticipée d’un repo",
+      "Un transfert automatique de collatéral"
     ],
-    "answer": "INSERT",
-    "explanation": "INSERT INTO permet d’ajouter de nouvelles lignes dans une table existante."
+    "answer": "L’obligation d’acheter sur le marché pour couvrir un fail de règlement persistant",
+    "explanation": "Le buy-in est une procédure imposée par la réglementation CSDR pour pallier un fail persistant en achetant les titres sur le marché."
   },
   {
-    "question": "Que signifie l'acronyme ACID ?",
+    "question": "Qu’est-ce que les Standard Settlement Instructions (SSI) dans un progiciel front-to-back ?",
     "options": [
-      "Association, Cohérence, Index, Durabilité",
-      "Atomicité, Cohérence, Isolation, Durabilité",
-      "Autonomie, Cohérence, Inversion, Disponibilité",
-      "Accessibilité, Connexion, Indépendance, Disponibilité"
+      "Des paramètres préenregistrés des comptes de contrepartie et custodians pour le règlement",
+      "Un rapport financier trimestriel",
+      "Une liste des ordres de trading",
+      "Un manuel d’utilisation du logiciel"
     ],
-    "answer": "Atomicité, Cohérence, Isolation, Durabilité",
-    "explanation": "ACID est un ensemble de propriétés qui garantissent la fiabilité des transactions dans une base de données."
+    "answer": "Des paramètres préenregistrés des comptes de contrepartie et custodians pour le règlement",
+    "explanation": "Les SSI facilitent l’automatisation et la cohérence des instructions de règlement en enregistrant les coordonnées bancaires et comptes de chaque contrepartie."
   },
   {
-    "question": "Pourquoi choisir PostgreSQL pour un projet open source ?",
+    "question": "Quel acteur est principalement responsable de l’exécution des ordres pour le client ?",
     "options": [
-      "Car il est payant",
-      "Pour sa compatibilité avec Excel",
-      "Pour ses performances, sa richesse fonctionnelle et sa licence libre",
-      "Car il est uniquement compatible Windows"
+      "Broker",
+      "CSD",
+      "Corporate Broking",
+      "ICSD"
     ],
-    "answer": "Pour ses performances, sa richesse fonctionnelle et sa licence libre",
-    "explanation": "PostgreSQL est une base robuste, riche en types avancés, et très utilisée dans les projets open source."
+    "answer": "Broker",
+    "explanation": "Le broker exécute les ordres du client sur les marchés et fournit la confirmation d’exécution."
   },
   {
-    "question": "Dans une base relationnelle, une clé primaire sert à :",
+    "question": "Dans quel système européen harmonisé les règlements-livraisons sont-ils effectués en monnaie centrale ?",
     "options": [
-      "Lier deux tables entre elles",
-      "Identifier de manière unique chaque ligne d'une table",
-      "Créer une nouvelle colonne",
-      "Sauvegarder la table automatiquement"
+      "Clearstream",
+      "T2S (Target2-Securities)",
+      "Euroclear Bank",
+      "Monte Titoli"
     ],
-    "answer": "Identifier de manière unique chaque ligne d'une table",
-    "explanation": "La clé primaire permet d’assurer l’unicité et l’intégrité des données d’une table."
+    "answer": "T2S (Target2-Securities)",
+    "explanation": "T2S est la plateforme paneuropéenne qui centralise le règlement-livraison en monnaie centrale des titres."
   },
   {
-    "question": "Quelle clause permet de trier les résultats d'une requête SQL ?",
+    "question": "Quels paramètres sont généralement renseignés lors du booking d’un trade post-trade ?",
     "options": [
-      "SORT BY",
-      "ORDER BY",
-      "GROUP BY",
-      "FILTER"
+      "ISIN, volume, prix, devise, date valeur, contrepartie",
+      "Le nom du trader uniquement",
+      "Le montant en devise locale uniquement",
+      "Le type d’ordre et la marge seulement"
     ],
-    "answer": "ORDER BY",
-    "explanation": "ORDER BY trie les résultats d’une requête selon une ou plusieurs colonnes, en ordre croissant ou décroissant."
+    "answer": "ISIN, volume, prix, devise, date valeur, contrepartie",
+    "explanation": "Ces informations clés permettent de qualifier et de tracer l’opération dans le système post-trade."
   },
   {
-    "question": "Quelle clause SQL regroupe les lignes ayant des valeurs identiques ?",
+    "question": "Que signifie la notion de « Settlement Status » dans le contexte post-trade ?",
     "options": [
-      "UNION",
-      "MERGE",
-      "GROUP BY",
-      "COLLECT"
+      "Le niveau de risque d’un trade",
+      "Le suivi du statut d’exécution d’une instruction de règlement",
+      "Le type de collateral utilisé",
+      "Le code d’identification du broker"
     ],
-    "answer": "GROUP BY",
-    "explanation": "GROUP BY regroupe les lignes par valeur commune, souvent utilisée avec des fonctions d’agrégation comme COUNT ou SUM."
+    "answer": "Le suivi du statut d’exécution d’une instruction de règlement",
+    "explanation": "Le Settlement Status indique si une instruction est matched, unmatched, settled, pending ou annulée."
   },
   ]
 };
