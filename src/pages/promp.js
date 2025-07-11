@@ -58,7 +58,7 @@ Format : JSON identique à avant.
  🔹 Prompt 5 – Générer des QCM à partir de flashcards
 🔁 Pour s'entraîner ou créer un quiz
 
-À partir des flashcards précédentes, génère 10 QCM essentiels en format JSON.  
+À partir des flashcards précédentes, génère 15 QCM essentiels en format JSON.  
 Chaque QCM doit inclure :  
 - Une question claire  
 - 4 options  

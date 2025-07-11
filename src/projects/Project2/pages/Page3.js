@@ -6,85 +6,85 @@ import "./Page.css";
 
 const basicSlides = [
 
-    {
-    "question": "Quels sont les principaux progiciels utilisés en environnement front-to-back ?",
-    "answer": "Summit, SOPHIS, Calypso, Murex. Ils assurent la traçabilité de la négociation à la comptabilité."
+  {
+    "question": "Formule une phrase pour remercier un collègue après un échange constructif.",
+    "answer": "Merci pour ton retour, c'était très utile.\nMots-clés associés : feedback, reconnaissance, collaboration.\nContexte : fin de réunion ou échange en binôme."
   },
   {
-    "question": "Quels paramètres clés sont renseignés lors du booking d'un trade ?",
-    "answer": "ISIN, volume, prix, devise, date valeur, settlement type (FO/OTC), contrepartie, broker. Génère un deal ticket unique."
+    "question": "Formule une phrase pour demander des précisions sur une tâche.",
+    "answer": "Tu peux m’expliquer un peu plus ce point ? Je veux être sûr de bien comprendre.\nMots-clés : clarification, transparence, écoute active.\nContexte : mail ou échange oral sur une tâche en cours."
   },
   {
-    "question": "Quelles sont les 3 étapes principales du traitement post-trade ?",
-    "answer": "1) Booking du trade, 2) Contrôle Middle Office, 3) Transmission aux infrastructures (CSD/ICSD)."
+    "question": "Formule une phrase pour encourager un collègue qui débute.",
+    "answer": "Tu t’en sors bien, c’est normal de poser des questions au début.\nMots-clés : bienveillance, soutien, intégration.\nContexte : onboarding ou passation."
   },
   {
-    "question": "Que vérifie le Middle Office lors du contrôle d'un trade ?",
-    "answer": "Sens, montant, date valeur, place de règlement. Complète les SSI, broker ID, account custodian."
+    "question": "Formule une phrase pour proposer de l’aide à un collègue en surcharge.",
+    "answer": "Si tu veux, je peux t’aider sur une partie.\nMots-clés : entraide, coopération, esprit d’équipe.\nContexte : surcharge ponctuelle ou projet commun."
   },
   {
-    "question": "Quels messages SWIFT sont utilisés pour le settlement ?",
-    "answer": "MT540-543 (instructions), MT548 (statut), MT578 (matched/unmatched). Envoyés via module SWIFT des progiciels."
+    "question": "Formule une phrase pour poser une question sur le contexte d’un reporting.",
+    "answer": "Tu sais à qui est destiné ce rapport ?\nMots-clés : clarification, alignement, objectif.\nContexte : préparation d’un livrable."
   },
   {
-    "question": "Quelle est la différence entre CSD et ICSD ? Donnez des exemples.",
-    "answer": "CSD = dépôt domestique (Euroclear France), ICSD = international (Euroclear Bank, Clearstream Luxembourg)."
+    "question": "Formule une phrase pour relancer une demande poliment.",
+    "answer": "Je me permets de revenir vers toi concernant ma demande de mardi.\nMots-clés : relance, politesse, gestion du temps.\nContexte : relance mail ou Slack."
   },
   {
-    "question": "Comment les equities sont-elles settlées ?",
-    "answer": "En DVP/RVP (Delivery/Receive vs Payment), avec gestion des dividendes et corporate actions."
+    "question": "Formule une phrase pour proposer une réunion de clarification.",
+    "answer": "On peut se caler 10 minutes pour faire le point ?\nMots-clés : proactivité, clarté, synchronisation.\nContexte : désalignement ou question ouverte."
   },
   {
-    "question": "Quelles spécificités pour les Gov Bonds ?",
-    "answer": "Déposés via Euroclear/Clearstream/T2S. Gestion des strips, maturité, et risk-weighted assets (RWA)."
+    "question": "Formule une phrase pour réagir à une erreur sans accuser.",
+    "answer": "Il semble qu’il y ait eu un petit décalage, on peut revoir ça ensemble ?\nMots-clés : gestion de conflit, diplomatie, solution.\nContexte : erreur de saisie, deadline manquée."
   },
   {
-    "question": "Comment fonctionne le collateral management pour les REPOs ?",
-    "answer": "Gestion tripartite (Clearstream Triparty, Euroclear GC Access) avec automatisation des appels de marge."
+    "question": "Formule une phrase pour introduire une remarque en réunion.",
+    "answer": "Je me permets d’ajouter un point.\nMots-clés : assertivité, contribution, réunion.\nContexte : prise de parole en groupe."
   },
   {
-    "question": "Quel module gère les instructions de settlement ?",
-    "answer": "Settlement Engine : génère automatiquement les instructions SWIFT MT54x à partir des SSI."
+    "question": "Formule une phrase pour clore une réunion efficacement.",
+    "answer": "Merci à tous, je récapitule les points-clés et les prochaines étapes.\nMots-clés : clarté, synthèse, leadership.\nContexte : fin de réunion."
   },
   {
-    "question": "À quoi sert le module SSI ?",
-    "answer": "Stocker les paramètres des comptes custodians/contreparties pour automatiser les instructions de règlement."
+    "question": "Formule une phrase pour challenger une décision en restant constructif.",
+    "answer": "As-tu envisagé l’impact sur la volatilité du portefeuille si on opte pour cette option ?\nMots-clés : feedback constructif, gestion des risques, assertivité.\nContexte : comité de décision, gestion d’actifs."
   },
   {
-    "question": "Que fait le module Corporate Actions ?",
-    "answer": "Gère les événements sur titres : dividendes, splits, fusions. Intègre les annonces SWIFT MT564."
+    "question": "Formule une phrase pour demander un retour sur une présentation technique.",
+    "answer": "Aurais-tu un feedback rapide sur les éléments que j’aurais pu mieux synthétiser ?\nMots-clés : feedback, amélioration continue, transparence.\nContexte : présentation de reporting ou d’analyse de risque."
   },
   {
-    "question": "Comment traiter un trade non matché ?",
-    "answer": "Notification MT578/MT548. Correction via workflow MO/BO après vérification des divergences."
+    "question": "Formule une phrase pour reformuler une consigne technique.",
+    "answer": "Si je résume : on doit prioriser les flux OTC avant jeudi, avec un reporting consolidé.\nMots-clés : reformulation, clarté, priorisation.\nContexte : consigne de manager ou chef de projet."
   },
   {
-    "question": "Qu'est-ce qu'un buy-in sous CSDR ?",
-    "answer": "Si fail persiste 4 jours, obligation d'acheter sur le marché pour honorer le deal. Pénalités associées."
+    "question": "Formule une phrase pour répondre à une critique de façon posée.",
+    "answer": "Merci pour ton retour, je vais creuser ce point pour mieux l’intégrer dans la prochaine version.\nMots-clés : écoute active, professionnalisme, résilience.\nContexte : retour sur travail ou présentation."
   },
   {
-    "question": "Que se passe-t-il si on rate le cut-off ?",
-    "answer": "Settlement repoussé à J+1. Ex: cut-off à 15h CET pour Euroclear."
+    "question": "Formule une phrase pour synthétiser une réunion de trading.",
+    "answer": "En résumé, nous adaptons la stratégie sur les taux US en fonction du CPI, avec révision lundi.\nMots-clés : clarté, synthèse, marché.\nContexte : salle des marchés, morning meeting."
   },
   {
-    "question": "Quel est le rôle d'un ICSD ?",
-    "answer": "Euroclear/Clearstream : gèrent titres internationaux, instructions et flux multi-devises."
+    "question": "Formule une phrase pour recadrer un échange sans tension.",
+    "answer": "Je te propose qu’on se concentre sur les points validés pour avancer efficacement.\nMots-clés : diplomatie, gestion du temps, collaboration.\nContexte : réunion agitée ou digressive."
   },
   {
-    "question": "Qu'apporte T2S au post-trade européen ?",
-    "answer": "Plateforme harmonisée de settlement en banque centrale money. Réduit coûts et délais cross-border."
+    "question": "Formule une phrase pour poser une question stratégique en comité.",
+    "answer": "Comment cette orientation s’inscrit-elle dans la gestion du stress test Bâle III ?\nMots-clés : vision, compliance, alignement stratégique.\nContexte : comité risque ou conformité."
   },
   {
-    "question": "Qu'est-ce que le DOM ?",
-    "answer": "Domestic Market (ex: Borsa Italiana/Monte Titoli). Marché local lié à son CSD national."
+    "question": "Formule une phrase pour valoriser une idée en réunion.",
+    "answer": "Je trouve l’approche pertinente, surtout pour améliorer notre ratio Sharpe à court terme.\nMots-clés : écoute active, valorisation, performance.\nContexte : brainstorm produit ou stratégie."
   },
   {
-    "question": "Comment calculer l'intérêt couru pour une obligation ?",
-    "answer": "Méthodes ACT/ACT ou 30/360. Calculé automatiquement par les modules Accounting/Position Keeping."
+    "question": "Formule une phrase pour proposer un feedback post-meeting.",
+    "answer": "Tu es ouvert à un rapide retour sur le pitch ? Quelques points m’ont semblé perfectibles.\nMots-clés : feedback constructif, amélioration, respect.\nContexte : présentation client ou interne."
   },
   {
-    "question": "Quels sont les statuts possibles d'un settlement ?",
-    "answer": "Matched, unmatched, settled, pending, cancelled. Suivis via MT548."
+    "question": "Formule une phrase pour lancer une discussion informelle.",
+    "answer": "Tu as deux minutes pour un café ? J’aimerais avoir ton avis sur un truc rapide.\nMots-clés : présence sociale, lien, échange informel.\nContexte : gestion de réseau interne."
   },
 
 
@@ -94,226 +94,226 @@ const basicSlides = [
 const questions = {
   moyen: [
      {
-    "question": "Quel message SWIFT est utilisé pour les instructions de settlement initiales ?",
+    "question": "Quelle formulation est la plus claire pour demander un éclaircissement sur une consigne ?",
     "options": [
-      "MT103",
-      "MT540",
-      "MT578",
-      "MT202"
+      "Tu peux répéter ?",
+      "C’est flou ton truc.",
+      "Je ne comprends rien.",
+      "Tu peux préciser ce que tu attends exactement ?"
     ],
-    "answer": "MT540",
-    "explanation": "Le MT540 est le message SWIFT standard pour les instructions de settlement initiales, alors que MT578 concerne le matching status et MT103/202 les paiements cash."
+    "answer": "D",
+    "explanation": "La réponse D est précise, polie et favorise une clarification sans jugement."
   },
   {
-    "question": "Quelle infrastructure gère les titres internationaux ?",
+    "question": "Comment introduire une remarque en réunion sans couper la parole ?",
     "options": [
-      "CSD local",
-      "T2S",
-      "ICSD",
-      "DOM"
+      "Attends, je parle !",
+      "Je me permets d’ajouter quelque chose après ce point.",
+      "Laisse-moi finir.",
+      "On s’en fiche de ce que tu dis."
     ],
-    "answer": "ICSD",
-    "explanation": "Les ICSD (International Central Securities Depositories) comme Euroclear Bank ou Clearstream Luxembourg gèrent les titres transfrontaliers, contrairement aux CSD locaux."
+    "answer": "B",
+    "explanation": "La réponse B montre du respect, une volonté de contribuer et une posture professionnelle."
   },
   {
-    "question": "Que déclenche un fail de règlement après 4 jours sous CSDR ?",
+    "question": "Quelle formulation exprime un feedback positif constructif ?",
     "options": [
-      "Un reprocessing automatique",
-      "Un buy-in obligatoire",
-      "L'annulation du trade",
-      "Une pénalité de 1% du montant"
+      "Franchement, c’était pas trop mal.",
+      "Bien joué pour la clarté du slide sur les risques.",
+      "Tu pourrais mieux faire.",
+      "Ça passe pour cette fois."
     ],
-    "answer": "Un buy-in obligatoire",
-    "explanation": "Le règlement CSDR impose un buy-in (rachat forcé sur le marché) lorsque le settlement échoue après 4 jours ouvrés."
+    "answer": "B",
+    "explanation": "La réponse B est précise et valorise un point fort identifié."
   },
   {
-    "question": "Quel module du progiciel gère les appels de marge sur les REPOs ?",
+    "question": "En cas d'erreur dans un fichier Excel, quelle réponse est la plus collaborative ?",
     "options": [
-      "Settlement Engine",
-      "Corporate Actions",
-      "Collateral Management",
-      "Position Keeping"
+      "Tu t’es trompé encore.",
+      "Faut vraiment que tu fasses attention.",
+      "On peut revoir ensemble ce fichier, il semble y avoir un écart.",
+      "C’est pas mon problème."
     ],
-    "answer": "Collateral Management",
-    "explanation": "Le module Collateral Management calcule les haircuts, suit les valeurs collatérales et génère les appels de marge."
+    "answer": "C",
+    "explanation": "La réponse C propose une solution sans blâme et favorise la coopération."
   },
   {
-    "question": "Quelle méthode de settlement utilise-t-on typiquement pour les equities ?",
+    "question": "Mise en situation : En salle des marchés, votre collègue partage une nouvelle stratégie. Quelle est la réaction la plus adaptée ?",
     "options": [
-      "FoP (Free of Payment)",
-      "DVP (Delivery vs Payment)",
-      "Netting bilatéral",
-      "Payment vs Payment"
+      "Bof, ça ne marchera pas.",
+      "Pourquoi pas, tu as des backtests ?",
+      "C’est trop risqué, laisse tomber.",
+      "Tu rêves, mec."
     ],
-    "answer": "DVP (Delivery vs Payment)",
-    "explanation": "Le DVP (livraison contre paiement) est le standard pour les equities, liant le transfert de titres au paiement en cash pour réduire le risque."
+    "answer": "B",
+    "explanation": "La réponse B montre de l’intérêt tout en demandant une validation méthodique."
   },
   {
-    "question": "Que signifie un statut MT548 'Unmatched' ?",
+    "question": "Mise en situation : Vous êtes en retard sur une deadline. Quelle est la meilleure façon de prévenir ?",
     "options": [
-      "Le trade est settlé",
-      "Les contreparties ont des divergences",
-      "Le collatéral est insuffisant",
-      "L'instruction est en attente"
+      "Désolé, j’ai zappé.",
+      "Je t’envoie ça demain.",
+      "Je suis en retard, mais je travaille dessus et je te tiens au courant rapidement.",
+      "Je ne peux pas, trop de trucs."
     ],
-    "answer": "Les contreparties ont des divergences",
-    "explanation": "Unmatched indique une discordance entre les instructions des contreparties (prix, quantité, date...). Nécessite une réconciliation via MT578."
+    "answer": "C",
+    "explanation": "La réponse C est responsable, proactive et transparente."
   },
   {
-    "question": "Quel acteur est responsable de l'exécution d'un ordre ?",
+    "question": "Quelle phrase montre une bonne écoute active ?",
     "options": [
-      "Le CSD",
-      "Le broker",
-      "L'ICSD",
-      "Le corporate broking"
+      "Ouais ouais.",
+      "OK, tu dis donc que le client veut un reporting hebdo ?",
+      "Je t’entends.",
+      "On verra plus tard."
     ],
-    "answer": "Le broker",
-    "explanation": "Le broker exécute l'ordre sur le marché et fournit la confirmation d'exécution (contrairement au CSD/ICSD qui gèrent le settlement)."
+    "answer": "B",
+    "explanation": "La reformulation dans la réponse B montre une vraie écoute et compréhension."
   },
   {
-    "question": "Que gère spécifiquement le module SSI ?",
+    "question": "Comment valoriser un collègue après une bonne présentation ?",
     "options": [
-      "Les positions titres",
-      "Les comptes de contreparties",
-      "Les corporate actions",
-      "Les calculs d'intérêt couru"
+      "C’était top, clair et synthétique.",
+      "Trop long mais bon.",
+      "T’as survécu !",
+      "Moi j’aurais fait mieux."
     ],
-    "answer": "Les comptes de contreparties",
-    "explanation": "Le SSI (Standard Settlement Instructions) stocke les références des comptes custodians et contreparties pour automatiser les instructions."
+    "answer": "A",
+    "explanation": "La réponse A valorise les qualités sans sarcasme."
   },
   {
-    "question": "Quelle plateforme harmonise le settlement en Europe ?",
+    "question": "Quel mot-clé correspond à la capacité à exprimer un désaccord avec respect ?",
     "options": [
-      "Euroclear",
-      "T2S (Target2-Securities)",
-      "Clearstream",
-      "ESMA"
+      "Réactivité",
+      "Empathie",
+      "Assertivité",
+      "Volatilité"
     ],
-    "answer": "T2S (Target2-Securities)",
-    "explanation": "T2S est la plateforme de la BCE pour un settlement harmonisé en Europe, utilisant de la monnaie banque centrale."
+    "answer": "C",
+    "explanation": "L’assertivité permet de défendre un point de vue sans agressivité."
   },
   {
-    "question": "Quel traitement pour un coupon d'obligation ?",
+    "question": "Quelle phrase correspond à un feedback constructif ?",
     "options": [
-      "Géré par Corporate Actions",
-      "Calculé via Position Keeping",
-      "Payé via MT103",
-      "Toutes ces réponses"
+      "Tu t’es trompé.",
+      "Ce point peut être amélioré en clarifiant la partie sur les expositions.",
+      "C’est nul.",
+      "Trop vague."
     ],
-    "answer": "Toutes ces réponses",
-    "explanation": "Les coupons impliquent : 1) Calcul (Position Keeping), 2) Événement (Corporate Actions), 3) Paiement (MT103 via Settlement Engine)."
+    "answer": "B",
+    "explanation": "La réponse B propose une amélioration concrète et bienveillante."
   },
   ],
   avance: [
-       {
-    "question": "Quel est le principal avantage d'un REPO tripartite ?",
+      {
+    "question": "Mise en situation : En réunion de suivi, un collègue monopolise la parole. Quelle est la meilleure réponse ?",
     "options": [
-      "Réduction des coûts de transaction",
-      "Délégation de la gestion du collatéral à un tiers neutre",
-      "Exemption des règles CSDR",
-      "Settlement instantané"
+      "Tu peux laisser parler les autres ?",
+      "On va laisser la parole à chacun, si tu veux bien.",
+      "C’est bon, on a compris.",
+      "Tu parles trop, désolé."
     ],
-    "answer": "Délégation de la gestion du collatéral à un tiers neutre",
-    "explanation": "Le REPO tripartite (via Euroclear GC Pooling ou Clearstream Triparty) externalise la sélection, valorisation et substitutions du collatéral, réduisant les risques opérationnels."
+    "answer": "B",
+    "explanation": "La réponse B permet de recadrer avec politesse et de rétablir l’équilibre sans conflit."
   },
   {
-    "question": "Quelle norme comptable impacte le traitement des Gov Bonds ?",
+    "question": "Quelle expression est la plus adaptée pour relancer poliment un manager occupé ?",
     "options": [
-      "IFRS 9",
-      "French GAAP",
-      "US GAAP",
-      "Toutes ces réponses"
+      "Alors ? Toujours pas ?",
+      "Tu comptes répondre ?",
+      "Je comprends que tu sois très sollicité, je me permets de relancer.",
+      "C’est urgent, bouge-toi."
     ],
-    "answer": "Toutes ces réponses",
-    "explanation": "Les Gov Bonds sont concernés par : IFRS 9 (classification/valorisation), French GAAP (normes locales), et US GAAP pour les entités américaines."
+    "answer": "C",
+    "explanation": "La réponse C allie empathie et assertivité, adaptée aux environnements à forte charge de travail."
   },
   {
-    "question": "Que se passe-t-il si un trade dépasse le cut-off de settlement ?",
+    "question": "Mise en situation : En call client, vous ne comprenez pas un acronyme. Que faire ?",
     "options": [
-      "Pénalité automatique de 0.5%",
-      "Le trade est annulé",
-      "Settlement reporté à J+1",
-      "Déclenchement d'un buy-in"
+      "Laisser couler.",
+      "Faire semblant de comprendre.",
+      "Poser calmement la question : 'Pardon, que signifie cet acronyme ?'",
+      "Changer de sujet."
     ],
-    "answer": "Settlement reporté à J+1",
-    "explanation": "Les instructions reçues après le cut-off (ex: 15h pour Euroclear) sont traitées le jour ouvrable suivant, sans pénalité immédiate."
+    "answer": "C",
+    "explanation": "Poser la question montre de la rigueur et évite les malentendus. C’est un réflexe pro."
   },
   {
-    "question": "Quel module génère les écritures comptables dans Calypso ?",
+    "question": "Quelle formulation montre une attitude proactive ?",
     "options": [
-      "Trade Capture",
-      "Accounting Engine",
-      "Settlement Engine",
-      "Collateral Management"
+      "On verra bien.",
+      "J’attends les infos.",
+      "Je propose de préparer une première version d’ici demain.",
+      "Ce n’est pas clair."
     ],
-    "answer": "Accounting Engine",
-    "explanation": "L'Accounting Engine transforme les flux économiques en écritures comptables selon les normes (IFRS, GAAP...) avec un report vers les grands livres."
+    "answer": "C",
+    "explanation": "La réponse C illustre l’initiative et la prise de responsabilité attendue en finance."
   },
   {
-    "question": "Quelle information cruciale manque dans un ticket de trade REPO ?",
+    "question": "Quel mot-clé désigne la capacité à reformuler pour s’assurer d’avoir compris ?",
     "options": [
-      "ISIN du collatéral",
-      "Taux repo",
-      "Date de valeur",
-      "Numéro de compte custodian"
+      "Collaboration",
+      "Transparence",
+      "Écoute active",
+      "Concentration"
     ],
-    "answer": "Numéro de compte custodian",
-    "explanation": "L'absence du compte custodian (champ SSI) empêche la génération des instructions SWIFT, bloquant le settlement malgré la présence des autres données."
+    "answer": "C",
+    "explanation": "L’écoute active implique souvent une reformulation pour vérifier la compréhension mutuelle."
   },
   {
-    "question": "Comment sont settlées les corporate actions ?",
+    "question": "Mise en situation : Vous sentez des tensions entre collègues. Quelle est l’attitude la plus efficace ?",
     "options": [
-      "Via MT54x comme les trades normaux",
-      "Exclusivement en FoP (Free of Payment)",
-      "Selon le type d'événement (MT56x)",
-      "Uniquement via des virements internes"
+      "Ignorer, ça passera.",
+      "Prendre parti pour l’un.",
+      "Proposer un point à trois pour clarifier calmement la situation.",
+      "Transférer le problème au manager sans prévenir."
     ],
-    "answer": "Selon le type d'événement (MT56x)",
-    "explanation": "Les corporate actions utilisent la série MT56x (ex: MT564 pour les annonces) avec des règles spécifiques selon l'événement (dividende, split...)."
+    "answer": "C",
+    "explanation": "La réponse C favorise la transparence et la résolution directe des tensions, en autonomie."
   },
   {
-    "question": "Qui est responsable du matching pré-settlement ?",
+    "question": "Quelle phrase est la plus adaptée pour corriger un collègue en réunion ?",
     "options": [
-      "Le CSD",
-      "La contrepartie",
-      "Le broker",
-      "Le système de matching (ex: DTCC, Euroclear)"
+      "Ce que tu dis est faux.",
+      "Tu te trompes totalement.",
+      "Je me permets de nuancer ce point avec une autre lecture possible.",
+      "T’as pas lu le dossier ?"
     ],
-    "answer": "Le système de matching (ex: DTCC, Euroclear)",
-    "explanation": "Les plateformes de matching comparent les instructions des contreparties avant settlement, générant des MT578 pour signaler les divergences."
+    "answer": "C",
+    "explanation": "La réponse C permet de corriger sans blesser ni créer de conflit frontal."
   },
   {
-    "question": "Quel risque réduit le DVP (Delivery vs Payment) ?",
+    "question": "Quel mot-clé désigne l’attitude de rendre visibles ses intentions et décisions ?",
     "options": [
-      "Risque de crédit",
-      "Risque de change",
-      "Risque de règlement",
-      "Risque opérationnel"
+      "Transparence",
+      "Assertivité",
+      "Feedback",
+      "Discrétion"
     ],
-    "answer": "Risque de règlement",
-    "explanation": "Le DVP élimine le risque principal de règlement en synchronisant transfert de titres et paiement, évitant qu'une partie livre sans être payée."
+    "answer": "A",
+    "explanation": "La transparence permet de clarifier les intentions, décisions et justifications dans un cadre professionnel."
   },
   {
-    "question": "Que gère le module Position Keeping ?",
+    "question": "Mise en situation : Un collègue vous interrompt sans cesse. Quelle réaction est la plus professionnelle ?",
     "options": [
-      "Les historiques de trading",
-      "Les soldes titres/cash en temps réel",
-      "Les contacts des contreparties",
-      "Les documents contractuels"
+      "Tu peux arrêter de couper ?",
+      "Je peux juste terminer ce point, et je te laisse enchaîner ?",
+      "Tu fais toujours ça !",
+      "On n’est pas chez toi."
     ],
-    "answer": "Les soldes titres/cash en temps réel",
-    "explanation": "Ce module suit les positions brutes/nettes par portefeuille, instrument et contrepartie, crucial pour le risque et la liquidité."
+    "answer": "B",
+    "explanation": "La réponse B est posée, assertive et recentre l’attention sans générer de conflit."
   },
   {
-    "question": "Quelle est la première action face à un trade unmatched ?",
+    "question": "Quelle phrase exprime clairement une demande de feedback ?",
     "options": [
-      "Lancer un buy-in",
-      "Vérifier les champs divergents via MT578",
-      "Annuler le trade",
-      "Contacter le régulateur"
+      "C’était bon ?",
+      "T’en penses quoi ?",
+      "Je suis preneur d’un retour sur ce que je peux améliorer.",
+      "J’ai tout bien fait ?"
     ],
-    "answer": "Vérifier les champs divergents via MT578",
-    "explanation": "Le MT578 détaille les divergences (prix, quantité...). La correction passe par une nouvelle instruction MT543 avant d'envisager des mesures radicales."
+    "answer": "C",
+    "explanation": "La réponse C est formulée de manière ouverte, constructive et professionnelle."
   },
   ]
 };
