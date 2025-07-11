@@ -126,6 +126,46 @@ const basicSlides = [
     "question": "Formule une phrase pour gérer un flou dans les responsabilités.",
     "answer": "Pour qu’on soit bien coordonnés : qui prend quoi précisément dans cette tâche ?\nMots-clés associés : clarification, coordination, efficacité\nContexte : Organisation collaborative."
   },
+    {
+    "question": "Formule une phrase pour montrer ton envie d’apprendre dès le début.",
+    "answer": "Merci de me guider aujourd’hui, je suis prêt à apprendre un maximum et à monter vite en autonomie.\nMots-clés : apprentissage, autonomie, motivation\nContexte : Introduction du premier jour, posture proactive."
+  },
+  {
+    "question": "Formule une phrase pour bien débuter la collaboration malgré la pression des tâches.",
+    "answer": "On a pas mal à voir, je prends des notes et je me concentre à fond pour bien suivre le rythme.\nMots-clés : concentration, rigueur, gestion du temps\nContexte : Début de journée avec plusieurs sujets à revoir."
+  },
+  {
+    "question": "Formule une phrase pour demander une reformulation sans paraître perdu.",
+    "answer": "Tu pourrais juste me réexpliquer cette partie rapidement ? Je veux être sûr de bien comprendre.\nMots-clés : clarification, précision, humilité professionnelle\nContexte : Blocage ponctuel sur un outil ou process."
+  },
+  {
+    "question": "Formule une phrase pour valoriser l’aide de ta formatrice.",
+    "answer": "Ta façon d’expliquer est super claire, ça m’aide beaucoup à structurer les choses.\nMots-clés : feedback positif, reconnaissance, relation formatrice\nContexte : Encourager une relation de confiance."
+  },
+  {
+    "question": "Formule une phrase pour signaler un doute sur une manipulation Excel.",
+    "answer": "J’ai un petit doute sur la formule ici, tu préfères que je corrige directement ou qu’on revoie ensemble ?\nMots-clés : précision, transparence, méthode\nContexte : Travail sur fichier sensible."
+  },
+  {
+    "question": "Formule une phrase pour proposer de récapituler ce qui a été vu.",
+    "answer": "Avant qu’on avance, tu veux que je te dise où j’en suis pour vérifier que j’ai bien suivi ?\nMots-clés : récapitulatif, communication claire, feedback\nContexte : Contrôle de compréhension proactif."
+  },
+  {
+    "question": "Formule une phrase pour proposer une première amélioration ou idée.",
+    "answer": "Je me demandais si on pourrait automatiser ce bout avec une formule, tu penses que c’est pertinent ?\nMots-clés : initiative, esprit d’optimisation, curiosité\nContexte : Démonstration d’intérêt métier."
+  },
+  {
+    "question": "Formule une phrase pour clore la journée en valorisant ce que tu as appris.",
+    "answer": "Merci pour cette première journée, j’ai beaucoup appris et je sens déjà que je progresse.\nMots-clés : reconnaissance, implication, esprit de progression\nContexte : Fin de journée avec bilan positif."
+  },
+  {
+    "question": "Formule une phrase pour te rendre disponible sur une tâche annexe.",
+    "answer": "Si jamais je peux te décharger d’un petit truc pendant que tu bosses sur un point critique, je suis là.\nMots-clés : entraide, soutien, présence proactive\nContexte : Collaboration fluide dans l'urgence."
+  },
+  {
+    "question": "Formule une phrase pour poser une question précise sans déranger.",
+    "answer": "Quand tu as un moment, je voulais juste une petite précision sur ce filtre dans Excel.\nMots-clés : respect du temps, efficacité, autonomie\nContexte : Contact professionnel mesuré."
+  },
 
 
   
@@ -166,9 +206,7 @@ const questions = {
     "answer": "A",
     "explanation": "Observer d’abord, puis interagir avec tact, est une posture idéale pour comprendre la dynamique sans brusquer."
   },
-  ],
-  avance: [
-   {
+     {
     "question": "En réunion, un collègue parle en boucle et freine l’avancée du groupe. Quelle attitude est la plus appropriée ?",
     "options": [
       "Le couper pour accélérer.",
@@ -190,6 +228,9 @@ const questions = {
     "answer": "B",
     "explanation": "Observer permet de comprendre les codes, et proposer progressivement renforce la crédibilité et la confiance."
   },
+  ],
+  avance: [
+
   {
     "question": "Lorsqu’un collègue critique une décision prise par le groupe, que faire ?",
     "options": [
@@ -222,6 +263,61 @@ const questions = {
     ],
     "answer": "C",
     "explanation": "Un feedback est une opportunité de croissance : l’accueillir positivement renforce votre posture professionnelle."
+  },
+  {
+    "question": "Quelle est la meilleure façon de montrer ton sérieux dès le matin ?",
+    "options": [
+      "Dire que tu es stressé pour qu’elle comprenne.",
+      "Poser plein de questions très vite.",
+      "Montrer que tu as préparé ton poste, notes, fichiers, et que tu écoutes activement.",
+      "Lui demander d'abord si la journée va être longue."
+    ],
+    "answer": "C",
+    "explanation": "Préparation, écoute active et concentration montrent ta motivation et ton professionnalisme sans être intrusif."
+  },
+  {
+    "question": "Tu bloques sur une fonction dans Excel qu’elle vient d’expliquer. Que fais-tu ?",
+    "options": [
+      "Tu attends qu'elle le remarque.",
+      "Tu copies une autre formule au hasard.",
+      "Tu demandes poliment une clarification.",
+      "Tu changes discrètement de sujet."
+    ],
+    "answer": "C",
+    "explanation": "Demander de l’aide de manière ciblée montre que tu veux comprendre, pas juste exécuter."
+  },
+  {
+    "question": "Comment valoriser sa formation sans en faire trop ?",
+    "options": [
+      "Tu lui dis qu’elle est meilleure que tous tes anciens collègues.",
+      "Tu notes tout silencieusement sans jamais donner ton ressenti.",
+      "Tu la remercies ponctuellement en soulignant que tu apprends concrètement.",
+      "Tu proposes de refaire toute la procédure à ta manière."
+    ],
+    "answer": "C",
+    "explanation": "Une reconnaissance ponctuelle et sincère renforce la confiance sans paraître flatteur."
+  },
+  {
+    "question": "Quelle posture adopter face à une tâche complexe en base de données ?",
+    "options": [
+      "Dire que tu préfères commencer par quelque chose de plus simple.",
+      "Tenter seul sans jamais demander.",
+      "Te concentrer et poser une question claire si tu bloques.",
+      "Demander à changer de sujet dès le début."
+    ],
+    "answer": "C",
+    "explanation": "Tu montres que tu es prêt à relever des défis, tout en étant humble et collaboratif."
+  },
+  {
+    "question": "Quelle attitude montre ton engagement dans les tâches ?",
+    "options": [
+      "Tu attends qu’on t’assigne tout.",
+      "Tu proposes de t’avancer sur un petit point pendant qu’elle prépare un autre.",
+      "Tu ne bouges pas sans validation formelle.",
+      "Tu ne poses aucune question pour ne pas déranger."
+    ],
+    "answer": "B",
+    "explanation": "Proposer de manière mesurée de prendre le relais est un signe de fiabilité et d’initiative positive."
   },
   ]
 };
