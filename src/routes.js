@@ -6,6 +6,7 @@ import Project0 from './projects/Project0';
 import Project1 from './projects/Project1';
 import Project2 from './projects/Project2';
 import Project3 from './projects/Project3';
+import Project4 from './projects/Project4';
 
 const AppRoutes = () => {
   return (
@@ -16,6 +17,7 @@ const AppRoutes = () => {
         <Route path="/project1/*" element={<Project1 />} />
         <Route path="/project2/*" element={<Project2 />} />
         <Route path="/project3/*" element={<Project3 />} />
+        <Route path="/project4/*" element={<Project4 />} />
         <Route path="*" element={<NotFoundPage />} />
       </Routes>
     </Router>

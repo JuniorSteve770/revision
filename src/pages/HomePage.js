@@ -40,12 +40,12 @@ const HomePage = () => {
         {/* Bouton Projet 4 */}
         <Link to="/project4">
           <button className="home-page-button" id="project4-button">
-            Projet 4
+          fer Ami
           </button>
         </Link>
         {/* Bouton Projet 4 */}
-        <Link to="/project4">
-          <button className="home-page-button" id="project4-button">
+        <Link to="/project5">
+          <button className="home-page-button" id="projec5-button">
             Projet 5
           </button>
         </Link>
