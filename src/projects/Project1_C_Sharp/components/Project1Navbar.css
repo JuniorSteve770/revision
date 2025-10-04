@@ -1,0 +1,86 @@
+/* Conteneur principal pour chaque bloc de question */
+.quiz-box {
+  background: #ffffff;
+  border-left: 6px solid #A6192E;
+  border-radius: 8px;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05);
+  padding: 20px 25px;
+  margin: 30px auto;
+  max-width: 850px;
+  font-family: 'Segoe UI', sans-serif;
+}
+
+/* Titre de la question */
+.quiz-box .question-title {
+  font-size: 1.2rem;
+  font-weight: 600;
+  color: #002147;
+  margin-bottom: 12px;
+}
+
+/* Niveau ou étiquette de difficulté */
+.quiz-box .level {
+  font-size: 0.9rem;
+  color: #555;
+  margin-bottom: 5px;
+}
+
+/* Timer */
+.quiz-box .timer {
+  font-size: 0.9rem;
+  color: #A6192E;
+  margin-bottom: 15px;
+}
+
+/* Réponses proposées */
+.quiz-box .answers {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 12px;
+  margin-top: 10px;
+}
+
+.quiz-box .answer {
+  background-color: #F6F6F6;
+  padding: 12px 18px;
+  border-radius: 6px;
+  border: 1px solid #DDD;
+  flex: 1 1 calc(50% - 12px);
+  cursor: pointer;
+  transition: all 0.3s ease;
+  color: #333;
+  font-size: 0.95rem;
+}
+
+.quiz-box .answer:hover {
+  background-color: #EEE;
+  border-color: #CCC;
+}
+
+/* Réponse sélectionnée */
+.quiz-box .answer.selected {
+  background-color: #A6192E;
+  color: white;
+  font-weight: bold;
+  border-color: #7c1222;
+}
+
+/* Réponse correcte ou bloc réponse */
+.quiz-box .result {
+  margin-top: 20px;
+  font-weight: bold;
+  color: #007700;
+  font-size: 1rem;
+}
+
+/* Bloc de responsabilités */
+.quiz-box .bullet-list {
+  margin-top: 10px;
+  padding-left: 20px;
+}
+
+.quiz-box .bullet-list li {
+  margin-bottom: 8px;
+  font-size: 0.95rem;
+  color: #333;
+}
