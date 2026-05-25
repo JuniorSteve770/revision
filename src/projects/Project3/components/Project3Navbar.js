@@ -11,6 +11,7 @@ const Project3Navbar = () => {
       <Link to="/project3/page3">3. Finance Intro</Link>
       <Link to="/project3/page4">4. POO/SOLID/ACID</Link>
       <Link to="/project3/page5">5. Arch & OMS</Link>
+      <Link to="/project3/page5_1">5.1 OMS Low_Freq</Link>
       <Link to="/project3/page6">6. C# Concurrence</Link>
       <Link to="/project3/page7">7. C# Tests</Link>
     </nav>
