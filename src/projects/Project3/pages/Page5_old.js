@@ -1,70 +1,61 @@
-// src/projects/Project3/pages/Page6.js
+// src/projects/Project3/pages/Page5.js
 
 import React, { useState, useEffect } from "react";
 import "./Page.css";
 
 const basicSlides = [
   {
-    "question": "async / await & Task",
-    "answer": "**async / await** : Libère le thread courant pendant l'I/O (BDD, sockets). Le thread est rendu au pool et la méthode reprend sur un thread disponible après la réponse. ◆ **Task.WhenAll(t1, t2)** : Lance plusieurs tâches indépendantes en parallèle et attend leur complétion commune. ◆ **Task.Run(() => ...)** : Pousse du calcul CPU-bound sur le thread pool."
+    "question": "OMS vs TMS vs ORM",
+    "answer": "**OMS** (Order Management System) : Cycle de vie des ordres — saisie, validation, exécution via FIX. ◆ **TMS** (Trade Management System) : Gère la trésorerie, la liquidité, le collatéral et le financement post-trade. ◆ **ORM** (Object-Relational Mapping) : Pont entre objets métier et tables SQL. C# : *Entity Framework Core*. Python : *SQLAlchemy*."
   },
   {
-    "question": "lock (Monitor) — Synchronisation synchrone",
-    "answer": "**lock(obj) { ... }** : Accès exclusif à une ressource partagée. Synchrone — le thread attend activement (spin-wait). ◆ *Règle* : Sections critiques ultra-courtes seulement (quelques µs). JAMAIS d'`await` à l'intérieur — risque de deadlock garanti."
+    "question": "Intercommunication Python & C#",
+    "answer": "**Python** : Modèles quantitatifs, machine learning, prototypage (NumPy, Pandas, scipy). ◆ **C#/.NET** : Moteur transactionnel, latence ultra-faible, robustesse multithread. ◆ **Interconnexion** : `gRPC` + Protobuf (binaire, rapide), `RabbitMQ`/`Kafka` (files de messages), `REST` (couplage lâche)."
   },
   {
-    "question": "SemaphoreSlim — Synchronisation asynchrone",
-    "answer": "**SemaphoreSlim(1,1)** : Équivalent asynchrone du `lock`. Suspend le thread de façon non-bloquante. ◆ *Usage* : `await _semaphore.WaitAsync();` puis `finally { _semaphore.Release(); }`. Indispensable dans du code `async/await`."
+    "question": "Monolithe Modulaire vs Microservices",
+    "answer": "**Monolithe Modulaire** : Tout dans le même processus. Latence in-process nulle, ACID simple, déploiement unique. ◆ **Microservices** : Processus distribués. Déploiement indépendant, résilience isolée, mais complexité réseau élevée. Transactions distribuées via pattern *Saga*."
   },
   {
-    "question": "ReaderWriterLockSlim — N lecteurs / 1 écrivain",
-    "answer": "**EnterReadLock()** / **ExitReadLock()** : Autorise N lectures concurrentes. ◆ **EnterWriteLock()** / **ExitWriteLock()** : Accès exclusif à l'écriture, bloque les lecteurs. ◆ *Cas typique* : Cache de prix Bloomberg lu par 50 threads de calcul, écrit par 1 thread de feed."
+    "question": "FIX Protocol vs gRPC",
+    "answer": "**FIX** : Standard textuel mondial (socket TCP) pour ordres bourse. Session robuste : heartbeats, numéros de séquence, replay. ◆ **gRPC** : Protocole binaire interne (HTTP/2) basé sur contrat `.proto`. Idéal pour streamer des Greeks ou des ticks haute fréquence."
   },
   {
-    "question": "Parallel.ForEach — Parallélisme CPU-bound",
-    "answer": "**Parallel.ForEach(list, item => ...)** : Distribue le traitement sur tous les cœurs CPU. ◆ *Quand l'utiliser* : Calcul intensif sans I/O (Monte Carlo, Black-Scholes sur 10 000 options). ◆ *Éviter* : Sur les opérations I/O-bound — utiliser `async/await` + `Task.WhenAll` à la place."
+    "question": "RabbitMQ vs MSMQ vs Kafka",
+    "answer": "**RabbitMQ** : Broker moderne, distribué, multiplateforme. Routage complexe (exchanges, fan-out). Messages supprimés après traitement. ◆ **Kafka** : Log d'événements immuable. Messages persistés sur disque, rejouables. Idéal pour audit trail et reconstruction de positions. ◆ **MSMQ** : Legacy Windows. Simple mais non scalable."
   },
   {
-    "question": "Channel<T> & BackgroundService — Pipelines",
-    "answer": "**Channel<T>** : File d'attente mémoire thread-safe et async. Lie un producteur (flux FIX entrant) à un consommateur (moteur de booking) sans bloquer. ◆ **BackgroundService** : Service résident .NET, tourne indéfiniment. Arrêt propre via `CancellationToken` (`stoppingToken.IsCancellationRequested`)."
-  },
-  {
-    "question": "ConcurrentDictionary & Interlocked",
-    "answer": "**ConcurrentDictionary<K,V>** : Dictionnaire thread-safe natif. Méthodes atomiques : `AddOrUpdate`, `GetOrAdd`. ◆ **Interlocked.Increment(ref count)** : Incrémentation atomique d'un compteur sans `lock`. Extrêmement rapide (instruction CPU atomique)."
+    "question": "JSON vs XML vs Protobuf",
+    "answer": "**JSON** : Standard REST, lisible, mais volumineux et lent en parsing haute fréquence. ◆ **XML** : Réglementaire : *SWIFT ISO 20022*, *FpML* (dérivés OTC), *XBRL* (rapports BCE/régulateur). ◆ **Protobuf** : Binaire ultra-compact (~6x plus petit que JSON), typé, ultra-rapide CPU. Utilisé avec gRPC."
   }
 ];
 
 const questions = {
   moyen: [
     {
-      "question": "Quel mécanisme est idéal pour un cache de prix lu par 50 threads et écrit par 1 seul thread ?",
-      "options": ["lock standard (lock(obj))", "ReaderWriterLockSlim", "SemaphoreSlim(1,1)", "volatile seul"],
-      "answer": "ReaderWriterLockSlim",
-      "explanation": "ReaderWriterLockSlim autorise les lectures parallèles non-bloquantes et garantit l'exclusivité uniquement lors des écritures du flux Bloomberg."
+      "question": "Quel standard XML décrit les paramètres des dérivés OTC (Swaps, CDS) ?",
+      "options": ["FpML (Financial products Markup Language)", "ISO 20022", "XBRL", "Protobuf"],
+      "answer": "FpML (Financial products Markup Language)",
+      "explanation": "FpML est le format XML mondial pour décrire les dérivés de taux (IRS), crédit (CDS), et actions OTC."
     },
     {
-      "question": "Pourquoi est-il interdit d'appeler await dans un bloc lock en C# ?",
+      "question": "Pourquoi préfère-t-on RabbitMQ/Kafka à un appel HTTP direct entre Python et C# ?",
       "options": [
-        "await n'est supporté que pour les types decimal.",
-        "L'exécution peut reprendre sur un autre thread, rendant impossible la libération du verrou original — deadlock garanti.",
-        "lock ralentit le Garbage Collector.",
-        "lock est restreint à Entity Framework."
+        "HTTP n'autorise pas les nombres décimaux.",
+        "Pour découpler les services : si le service Python est indisponible, les messages s'accumulent sans bloquer l'OMS C#.",
+        "Les brokers convertissent le code Python en C# automatiquement.",
+        "HTTP/2 est restreint au format XML."
       ],
-      "answer": "L'exécution peut reprendre sur un autre thread, rendant impossible la libération du verrou original — deadlock garanti.",
-      "explanation": "lock is tied to the current physical thread. After an await, the thread can change. Therefore, it is forbidden to use await in a lock block. Use SemaphoreSlim instead."
+      "answer": "Pour découpler les services : si le service Python est indisponible, les messages s'accumulent sans bloquer l'OMS C#.",
+      "explanation": "L'architecture événementielle asynchrone offre isolation aux pannes et absorbe les pics du marché."
     }
   ],
   avance: [
     {
-      "question": "Quand doit-on préférer Task.WhenAll à Parallel.ForEach ?",
-      "options": [
-        "Pour des calculs Monte Carlo sur 10 000 scénarios.",
-        "Pour des opérations I/O-bound concurrentes (1 000 appels HTTP ou requêtes DB en parallèle).",
-        "Pour des traitements séquentiels avec dépendances de données.",
-        "Pour forcer l'exécution mono-thread sur un seul cœur."
-      ],
-      "answer": "Pour des opérations I/O-bound concurrentes (1 000 appels HTTP ou requêtes DB en parallèle).",
-      "explanation": "Parallel.ForEach blocks physical threads for I/O operations. Task.WhenAll with async/await releases the thread pool threads during network wait, which is much more efficient."
+      "question": "Dans une architecture microservices, quel pattern compense l'absence de transaction ACID distribuée ?",
+      "options": ["Le pattern Repository", "Le pattern Saga (avec transactions compensatoires locales)", "Le pattern Singleton thread-safe", "Le pattern Observer distribué"],
+      "answer": "Le pattern Saga (avec transactions compensatoires locales)",
+      "explanation": "Le pattern Saga coordonne des transactions locales successives. Si une étape échoue, la Saga déclenche des compensations (annulations logiques) pour rétablir la cohérence."
     }
   ]
 };
@@ -147,12 +138,12 @@ const Results = ({ scores }) => {
     <div className="results">
       <h3>🎯 Score : {totalScore} / {totalQuestions}</h3>
       <p>✅ Moyen : {scores.moyen} | ✅ Avancé : {scores.avance}</p>
-      {totalScore >= Math.floor(totalQuestions * 0.6) ? <h3 className="success">🚀 Excellent ! Concurrence C# maîtrisée.</h3> : <p className="fail">📚 Révisez la synchronisation de threads.</p>}
+      {totalScore >= Math.floor(totalQuestions * 0.6) ? <h3 className="success">🚀 Excellent ! Composants système maîtrisés.</h3> : <p className="fail">📚 Révisez l'architecture système.</p>}
     </div>
   );
 };
 
-const Page6 = () => {
+const Page5 = () => {
   const [level, setLevel] = useState("basic");
   const [currentSlide, setCurrentSlide] = useState(0);
   const [currentQuestion, setCurrentQuestion] = useState(0);
@@ -201,7 +192,7 @@ const Page6 = () => {
       {showResult ? <Results scores={scores} /> : (
         <div>
           <h4 className="subtitle" style={{ fontSize: '10px', margin: '0 0 6px 0' }}>
-            C# Concurrence 🔹 {level === "basic" ? `Slide ${currentSlide + 1}/${basicSlides.length}` : `QCM ${level.toUpperCase()}`}
+            Arch & OMS 🔹 {level === "basic" ? `Slide ${currentSlide + 1}/${basicSlides.length}` : `QCM ${level.toUpperCase()}`}
           </h4>
           {level === "basic" ? <Flashcard slide={basicSlides[currentSlide]} /> : (
             <QuestionCard question={questions[level][currentQuestion].question} options={questions[level][currentQuestion].options} onAnswerClick={handleAnswerClick} timeLeft={timeLeft} />
@@ -213,4 +204,4 @@ const Page6 = () => {
   );
 };
 
-export default Page6;
+export default Page5;

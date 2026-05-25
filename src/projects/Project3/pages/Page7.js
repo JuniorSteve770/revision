@@ -6,39 +6,39 @@ import "./Page.css";
 const basicSlides = [
   {
     "question": "xUnit vs NUnit — Frameworks de tests unitaires",
-    "answer": "- **xUnit** : Standard Microsoft .NET moderne. Setup via constructeur, teardown via `IDisposable.Dispose()`. Attributs : `[Fact]` (test simple), `[Theory]` + `[InlineData]` (paramétré). Cmd : `dotnet test`.- **NUnit** : Plus ancien. Attributs : `[SetUp]`, `[TearDown]`, `[Test]`, `[TestCase(val)]`. Compatible .NET & Mono."
+    "answer": "**xUnit** : Standard Microsoft .NET moderne. Setup via constructeur, teardown via `IDisposable.Dispose()`. Attributs : `[Fact]` (test simple), `[Theory]` + `[InlineData]` (paramétré). Cmd : `dotnet test`. ◆ **NUnit** : Plus ancien. Attributs : `[SetUp]`, `[TearDown]`, `[Test]`, `[TestCase(val)]`. Compatible .NET & Mono."
   },
   {
     "question": "Moq — Mocking & Isolation de dépendances",
-    "answer": "- **Moq** : Librairie de mocking C# la plus répandue. `new Mock<ITradeService>()` crée le mock.- `.Setup(x => x.Price(trade)).Returns(100m)` configure le retour simulé.- `.Verify(x => x.Save(trade), Times.Once())` vérifie que la méthode a été appelée exactement 1 fois.- **NSubstitute** : Alternative plus concise. `Substitute.For<ITradeRepository>()`."
+    "answer": "**Moq** : Librairie de mocking C# la plus répandue. `new Mock<ITradeService>()` crée le mock. ◆ `.Setup(x => x.Price(trade)).Returns(100m)` configure le retour simulé. ◆ `.Verify(x => x.Save(trade), Times.Once())` vérifie que la méthode a été appelée exactement 1 fois. ◆ **NSubstitute** : Alternative plus concise. `Substitute.For<ITradeRepository>()`."
   },
   {
     "question": "FluentAssertions — Assertions lisibles",
-    "answer": "- **FluentAssertions** : Librairie qui remplace les `Assert.AreEqual` verbeux par du langage naturel.- `result.Should().Be(100m)` — égalité.- `list.Should().HaveCount(3).And.Contain(trade)` — collection.- `action.Should().Throw<InvalidOperationException>()` — exception.- `dto.Should().BeEquivalentTo(expected)` — comparaison profonde d'objets."
+    "answer": "**FluentAssertions** : Librairie qui remplace les `Assert.AreEqual` verbeux par du langage naturel. ◆ `result.Should().Be(100m)` — égalité. ◆ `list.Should().HaveCount(3).And.Contain(trade)` — collection. ◆ `action.Should().Throw<InvalidOperationException>()` — exception. ◆ `dto.Should().BeEquivalentTo(expected)` — comparaison profonde d'objets."
   },
   {
     "question": "Cycle TDD — Red / Green / Refactor",
-    "answer": "- **Red** : Écrire un test qui échoue (la feature n'existe pas encore). But : définir le comportement attendu.- **Green** : Écrire le code minimal pour faire passer le test. Pas d'optimisation.- **Refactor** : Nettoyer et améliorer le code sans casser le test. Le test est le filet de sécurité."
+    "answer": "**Red** : Écrire un test qui échoue (la feature n'existe pas encore). But : définir le comportement attendu. ◆ **Green** : Écrire le code minimal pour faire passer le test. Pas d'optimisation. ◆ **Refactor** : Nettoyer et améliorer le code sans casser le test. Le test est le filet de sécurité."
   },
   {
     "question": "Tests d'Intégration — WebApplicationFactory",
-    "answer": "- **Package** : `Microsoft.AspNetCore.Mvc.Testing`.- **WebApplicationFactory<Program>** : Lance toute l'application ASP.NET Core en mémoire (DI, middleware, routes).- Crée un `HttpClient` de test pour appeler les endpoints réels sans déploiement.- Remplacer la BDD réelle par `UseInMemoryDatabase` pour l'isolation."
+    "answer": "**Package** : `Microsoft.AspNetCore.Mvc.Testing`. ◆ **WebApplicationFactory<Program>** : Lance toute l'application ASP.NET Core en mémoire (DI, middleware, routes). ◆ Crée un `HttpClient` de test pour appeler les endpoints réels sans déploiement. ◆ Remplacer la BDD réelle par `UseInMemoryDatabase` pour l'isolation."
   },
   {
     "question": "Tests de Non-Régression — Snapshot & Contract Tests",
-    "answer": "- **Non-régression** : Valider qu'un changement de code ne casse pas un comportement existant. Tout le pipeline CI doit passer avant un merge.- **Snapshot Testing** : Capture le résultat JSON d'un calcul ou d'une API. Échoue si le résultat change. Librairie : *Verify* (C#).- **Contract Testing** : Valide le contrat entre un consommateur et un producteur d'API. Librairie : *Pact.Net*."
+    "answer": "**Non-régression** : Valider qu'un changement de code ne casse pas un comportement existant. Tout le pipeline CI doit passer avant un merge. ◆ **Snapshot Testing** : Capture le résultat JSON d'un calcul ou d'une API. Échoue si le résultat change. Librairie : *Verify* (C#). ◆ **Contract Testing** : Valide le contrat entre un consommateur et un producteur d'API. Librairie : *Pact.Net*."
   },
   {
     "question": "Tests E2E (End-to-End) — Playwright & Selenium",
-    "answer": "- **Playwright** : Outil Microsoft moderne pour tests E2E UI (browser automation). Supporte Chromium, Firefox, WebKit.- `dotnet add package Microsoft.Playwright` puis `playwright install`.- Simule un utilisateur réel : clic, saisie, navigation, assertion sur le DOM.- **Selenium** : Outil classique E2E. Plus verbeux mais très répandu en environnement bancaire legacy."
+    "answer": "**Playwright** : Outil Microsoft moderne pour tests E2E UI (browser automation). Supporte Chromium, Firefox, WebKit. ◆ `dotnet add package Microsoft.Playwright` puis `playwright install`. ◆ Simule un utilisateur réel : clic, saisie, navigation, assertion sur le DOM. ◆ **Selenium** : Outil classique E2E. Plus verbeux mais très répandu en environnement bancaire legacy."
   },
   {
     "question": "Tests de Performance & Charge — BenchmarkDotNet & k6",
-    "answer": "- **BenchmarkDotNet** : Mesure la performance de méthodes C# avec précision (nanosecondes). Attribut `[Benchmark]`. `dotnet run -c Release`.- **k6** : Outil open-source de tests de charge HTTP (simule N utilisateurs virtuels, mesure latence p95/p99).- **JMeter** : Alternative Java très répandue en environnement bancaire pour les tests de charge."
+    "answer": "**BenchmarkDotNet** : Mesure la performance de méthodes C# avec précision (nanosecondes). Attribut `[Benchmark]`. `dotnet run -c Release`. ◆ **k6** : Outil open-source de tests de charge HTTP (simule N utilisateurs virtuels, mesure latence p95/p99). ◆ **JMeter** : Alternative Java très répandue en environnement bancaire pour les tests de charge."
   },
   {
     "question": "Couverture de code & Pipeline CI — dotnet-coverage",
-    "answer": "- **dotnet test --collect:\"XPlat Code Coverage\"** : Génère un rapport de couverture XML.- **ReportGenerator** : Convertit le XML en HTML lisible. `dotnet tool install -g dotnet-reportgenerator-globaltool`.- **Seuil minimal** : Bloquer le pipeline CI/CD si la couverture descend en dessous de 80%.- **CI GitHub Actions** : `dotnet test` + upload artefact du rapport dans le workflow YAML."
+    "answer": "**dotnet test --collect:\"XPlat Code Coverage\"** : Génère un rapport de couverture XML. ◆ **ReportGenerator** : Convertit le XML en HTML lisible. `dotnet tool install -g dotnet-reportgenerator-globaltool`. ◆ **Seuil minimal** : Bloquer le pipeline CI/CD si la couverture descend en dessous de 80%. ◆ **CI GitHub Actions** : `dotnet test` + upload rapport dans le workflow YAML."
   }
 ];
 
@@ -101,28 +101,51 @@ const questions = {
 
 const renderFormattedText = (text) => {
   if (!text) return null;
-  const lines = text.split(/(?=- \*\*)/);
-  const items = [];
-  lines.forEach((line, idx) => {
-    let clean = line.trim().replace(/^- /, "");
-    if (!clean) return;
-    const regex = /(\*\*.*?\*\*|`.*?`|\*.*?\*)/g;
-    const segments = clean.split(regex);
-    const content = segments.map((seg, sIdx) => {
-      if (seg.startsWith("**") && seg.endsWith("**")) return <strong key={sIdx}>{seg.slice(2, -2)}</strong>;
-      if (seg.startsWith("`") && seg.endsWith("`")) return <code key={sIdx} style={{ backgroundColor: '#eef2f7', padding: '1px 5px', borderRadius: '3px', fontFamily: 'monospace', color: '#e01e5a', fontWeight: 'bold', fontSize: '13px' }}>{seg.slice(1, -1)}</code>;
-      if (seg.startsWith("*") && seg.endsWith("*")) return <em key={sIdx}>{seg.slice(1, -1)}</em>;
-      return seg;
-    });
-    if (idx > 0) items.push(<span key={`sep-${idx}`} style={{ color: '#bbb', margin: '0 6px' }}>◆</span>);
-    items.push(<span key={idx}>{content}</span>);
-  });
-  return <span style={{ lineHeight: '1.7' }}>{items}</span>;
+  let cleanText = text
+    .replace(/\r?\n- /g, " ◆ ")
+    .replace(/\r?\n• /g, " ◆ ")
+    .replace(/\r?\n/g, " ")
+    .replace(/\.-\s*\*\*/g, " ◆ **")
+    .replace(/-\s*\*\*/g, " ◆ **");
+
+  if (cleanText.startsWith(" ◆ ")) cleanText = cleanText.substring(3);
+  if (cleanText.startsWith("- ")) cleanText = cleanText.substring(2);
+
+  const regex = /(\*\*.*?\*\*|`.*?`|\*.*?\*)/g;
+  const parts = cleanText.split(regex);
+
+  return (
+    <span style={{ display: 'inline', lineHeight: '1.5' }}>
+      {parts.map((part, idx) => {
+        if (part.startsWith("**") && part.endsWith("**")) {
+          return <strong key={idx} style={{ display: 'inline', fontWeight: 'bold' }}>{part.slice(2, -2)}</strong>;
+        }
+        if (part.startsWith("`") && part.endsWith("`")) {
+          return (
+            <code key={idx} style={{ 
+              display: 'inline', 
+              backgroundColor: '#eef2f7', 
+              padding: '1px 5px', 
+              borderRadius: '3px', 
+              fontFamily: 'monospace', 
+              color: '#e01e5a', 
+              fontWeight: 'bold', 
+              fontSize: '13px' 
+            }}>
+              {part.slice(1, -1)}
+            </code>
+          );
+        }
+        if (part.startsWith("*") && part.endsWith("*")) {
+          return <em key={idx} style={{ display: 'inline' }}>{part.slice(1, -1)}</em>;
+        }
+        return part;
+      })}
+    </span>
+  );
 };
 
-const Timer = ({ timeLeft }) => (
-  <p className="timer">⏳ <span>{timeLeft}s</span></p>
-);
+const Timer = ({ timeLeft }) => <p className="timer">⏳ <span>{timeLeft}s</span></p>;
 
 const QuestionCard = ({ question, options, onAnswerClick, timeLeft }) => (
   <div className="question-card">
@@ -130,7 +153,7 @@ const QuestionCard = ({ question, options, onAnswerClick, timeLeft }) => (
     <Timer timeLeft={timeLeft} />
     <div className="options-container">
       {options.map((option, index) => (
-        <button key={index} onClick={() => onAnswerClick(option, index)} className="option-button">
+        <button key={index} onClick={() => onAnswerClick(option)} className="option-button">
           {String.fromCharCode(65 + index)}. {option}
         </button>
       ))}
@@ -154,11 +177,7 @@ const Results = ({ scores }) => {
     <div className="results">
       <h3>🎯 Score : {totalScore} / {totalQuestions}</h3>
       <p>✅ Moyen : {scores.moyen} | ✅ Avancé : {scores.avance}</p>
-      {totalScore >= 3 ? (
-        <h3 className="success">🚀 Excellent ! Vous maîtrisez les tests professionnels C# !</h3>
-      ) : (
-        <p className="fail">📚 Revoyez le cycle TDD et le fonctionnement de Moq / xUnit.</p>
-      )}
+      {totalScore >= Math.floor(totalQuestions * 0.6) ? <h3 className="success">🚀 Excellent ! Tests et outils maîtrisés.</h3> : <p className="fail">📚 Révisez les frameworks de test.</p>}
     </div>
   );
 };
@@ -168,33 +187,32 @@ const Page7 = () => {
   const [currentSlide, setCurrentSlide] = useState(0);
   const [currentQuestion, setCurrentQuestion] = useState(0);
   const [scores, setScores] = useState({ moyen: 0, avance: 0 });
-  const [timeLeft, setTimeLeft] = useState(20);
+  const [timeLeft, setTimeLeft] = useState(25);
   const [showResult, setShowResult] = useState(false);
   const [message, setMessage] = useState("");
 
   const handleNextQuestion = () => {
-    const currentQuestions = questions[level];
-    if (currentQuestion + 1 < currentQuestions.length) {
-      setCurrentQuestion(currentQuestion + 1); setTimeLeft(20); setMessage("");
-    } else {
+    const qs = questions[level];
+    if (currentQuestion + 1 < qs.length) { setCurrentQuestion(q => q + 1); setTimeLeft(25); setMessage(""); }
+    else {
       if (level === "moyen") { setLevel("avance"); } else { setShowResult(true); }
-      setCurrentQuestion(0); setTimeLeft(20); setMessage("");
+      setCurrentQuestion(0); setTimeLeft(25); setMessage("");
     }
   };
 
   useEffect(() => {
-    if (level !== "basic" && !showResult && timeLeft > 0) {
-      const t = setTimeout(() => setTimeLeft(timeLeft - 1), 1000);
-      return () => clearTimeout(t);
-    } else if (level !== "basic" && timeLeft === 0) { handleNextQuestion(); }
-  }, [timeLeft, level, showResult, currentQuestion]);
+    if (level !== "basic" && !showResult) {
+      if (timeLeft > 0) { const t = setTimeout(() => setTimeLeft(t2 => t2 - 1), 1000); return () => clearTimeout(t); }
+      else handleNextQuestion();
+    }
+  }, [timeLeft, level, showResult]);
 
   useEffect(() => {
     if (level === "basic" && !showResult) {
       const i = setInterval(() => {
-        setCurrentSlide((prev) => {
+        setCurrentSlide(prev => {
           if (prev + 1 < basicSlides.length) return prev + 1;
-          setLevel("moyen"); setCurrentQuestion(0); setTimeLeft(20); return 0;
+          setLevel("moyen"); setCurrentQuestion(0); setTimeLeft(25); return 0;
         });
       }, 12000);
       return () => clearInterval(i);
@@ -203,13 +221,8 @@ const Page7 = () => {
 
   const handleAnswerClick = (option) => {
     const current = questions[level][currentQuestion];
-    const isCorrect = option === current.answer;
-    if (isCorrect) {
-      setScores((p) => ({ ...p, [level]: p[level] + 1 }));
-      setMessage("✅ Correct !");
-    } else {
-      setMessage(`❌ ${current.answer}\n\nℹ️ ${current.explanation}`);
-    }
+    if (option === current.answer) { setScores(p => ({ ...p, [level]: p[level] + 1 })); setMessage("✅ Correct !"); }
+    else { setMessage(`❌ ${current.answer}\n\nℹ️ ${current.explanation}`); }
     setTimeout(handleNextQuestion, 4000);
   };
 
@@ -220,9 +233,7 @@ const Page7 = () => {
           <h4 className="subtitle" style={{ fontSize: '10px', margin: '0 0 6px 0' }}>
             C# Tests & Outils 🔹 {level === "basic" ? `Slide ${currentSlide + 1}/${basicSlides.length}` : `QCM ${level.toUpperCase()}`}
           </h4>
-          {level === "basic" ? (
-            <Flashcard slide={basicSlides[currentSlide]} />
-          ) : (
+          {level === "basic" ? <Flashcard slide={basicSlides[currentSlide]} /> : (
             <QuestionCard question={questions[level][currentQuestion].question} options={questions[level][currentQuestion].options} onAnswerClick={handleAnswerClick} timeLeft={timeLeft} />
           )}
           {message && <p className="message" style={{ whiteSpace: 'pre-wrap', marginTop: '8px' }}>{message}</p>}

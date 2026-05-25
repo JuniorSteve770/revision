@@ -10,23 +10,23 @@ const basicSlides = [
   },
   {
     "question": "POO — Encapsulation",
-    "answer": "**◆** : regrouper les données et comportements dans une classe tout en contrôlant l'accès via des getters/setters. ◆ : `private` (données inaccessibles de l'extérieur), `public` (accès autorisé), `get` / `set` (contrôle en lecture/écriture). ◆  : `Order._price` est `private`. Seule la méthode `Execute()` peut modifier le statut — aucun code externe ne peut corrompre un ordre en cours."
+    "answer": "**Définition** : regrouper les données et comportements dans une classe tout en contrôlant l'accès via des getters/setters. ◆ **Caractéristiques** : `private` (données inaccessibles de l'extérieur), `public` (accès autorisé), `get` / `set` (contrôle en lecture/écriture). ◆ **En trading** : `Order._price` est `private`. Seule la méthode `Execute()` peut modifier le statut — aucun code externe ne peut corrompre un ordre en cours."
   },
   {
     "question": "POO — Abstraction",
-    "answer": "**◆** : exposer uniquement les comportements essentiels sans montrer les détails internes. ◆ : `interface` (contrat pur — que des signatures, pas de code), `abstract class` (contrat + code commun partageable). ◆ **Règle** : deux classes partagent du code → `abstract class`. Elles partagent un contrat seulement → `interface`. ◆  : `IPricingEngine` expose `Calculate(trade)`. Le desk appelle la méthode sans savoir si c'est Black-Scholes ou Monte Carlo."
+    "answer": "**Définition** : exposer uniquement les comportements essentiels sans montrer les détails internes. ◆ **Caractéristiques** : `interface` (contrat pur — que des signatures, pas de code), `abstract class` (contrat + code commun partageable). ◆ **Règle** : deux classes partagent du code → `abstract class`. Elles partagent un contrat seulement → `interface`. ◆ **En trading** : `IPricingEngine` expose `Calculate(trade)`. Le desk appelle la méthode sans savoir si c'est Black-Scholes ou Monte Carlo."
   },
   {
     "question": "POO — Héritage",
-    "answer": "**◆** : permettre à une classe fille d'hériter des propriétés et méthodes d'une classe mère pour réutiliser le code. ◆ : `:` (étendre une classe), `base` (appeler le constructeur ou une méthode du parent), `protected` (accessible par la classe et ses enfants uniquement). ◆  : `EquityOption : Derivative` hérite automatiquement de toute la gestion du cycle de vie d'un dérivé sans réécrire la logique commune."
+    "answer": "**Définition** : permettre à une classe fille d'hériter des propriétés et méthodes d'une classe mère pour réutiliser le code. ◆ **Caractéristiques** : `:` (étendre une classe), `base` (appeler le constructeur ou une méthode du parent), `protected` (accessible par la classe et ses enfants uniquement). ◆ **En trading** : `EquityOption : Derivative` hérite automatiquement de toute la gestion du cycle de vie d'un dérivé sans réécrire la logique commune."
   },
   {
     "question": "POO — Polymorphisme",
-    "answer": "**◆** : permettre à une méthode d'avoir plusieurs comportements selon l'objet utilisé. ◆ : `virtual` (autorise la redéfinition dans une classe enfant), `override` (redéfinit le comportement), `new` (masque la méthode parente — sans polymorphisme, à éviter). ◆  : une `List<Instrument>` contient actions, obligations, futures. Appeler `Evaluate()` sur chacun déclenche la bonne formule selon l'instrument réel."
+    "answer": "**Définition** : permettre à une méthode d'avoir plusieurs comportements selon l'objet utilisé. ◆ **Caractéristiques** : `virtual` (autorise la redéfinition dans une classe enfant), `override` (redéfinit le comportement), `new` (masque la méthode parente — sans polymorphisme, à éviter). ◆ **En trading** : une `List<Instrument>` contient actions, obligations, futures. Appeler `Evaluate()` sur chacun déclenche la bonne formule selon l'instrument réel."
   },
   {
     "question": "SOLID — SRP & OCP",
-    "answer": "**SRP** (Single Responsibility) : une classe = une seule responsabilité. ◆ Une classe `TradeReporter` qui calcule le P&L, génère le PDF et envoie l'email a trois raisons de changer — découpez-la en trois classes distinctes. ◆ **OCP** (Open/Closed) : ouvert à l'extension, fermé à la modification. ◆ Ajouter un nouveau broker → créer `NewBrokerFeeCalculator : IFeeCalculator`. Aucune ligne du moteur existant n'est modifiée — zéro régression possible."
+    "answer": "**SRP** (Single Responsibility) : une classe **=** une seule responsabilité. ◆ Une classe `TradeReporter` qui calcule le P&L, génère le PDF et envoie l'email a trois raisons de changer — découpez-la en trois classes distinctes. ◆ **OCP** (Open/Closed) : ouvert à l'extension, fermé à la modification. ◆ Ajouter un nouveau broker → créer `NewBrokerFeeCalculator : IFeeCalculator`. Aucune ligne du moteur existant n'est modifiée — zéro régression possible."
   },
   {
     "question": "SOLID — LSP & ISP",
@@ -42,11 +42,11 @@ const basicSlides = [
   },
   {
     "question": "Design Patterns — Builder & Singleton",
-    "answer": "**Builder** : construire un objet complexe étape par étape via une Fluent API. ◆ `new OrderBuilder().ForSymbol(\"BNP\").Strike(50).Buy(100).Build()` — lisible, validé dans `Build()`, sans constructeur à 12 paramètres. ◆ **Singleton** : garantir une seule instance dans tout le process. ◆ En C# : `Lazy<T>` assure l'initialisation thread-safe sans `lock` explicite. ◆ : constructeur `private`, instance exposée via propriété statique, `Lazy<T>` pour la sécurité multi-thread."
+    "answer": "**Builder** : construire un objet complexe étape par étape via une Fluent API. ◆ `new OrderBuilder().ForSymbol(\"BNP\").Strike(50).Buy(100).Build()` — lisible, validé dans `Build()`, sans constructeur à 12 paramètres. ◆ **Singleton** : garantir une seule instance dans tout le process. ◆ En C# : `Lazy<T>` assure l'initialisation thread-safe sans `lock` explicite. ◆ **Caractéristiques** : constructeur `private`, instance exposée via propriété statique, `Lazy<T>` pour la sécurité multi-thread."
   },
   {
     "question": "Design Patterns — Observer & Strategy",
-    "answer": "**Observer** : notifier automatiquement des abonnés lorsqu'un événement se produit, sans couplage direct entre la source et les écouteurs. ◆ En C# : `event`, `EventHandler<T>`, `IObservable<T>`. ◆ : un changement de prix notifie l'UI, le moteur de risk et les alertes simultanément. ◆ **Strategy** : changer d'algorithme à la volée en injectant une implémentation différente. ◆ En C# : injection d'`IRiskStrategy` au runtime. ◆  : basculer de `StandardVaRStrategy` à `StressTestStrategy` lors d'une annonce Fed — sans recompiler."
+    "answer": "**Observer** : notifier automatiquement des abonnés lorsqu'un événement se produit, sans couplage direct entre la source et les écouteurs. ◆ En C# : `event`, `EventHandler<T>`, `IObservable<T>`. ◆ **En trading** : un changement de prix notifie l'UI, le moteur de risk et les alertes simultanément. ◆ **Strategy** : changer d'algorithme à la volée en injectant une implémentation différente. ◆ En C# : injection d'`IRiskStrategy` au runtime. ◆ **En trading** : basculer de `StandardVaRStrategy` à `StressTestStrategy` lors d'une annonce Fed — sans recompiler."
   },
   {
     "question": "Design Patterns — Chain of Responsibility & Repository",
@@ -744,35 +744,6 @@ const questions = {
     }
   ]
 };
-const renderInlineTokens = (text, keyPrefix) => {
-  const regex = /(\*\*.*?\*\*|`.*?`|\*.*?\*)/g;
-  const parts = text.split(regex);
-  return parts.map((part, idx) => {
-    if (part.startsWith("**") && part.endsWith("**")) {
-      return <strong key={`${keyPrefix}-${idx}`} style={{ display: 'inline', fontWeight: 'bold' }}>{part.slice(2, -2)}</strong>;
-    }
-    if (part.startsWith("`") && part.endsWith("`")) {
-      return (
-        <code key={`${keyPrefix}-${idx}`} style={{
-          display: 'inline',
-          backgroundColor: '#eef2f7',
-          padding: '1px 5px',
-          borderRadius: '3px',
-          fontFamily: 'monospace',
-          color: '#e01e5a',
-          fontWeight: 'bold',
-          fontSize: '13px'
-        }}>
-          {part.slice(1, -1)}
-        </code>
-      );
-    }
-    if (part.startsWith("*") && part.endsWith("*")) {
-      return <em key={`${keyPrefix}-${idx}`} style={{ display: 'inline' }}>{part.slice(1, -1)}</em>;
-    }
-    return part;
-  });
-};
 
 const renderFormattedText = (text) => {
   if (!text) return null;
@@ -786,18 +757,36 @@ const renderFormattedText = (text) => {
   if (cleanText.startsWith(" ◆ ")) cleanText = cleanText.substring(3);
   if (cleanText.startsWith("- ")) cleanText = cleanText.substring(2);
 
-  const segments = cleanText.split(" ◆ ");
+  const regex = /(\*\*.*?\*\*|`.*?`|\*.*?\*)/g;
+  const parts = cleanText.split(regex);
 
   return (
-    <span style={{ display: 'block', lineHeight: '1.7' }}>
-      {segments.map((segment, segIdx) => (
-        <span key={segIdx} style={{ display: 'block', marginBottom: segIdx < segments.length - 1 ? '6px' : '0' }}>
-          {segIdx > 0 && (
-            <span style={{ color: '#1a73e8', fontWeight: 'bold', marginRight: '5px' }}>◆</span>
-          )}
-          {renderInlineTokens(segment, `seg-${segIdx}`)}
-        </span>
-      ))}
+    <span style={{ display: 'inline', lineHeight: '1.5' }}>
+      {parts.map((part, idx) => {
+        if (part.startsWith("**") && part.endsWith("**")) {
+          return <strong key={idx} style={{ display: 'inline', fontWeight: 'bold' }}>{part.slice(2, -2)}</strong>;
+        }
+        if (part.startsWith("`") && part.endsWith("`")) {
+          return (
+            <code key={idx} style={{ 
+              display: 'inline', 
+              backgroundColor: '#eef2f7', 
+              padding: '1px 5px', 
+              borderRadius: '3px', 
+              fontFamily: 'monospace', 
+              color: '#e01e5a', 
+              fontWeight: 'bold', 
+              fontSize: '13px' 
+            }}>
+              {part.slice(1, -1)}
+            </code>
+          );
+        }
+        if (part.startsWith("*") && part.endsWith("*")) {
+          return <em key={idx} style={{ display: 'inline' }}>{part.slice(1, -1)}</em>;
+        }
+        return part;
+      })}
     </span>
   );
 };
@@ -828,169 +817,73 @@ const Flashcard = ({ slide }) => (
 );
 
 const Results = ({ scores }) => {
-  const totalScore = scores.moyen + scores.avance + scores.expert;
+  const totalScore = scores.moyen + scores.avance;
   const totalQuestions = Object.values(questions).flat().length;
   return (
     <div className="results">
       <h3>🎯 Score : {totalScore} / {totalQuestions}</h3>
-      <p>✅ Moyen : {scores.moyen}/{questions.moyen.length} | ✅ Avancé : {scores.avance}/{questions.avance.length} | ✅ Expert : {scores.expert}/{questions.expert.length}</p>
-      {totalScore >= Math.floor(totalQuestions * 0.6) ? <h3 className="success">🚀 Excellent ! Principes SOLID & design patterns validés.</h3> : <p className="fail">📚 Révisez les parties où vous avez perdu des points.</p>}
+      <p>✅ Moyen : {scores.moyen} | ✅ Avancé : {scores.avance}</p>
+      {totalScore >= Math.floor(totalQuestions * 0.6) ? <h3 className="success">🚀 Excellent ! Composants système maîtrisés.</h3> : <p className="fail">📚 Révisez l'architecture système.</p>}
     </div>
   );
 };
 
-const SLIDE_DURATION = 12000;
-const QUESTION_TIME = 25;
-const LEVELS = ["moyen", "avance", "expert"];
-
 const Page4 = () => {
-  // Single source of truth: one state object avoids inter-render race conditions
-  const [phase, setPhase] = useState("basic"); // "basic" | "moyen" | "avance" | "expert" | "results"
+  const [level, setLevel] = useState("basic");
   const [currentSlide, setCurrentSlide] = useState(0);
   const [currentQuestion, setCurrentQuestion] = useState(0);
-  const [scores, setScores] = useState({ moyen: 0, avance: 0, expert: 0 });
-  const [timeLeft, setTimeLeft] = useState(QUESTION_TIME);
-  const [answered, setAnswered] = useState(false); // locks input after answer
+  const [scores, setScores] = useState({ moyen: 0, avance: 0 });
+  const [timeLeft, setTimeLeft] = useState(25);
+  const [showResult, setShowResult] = useState(false);
   const [message, setMessage] = useState("");
 
-  // Derived safe accessors — never crash even mid-transition
-  const isQcm = phase !== "basic" && phase !== "results";
-  const currentQs = isQcm ? (questions[phase] || []) : [];
-  const safeIdx = Math.min(currentQuestion, currentQs.length - 1);
-  const currentQ = currentQs[safeIdx] || null;
-
-  // ── Slide auto-advance ──────────────────────────────────────────────────────
-  useEffect(() => {
-    if (phase !== "basic") return;
-    const timer = setTimeout(() => {
-      if (currentSlide + 1 < basicSlides.length) {
-        setCurrentSlide(s => s + 1);
-      } else {
-        // All slides done → start QCM
-        setPhase("moyen");
-        setCurrentQuestion(0);
-        setTimeLeft(QUESTION_TIME);
-        setAnswered(false);
-        setMessage("");
-      }
-    }, SLIDE_DURATION);
-    return () => clearTimeout(timer);
-  }, [phase, currentSlide]);
-
-  // ── Question countdown ──────────────────────────────────────────────────────
-  useEffect(() => {
-    if (!isQcm || answered) return;
-    if (timeLeft <= 0) { advanceQuestion(false); return; }
-    const t = setTimeout(() => setTimeLeft(tl => tl - 1), 1000);
-    return () => clearTimeout(t);
-  // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [timeLeft, isQcm, answered]);
-
-  // ── Navigation helpers ──────────────────────────────────────────────────────
-  const advanceQuestion = (scored) => {
-    const qs = questions[phase] || [];
-    const nextIdx = safeIdx + 1;
-    if (nextIdx < qs.length) {
-      setCurrentQuestion(nextIdx);
-      setTimeLeft(QUESTION_TIME);
-      setAnswered(false);
-      setMessage("");
-    } else {
-      const nextLevelIdx = LEVELS.indexOf(phase) + 1;
-      if (nextLevelIdx < LEVELS.length) {
-        const nextLevel = LEVELS[nextLevelIdx];
-        setPhase(nextLevel);
-        setCurrentQuestion(0);
-        setTimeLeft(QUESTION_TIME);
-        setAnswered(false);
-        setMessage("");
-      } else {
-        setPhase("results");
-      }
+  const handleNextQuestion = () => {
+    const qs = questions[level];
+    if (currentQuestion + 1 < qs.length) { setCurrentQuestion(q => q + 1); setTimeLeft(25); setMessage(""); }
+    else {
+      if (level === "moyen") { setLevel("avance"); } else { setShowResult(true); }
+      setCurrentQuestion(0); setTimeLeft(25); setMessage("");
     }
   };
+
+  useEffect(() => {
+    if (level !== "basic" && !showResult) {
+      if (timeLeft > 0) { const t = setTimeout(() => setTimeLeft(t2 => t2 - 1), 1000); return () => clearTimeout(t); }
+      else handleNextQuestion();
+    }
+  }, [timeLeft, level, showResult]);
+
+  useEffect(() => {
+    if (level === "basic" && !showResult) {
+      const i = setInterval(() => {
+        setCurrentSlide(prev => {
+          if (prev + 1 < basicSlides.length) return prev + 1;
+          setLevel("moyen"); setCurrentQuestion(0); setTimeLeft(25); return 0;
+        });
+      }, 12000);
+      return () => clearInterval(i);
+    }
+  }, [level, showResult]);
 
   const handleAnswerClick = (option) => {
-    if (answered || !currentQ) return; // guard against double-click or missing question
-    setAnswered(true);
-    const correct = option === currentQ.answer;
-    if (correct) {
-      setScores(p => ({ ...p, [phase]: p[phase] + 1 }));
-      setMessage("✅ Correct !");
-    } else {
-      setMessage(`❌ ${currentQ.answer}\n\nℹ️ ${currentQ.explanation}`);
-    }
-    setTimeout(() => advanceQuestion(correct), 4000);
+    const current = questions[level][currentQuestion];
+    if (option === current.answer) { setScores(p => ({ ...p, [level]: p[level] + 1 })); setMessage("✅ Correct !"); }
+    else { setMessage(`❌ ${current.answer}\n\nℹ️ ${current.explanation}`); }
+    setTimeout(handleNextQuestion, 4000);
   };
-
-  const handleSlideNext = () => {
-    if (currentSlide + 1 < basicSlides.length) {
-      setCurrentSlide(s => s + 1);
-    } else {
-      setPhase("moyen");
-      setCurrentQuestion(0);
-      setTimeLeft(QUESTION_TIME);
-      setAnswered(false);
-      setMessage("");
-    }
-  };
-
-  const handleSlidePrev = () => {
-    if (currentSlide > 0) setCurrentSlide(s => s - 1);
-  };
-
-  // ── Render ──────────────────────────────────────────────────────────────────
-  if (phase === "results") {
-    return (
-      <div className="qcm-container">
-        <Results scores={scores} />
-      </div>
-    );
-  }
-
-  if (phase === "basic") {
-    return (
-      <div className="qcm-container">
-        <Flashcard slide={basicSlides[currentSlide]} />
-{/*         <div style={{ display: 'flex', justifyContent: 'space-between', marginTop: '8px' }}>
-          <button
-            onClick={handleSlidePrev}
-            disabled={currentSlide === 0}
-            className="option-button"
-            style={{ width: 'auto', padding: '4px 14px', fontSize: '12px', opacity: currentSlide === 0 ? 0.4 : 1 }}
-          >
-            ← Précédent
-          </button>
-          <button
-            onClick={handleSlideNext}
-            className="option-button"
-            style={{ width: 'auto', padding: '4px 14px', fontSize: '12px' }}
-          >
-            {currentSlide + 1 < basicSlides.length ? 'Suivant →' : 'Démarrer le QCM →'}
-          </button>
-        </div> */}
-      </div>
-    );
-  }
-
-  // QCM phase — currentQ is guaranteed non-null here
-  if (!currentQ) return null;
 
   return (
     <div className="qcm-container">
-      <h4 className="subtitle" style={{ fontSize: '10px', margin: '0 0 6px 0' }}>
-        QCM {phase.toUpperCase()} 🔹 Q{safeIdx + 1}/{currentQs.length}
-      </h4>
-      <QuestionCard
-        question={currentQ.question}
-        options={currentQ.options}
-        onAnswerClick={handleAnswerClick}
-        timeLeft={timeLeft}
-      />
-      {message && (
-        <p className="message" style={{ whiteSpace: 'pre-wrap', marginTop: '8px' }}>
-          {message}
-        </p>
+      {showResult ? <Results scores={scores} /> : (
+        <div>
+          <h4 className="subtitle" style={{ fontSize: '10px', margin: '0 0 6px 0' }}>
+            Arch & OMS 🔹 {level === "basic" ? `Slide ${currentSlide + 1}/${basicSlides.length}` : `QCM ${level.toUpperCase()}`}
+          </h4>
+          {level === "basic" ? <Flashcard slide={basicSlides[currentSlide]} /> : (
+            <QuestionCard question={questions[level][currentQuestion].question} options={questions[level][currentQuestion].options} onAnswerClick={handleAnswerClick} timeLeft={timeLeft} />
+          )}
+          {message && <p className="message" style={{ whiteSpace: 'pre-wrap', marginTop: '8px' }}>{message}</p>}
+        </div>
       )}
     </div>
   );
