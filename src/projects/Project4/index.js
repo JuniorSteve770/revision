@@ -1,4 +1,4 @@
-// src/projects/Project2/index.js
+// src/projects/Project4/index.js
 import React from 'react';
 import { Routes, Route } from 'react-router-dom';
 import Project4Navbar from './components/Project4Navbar';
@@ -12,7 +12,7 @@ import Page7 from './pages/Page7';
 import Page8 from './pages/Page8';
 
 
-const Project1 = () => {
+const Project4 = () => {
   return (
     <div>
       <Project4Navbar />
@@ -32,4 +32,4 @@ const Project1 = () => {
   );
 };
 
-export default Project1;
+export default Project4;

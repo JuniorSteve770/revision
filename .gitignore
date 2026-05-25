@@ -21,3 +21,8 @@
 npm-debug.log*
 yarn-debug.log*
 yarn-error.log*
+
+# Archives
+*.rar
+*.zip
+src_2026.rar

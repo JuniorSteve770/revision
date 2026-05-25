@@ -1,4 +1,4 @@
-// src/projects/Project1/components/Project1Navbar.js
+// src/projects/Project0/components/Project0Navbar.js
 import React from 'react';
 import { Link } from 'react-router-dom';
 import "./Project0Navbar.css";

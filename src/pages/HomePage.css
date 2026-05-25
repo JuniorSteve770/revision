@@ -42,6 +42,13 @@
 }
 
 /* Styles spécifiques pour chaque bouton */
+#project0-button {
+  background-color: #20b2aa;
+}
+#project0-button:hover {
+  background-color: #178a83;
+}
+
 #project1-button {
   background-color: #ff7f50;
 }

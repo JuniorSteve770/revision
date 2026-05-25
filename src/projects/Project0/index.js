@@ -1,4 +1,4 @@
-// src/projects/Project1/index.js
+// src/projects/Project0/index.js
 import React from 'react';
 import { Routes, Route } from 'react-router-dom';
 import Project0Navbar from './components/Project0Navbar';

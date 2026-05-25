@@ -8,7 +8,7 @@ import Page3 from './pages/Page3';
 import Page4 from './pages/Page4';
 
 
-const Project1 = () => {
+const Project2 = () => {
   return (
     <div>
       <Project2Navbar />
@@ -22,4 +22,4 @@ const Project1 = () => {
   );
 };
 
-export default Project1;
+export default Project2;
