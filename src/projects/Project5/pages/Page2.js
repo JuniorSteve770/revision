@@ -802,7 +802,7 @@ const CIBPricingPreTradeQCM = () => {
           setTimeLeft(25);
           return 0;
         });
-      }, 12000);
+      }, 20000);
       return () => clearInterval(i);
     }
   }, [level, showResult]);

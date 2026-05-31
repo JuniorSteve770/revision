@@ -1,775 +1,661 @@
-// src/projects/Project3/pages/Page4.js
+// src/projects/CIBPricing/MicroservicesFoundationsQCM.js
 
 import React, { useState, useEffect } from "react";
 import "./Page.css";
 
 const basicSlides = [
   {
-    "question": "Vue d'ensemble — POO, SOLID, ACID & Design Patterns",
-    "answer": "**POO** : organiser le code avec des objets réutilisables, protégés et flexibles. Piliers : Encapsulation, Abstraction, Héritage, Polymorphisme. ◆ **SOLID** : concevoir un code propre, maintenable et évolutif. Principes : SRP, OCP, LSP, ISP, DIP. ◆ **ACID** : garantir des transactions fiables et sécurisées en base de données. Propriétés : Atomicité, Cohérence, Isolation, Durabilité. ◆ **Design Patterns** : utiliser des solutions réutilisables aux problèmes fréquents de conception logicielle. Patterns clés : Builder, Singleton, Observer, Strategy, Chain of Responsibility, Repository."
+    "question": "Vue d'ensemble — 20 fondations essentielles C#/.NET Finance/IT",
+    "answer": "**Microservices** : découper une application en services indépendants (Trading, Risque, Reporting). Chaque service a sa propre DB, son déploiement, sa logique. ◆ **JSON** : format d'échange standard entre services — sérialisation/désérialisation `JsonSerializer`, contrats partagés. ◆ **MSMQ / RabbitMQ** : file de messages asynchrone — le producteur envoie, le consommateur traite quand il est prêt. Aucune perte si le service B est down. ◆ **async/await** : libère le thread pendant l'I/O (SQL, API, fichiers) — scalabilité sans threads bloqués. `Task` vs `Thread` : Task = léger, pool géré. Thread = lourd, manuel. ◆ **LINQ** : requêter des collections C# comme du SQL. `Where`, `Select`, `OrderBy`, `GroupBy`, `FirstOrDefault`. Traduit en SQL par Entity Framework. ◆ **Points de confusion clés** : `async void` vs `async Task`, `First()` vs `FirstOrDefault()`, `IQueryable` vs `IEnumerable`, `Serialize` vs `Deserialize`, `HTTP` vs `MSMQ`, producteur vs consommateur."
   },
   {
-    "question": "POO — Encapsulation",
-    "answer": "**◆** : regrouper les données et comportements dans une classe tout en contrôlant l'accès via des getters/setters. ◆ : `private` (données inaccessibles de l'extérieur), `public` (accès autorisé), `get` / `set` (contrôle en lecture/écriture). ◆  : `Order._price` est `private`. Seule la méthode `Execute()` peut modifier le statut — aucun code externe ne peut corrompre un ordre en cours."
+    "question": "Microservice — Définition, responsabilité unique, exemple Trading CIB",
+    "answer": "**Définition** : un microservice est un service indépendant qui gère une responsabilité métier unique. Il a sa propre base de données, son propre déploiement, sa propre logique. Il ne partage RIEN avec les autres services directement. ◆ **Exemple CIB** : `TradeService` (créer/modifier/annuler les trades), `RiskService` (calculer VaR, Greeks, limites), `InstrumentService` (référentiel ISIN, caractéristiques), `ReportingService` (P&L, positions EOD). Chacun est un projet C# séparé déployé dans son propre container Docker. ◆ **Ce qu'un microservice NE fait PAS** : il ne lit pas directement la base d'un autre service, il ne partage pas ses objets internes, il ne connaît pas l'implémentation des autres. ◆ **Communication** : via REST API (synchrone) ou MessageQueue (asynchrone). Jamais via DB partagée — c'est l'anti-pattern n°1. ◆ **Règle de taille** : un microservice = ce qu'une petite équipe peut développer, déployer et comprendre complètement."
   },
   {
-    "question": "POO — Abstraction",
-    "answer": "**◆** : exposer uniquement les comportements essentiels sans montrer les détails internes. ◆ : `interface` (contrat pur — que des signatures, pas de code), `abstract class` (contrat + code commun partageable). ◆ **Règle** : deux classes partagent du code → `abstract class`. Elles partagent un contrat seulement → `interface`. ◆  : `IPricingEngine` expose `Calculate(trade)`. Le desk appelle la méthode sans savoir si c'est Black-Scholes ou Monte Carlo."
+    "question": "Monolithe vs Microservices — Tableau comparatif et quand choisir",
+    "answer": "**Monolithe** : une seule application, un seul déploiement, tout est couplé. Simple à démarrer, difficile à maintenir en équipe. Modifier le service Risque nécessite de redéployer toute l'application. ◆ **Microservices** : chaque service déployé indépendamment. `TradeService` peut être mis à jour sans toucher `RiskService`. Scalabilité : `RiskService` (CPU intensif) peut avoir 10 pods Kubernetes, `ReportingService` (utilisé 1×/jour) en a 1. ◆ **Quand choisir Microservices** : grande équipe (> 5 devs), plusieurs domaines métiers distincts, besoin de scalabilité différenciée, cycle de déploiement fréquent. ◆ **Quand garder un monolithe** : petite équipe, projet au démarrage (YAGNI), domaine métier non stabilisé — migrer vers microservices plus tard avec Strangler Fig. ◆ **⚠️ Point de confusion** : microservices ≠ meilleur dans tous les cas. Un monolithe bien structuré est préférable à des microservices mal découpés ('distributed monolith')."
   },
   {
-    "question": "POO — Héritage",
-    "answer": "**◆** : permettre à une classe fille d'hériter des propriétés et méthodes d'une classe mère pour réutiliser le code. ◆ : `:` (étendre une classe), `base` (appeler le constructeur ou une méthode du parent), `protected` (accessible par la classe et ses enfants uniquement). ◆  : `EquityOption : Derivative` hérite automatiquement de toute la gestion du cycle de vie d'un dérivé sans réécrire la logique commune."
+    "question": "Communication synchrone vs asynchrone — HTTP REST vs Message Queue",
+    "answer": "**HTTP REST (synchrone)** : `A → appelle B → attend la réponse → continue`. Si B est down : erreur immédiate pour A. Si B est lent (3s) : A attend 3s, thread bloqué. Utilisé quand : la réponse est nécessaire immédiatement pour continuer (`BookTrade` doit retourner le `TradeId`). ◆ **Message Queue (asynchrone)** : `A → envoie un message dans la queue → continue immédiatement`. B traite le message quand il est disponible. Si B est down : le message attend dans la queue, aucune perte. Utilisé quand : la réponse n'est pas nécessaire immédiatement (calcul de risk après booking, envoi d'email de confirmation). ◆ **Analogie** : HTTP = appel téléphonique (attend que l'autre décroche). Queue = envoyer un SMS (l'autre répond quand il peut). ◆ **⚠️ Point de confusion** : MSMQ et RabbitMQ ne remplacent PAS HTTP — ce sont des outils complémentaires. Certains flows nécessitent les deux dans le même système."
   },
   {
-    "question": "POO — Polymorphisme",
-    "answer": "**◆** : permettre à une méthode d'avoir plusieurs comportements selon l'objet utilisé. ◆ : `virtual` (autorise la redéfinition dans une classe enfant), `override` (redéfinit le comportement), `new` (masque la méthode parente — sans polymorphisme, à éviter). ◆  : une `List<Instrument>` contient actions, obligations, futures. Appeler `Evaluate()` sur chacun déclenche la bonne formule selon l'instrument réel."
+    "question": "JSON — Sérialisation, désérialisation, contrat, erreurs fréquentes",
+    "answer": "**Sérialisation** : objet C# → texte JSON. `string json = JsonSerializer.Serialize(trade);` ◆ **Désérialisation** : texte JSON → objet C#. `Trade t = JsonSerializer.Deserialize<Trade>(json);` ◆ **Options importantes** : `new JsonSerializerOptions { PropertyNamingPolicy = JsonNamingPolicy.CamelCase, WriteIndented = true, DefaultIgnoreCondition = JsonIgnoreCondition.WhenWritingNull }` ◆ **Attributs** : `[JsonPropertyName(\"trade_id\")]` sur une propriété pour mapper un nom JSON différent du nom C#. `[JsonIgnore]` pour exclure un champ de la sérialisation. ◆ **Contrat JSON** : structure partagée entre services. Changer `TradeId` en `Id` dans le JSON casse tous les consommateurs. Versionner : `/api/v1/trades` garde l'ancien format, `/api/v2/trades` introduit le nouveau. ◆ **⚠️ Points de confusion** : `Serialize` = C# vers JSON (vers l'extérieur). `Deserialize` = JSON vers C# (depuis l'extérieur). `null` en JSON ≠ valeur absente — utiliser `[JsonIgnore]` ou `JsonIgnoreCondition`."
   },
   {
-    "question": "SOLID — SRP & OCP",
-    "answer": "**SRP** (Single Responsibility) : une classe = une seule responsabilité. ◆ Une classe `TradeReporter` qui calcule le P&L, génère le PDF et envoie l'email a trois raisons de changer — découpez-la en trois classes distinctes. ◆ **OCP** (Open/Closed) : ouvert à l'extension, fermé à la modification. ◆ Ajouter un nouveau broker → créer `NewBrokerFeeCalculator : IFeeCalculator`. Aucune ligne du moteur existant n'est modifiée — zéro régression possible."
+    "question": "MSMQ — Architecture, producteur, consommateur, persistance",
+    "answer": "**MSMQ (Microsoft Message Queuing)** : système de files de messages intégré à Windows. Persistance locale — les messages survivent aux redémarrages. Transactionnel — envoi et réception atomiques. ◆ **Producteur** : `using System.Messaging; var queue = new MessageQueue(\".\\\\Private$\\\\TradeQueue\"); queue.Send(new Message(trade) { Label = \"NewTrade\", Formatter = new XmlMessageFormatter() });` ◆ **Consommateur** : `var msg = queue.Receive(TimeSpan.FromSeconds(10)); var trade = (Trade)msg.Body;` ◆ **Queue transactionnelle** : `queue.Send(msg, MessageQueueTransactionType.Single)` — si l'application plante après l'envoi mais avant le traitement, le message reste dans la queue. ◆ **Limitations MSMQ** : Windows uniquement, pas de broker centralisé, pas de monitoring web, pas de routing complexe, difficile à scaler horizontalement. ◆ **⚠️ Point de confusion** : MSMQ ≠ RabbitMQ. MSMQ = local, legacy, .NET Framework. RabbitMQ = broker centralisé, moderne, multi-langages, cloud-native."
   },
   {
-    "question": "SOLID — LSP & ISP",
-    "answer": "**LSP** (Liskov Substitution) : une classe dérivée doit pouvoir remplacer sa classe parent sans casser le programme. ◆ Si `FuturesEngine.ComputeGreeks()` lève `NotImplementedException`, le programme se brise — violation LSP. Revoir la hiérarchie ou utiliser une interface plus ciblée. ◆ **ISP** (Interface Segregation) : préférer plusieurs interfaces spécialisées plutôt qu'une grosse interface générale. ◆ `IOrderReader`, `IOrderWriter`, `IOrderNotifier` — un service de reporting n'implémente que ce dont il a besoin."
+    "question": "RabbitMQ — Exchange, Queue, Binding, patterns de routing",
+    "answer": "**Concepts** : Producer → Exchange → Binding → Queue → Consumer. L'exchange reçoit les messages et les route vers les queues selon les bindings et le routingKey. ◆ **Direct exchange** : `channel.BasicPublish(exchange: \"trades\", routingKey: \"trade.booked\", body: payload)` → queue liée à exactement `\"trade.booked\"`. ◆ **Topic exchange** : `routingKey: \"trade.equity.booked\"` → queue abonnée à `\"trade.equity.*\"` ou `\"trade.#\"`. ◆ **Fanout exchange** : broadcast — toutes les queues liées reçoivent le message (audit, risk, reporting, blotter simultanément). ◆ **Acknowledgements** : `channel.BasicAck(deliveryTag, false)` après traitement réussi. `channel.BasicNack(deliveryTag, false, requeue: true)` si erreur → rejeu. ◆ **Dead-letter queue** : messages rejetés → `trades.dlq` pour inspection. ◆ **⚠️ Point de confusion** : l'exchange NE stocke PAS les messages — c'est la queue qui stocke. L'exchange route seulement. Un message non routé (aucune queue binding) est perdu."
   },
   {
-    "question": "SOLID — DIP & Injection de dépendances",
-    "answer": "**DIP** (Dependency Inversion) : dépendre d'abstractions plutôt que d'implémentations concrètes. ◆ Le moteur de risk reçoit `IMarketDataService` — pas `new MarketDataService()`. Changer de source de données ne touche pas au domaine métier. ◆ **Durées de vie DI** : `AddTransient` (nouvelle instance à chaque appel), `AddScoped` (une instance par requête HTTP — idéal pour `DbContext`), `AddSingleton` (une seule instance pour toute la durée du process). ◆ **Piège** : service avec état utilisateur en `AddSingleton` → partage involontaire entre traders."
+    "question": "async/await — Fonctionnement interne, libération de thread, règles",
+    "answer": "**Sans async (bloquant)** : `var data = GetData();` — le thread attend, immobilisé pendant toute la durée de l'I/O. Sur ASP.NET Core : si 200 requêtes simultanées chacune attendant 100ms SQL → 200 threads bloqués → pool de threads épuisé → nouvelles requêtes en attente. ◆ **Avec async** : `var data = await GetDataAsync();` — le thread est libéré pendant l'attente I/O, il revient dans le pool et peut traiter d'autres requêtes. Quand le résultat SQL arrive, un thread (pas forcément le même) reprend l'exécution après le `await`. ◆ **Règle du bout en bout** : si une méthode utilise `await`, elle doit être `async Task` jusqu'au contrôleur. Interrompre la chaîne avec `.Result` ou `.Wait()` = deadlock potentiel. ◆ **CancellationToken** : `async Task GetDataAsync(CancellationToken ct)` — si le client ferme la connexion, l'opération est annulée proprement. ◆ **⚠️ Point de confusion majeur** : `async` ne rend pas le code plus rapide pour une seule requête — il améliore la scalabilité (plus de requêtes simultanées avec moins de threads)."
   },
   {
-    "question": "ACID — Intégrité des transactions",
-    "answer": "**A**tomicité : tout ou rien — débiter le compte ET enregistrer le trade forment une seule unité. ◆ **C**ohérence : la base reste dans un état valide après chaque transaction. ◆ **I**solation : deux trades concurrents ne se lisent pas à mi-chemin. ◆ **D**urabilité : un trade confirmé survit à un crash serveur. ◆ **En C#** : `TransactionScope` (atomicité), `IsolationLevel.ReadCommitted` (défaut SQL Server — bloque les dirty reads), `IsolationLevel.Serializable` (le plus strict — risque de deadlocks sous charge)."
+    "question": "async void vs async Task — La confusion la plus dangereuse en C#",
+    "answer": "**`async Task`** : méthode awaitable. Les exceptions sont capturées et propagées à l'appelant. `await MaMethodeAsync()` — l'appelant peut gérer l'exception avec `try/catch`. La méthode peut être attendue (testable, composable). ◆ **`async void`** : NON awaitable. Les exceptions NE sont PAS capturées — elles plantent le process entier sans possibilité de try/catch. Utilisable UNIQUEMENT pour les event handlers UI (obligation de signature) : `private async void Button_Click(object sender, EventArgs e)`. ◆ **Pourquoi c'est dangereux** : `private async void ProcessMessage(Message msg) { await _repo.SaveAsync(msg); }` → si `SaveAsync` lève une exception → le process crash → tous les messages en cours sont perdus. ◆ **Règle absolue** : toujours `async Task`, sauf event handlers. `async void` dans un service backend = bombe à retardement. ◆ **⚠️ Point de confusion** : les deux se compilent sans erreur — le compilateur n'avertit pas pour `async void`. C'est une erreur silencieuse."
   },
   {
-    "question": "Design Patterns — Builder & Singleton",
-    "answer": "**Builder** : construire un objet complexe étape par étape via une Fluent API. ◆ `new OrderBuilder().ForSymbol(\"BNP\").Strike(50).Buy(100).Build()` — lisible, validé dans `Build()`, sans constructeur à 12 paramètres. ◆ **Singleton** : garantir une seule instance dans tout le process. ◆ En C# : `Lazy<T>` assure l'initialisation thread-safe sans `lock` explicite. ◆ : constructeur `private`, instance exposée via propriété statique, `Lazy<T>` pour la sécurité multi-thread."
+    "question": "Task vs Thread — Différences fondamentales et quand utiliser chaque",
+    "answer": "**Thread** : `new Thread(() => { DoWork(); }).Start()` — crée un thread OS dédié. Lourd (~1MB de stack), géré manuellement (Start, Join, Abort). Pas de valeur de retour native. Pas de composition. ◆ **Task** : `Task.Run(() => DoWork())` — utilise le ThreadPool géré par .NET. Léger, recyclé entre les opérations. Valeur de retour (`Task<T>`). Composable (`Task.WhenAll`, `ContinueWith`). ◆ **Quand utiliser Thread** : opérations longues (thread dédié pour un consommateur RabbitMQ qui tourne indéfiniment), cas où le contrôle précis du thread est nécessaire. ◆ **Quand utiliser Task** : tout le reste — calculs parallèles, opérations async, parallélisme logique. ◆ **ThreadPool** : `Thread` crée un thread neuf. `Task.Run` prend un thread du pool (déjà créé). Créer 1000 `Thread` = 1000 threads OS = ~1GB de stack. 1000 `Task.Run` = réutilise ~20-50 threads du pool. ◆ **⚠️ Point de confusion** : `await` ne crée PAS un thread — il libère un thread. La confusion entre 'parallélisme' et 'asynchronisme' est très fréquente."
   },
   {
-    "question": "Design Patterns — Observer & Strategy",
-    "answer": "**Observer** : notifier automatiquement des abonnés lorsqu'un événement se produit, sans couplage direct entre la source et les écouteurs. ◆ En C# : `event`, `EventHandler<T>`, `IObservable<T>`. ◆ : un changement de prix notifie l'UI, le moteur de risk et les alertes simultanément. ◆ **Strategy** : changer d'algorithme à la volée en injectant une implémentation différente. ◆ En C# : injection d'`IRiskStrategy` au runtime. ◆  : basculer de `StandardVaRStrategy` à `StressTestStrategy` lors d'une annonce Fed — sans recompiler."
+    "question": "LINQ — Where, Select, OrderBy, GroupBy, FirstOrDefault — Syntaxe et pièges",
+    "answer": "**Where** : `trades.Where(t => t.Price > 100 && t.Status == \"Active\")` — filtre, retourne `IEnumerable<T>`. ◆ **Select** : `trades.Select(t => new TradeDto(t.Id, t.Price))` — projection, transforme chaque élément. `Select` retourne toujours autant d'éléments qu'en entrée. ◆ **SelectMany** : aplatit une collection de collections. `desks.SelectMany(d => d.Trades)` — toutes les trades de tous les desks en une seule liste. ◆ **OrderBy / ThenBy** : `trades.OrderBy(t => t.Maturity).ThenBy(t => t.Strike)` — tri multi-niveaux. ◆ **GroupBy** : `trades.GroupBy(t => t.Desk).Select(g => new { Desk = g.Key, Total = g.Sum(t => t.Notional) })` ◆ **FirstOrDefault / SingleOrDefault** : `FirstOrDefault()` = premier élément ou `null` si vide. `SingleOrDefault()` = un seul élément attendu, exception si plusieurs. ◆ **⚠️ Point de confusion** : `Select` ≠ filtre — c'est une projection. Pour filtrer : `Where`. `First()` lève une exception si la collection est vide. `FirstOrDefault()` retourne `null`."
   },
   {
-    "question": "Design Patterns — Chain of Responsibility & Repository",
-    "answer": "**Chain of Responsibility** : faire passer une requête à travers une chaîne de handlers, chacun ayant une seule responsabilité. ◆ Un ordre traverse : limite de position → KYC → heure de marché → liquidité. Si un handler échoue, la chaîne s'arrête avec un motif clair. ◆ **Repository** : abstraire l'accès aux données derrière une interface pour découpler le domaine métier de l'infrastructure. ◆ `ITradeRepository` en prod → EF Core. En tests → `InMemoryTradeRepository`. Même code métier, deux infrastructures."
+    "question": "LINQ — Exécution différée vs immédiate — Le piège des IEnumerable",
+    "answer": "**Exécution différée** : `IEnumerable<T>` — la requête n'est PAS exécutée à la ligne du `Where`/`Select`. Elle est exécutée au moment de l'itération (`foreach`, `.ToList()`, `.Count()`, `.Any()`). ◆ **Démonstration** : `var query = trades.Where(t => t.Price > 100);` ← requête construite, pas exécutée. `var result = query.ToList();` ← requête exécutée ici. ◆ **Conséquence piège** : `var q = trades.Where(t => t.Price > 100); trades.Clear(); var list = q.ToList();` → la liste est vide — la requête lit `trades` au moment de `.ToList()`, pas au moment du `Where`. ◆ **Exécution immédiate** : `.ToList()`, `.ToArray()`, `.Count()`, `.Any()`, `.First()`, `.Sum()`, `.Max()`, `.Min()` — forcent l'exécution. ◆ **IQueryable vs IEnumerable** : `IQueryable` traduit en SQL (exécuté côté serveur). `IEnumerable` exécuté côté client après chargement. `db.Trades.Where(...)` = `IQueryable` → SQL filtré. `db.Trades.ToList().Where(...)` = `IEnumerable` → TOUT chargé en mémoire, puis filtré en C#. ◆ **⚠️ Point de confusion** : appeler `.ToList()` trop tôt est l'une des erreurs de performance LINQ les plus fréquentes."
+  },
+  {
+    "question": "First() vs FirstOrDefault() vs Single() vs SingleOrDefault() — Tableau des différences",
+    "answer": "**`First()`** : premier élément — lance `InvalidOperationException` si la collection est VIDE. ◆ **`FirstOrDefault()`** : premier élément ou `null` (ou valeur par défaut du type) si vide — ne plante JAMAIS. ◆ **`Single()`** : exactement un seul élément — lance `InvalidOperationException` si vide OU si plus d'un élément. ◆ **`SingleOrDefault()`** : zéro ou un élément — retourne `null` si vide, lance si plus d'un. ◆ **Quand utiliser quoi** : `First()` = je sais que la collection n'est pas vide (données critiques, logique garantie). `FirstOrDefault()` = la collection peut être vide (recherche optionnelle). `Single()` = je veux exactement 1 résultat et c'est une erreur s'il y en a 0 ou 2 (chercher par clé primaire). `SingleOrDefault()` = 0 ou 1 résultat attendu. ◆ **Exemple CIB** : `var trade = trades.FirstOrDefault(t => t.Id == id);` puis `if (trade == null) return NotFound();`. NE PAS faire : `var trade = trades.First(t => t.Id == id)` si l'ID peut ne pas exister — exception en production. ◆ **⚠️ Point de confusion** : `First()` n'est PAS 'meilleur' que `FirstOrDefault()`. Utiliser le bon selon le contrat métier."
+  },
+  {
+    "question": "Producteur et Consommateur — Pattern fondamental des architectures distribuées",
+    "answer": "**Producteur** : service qui crée et envoie des messages. `TradeService` crée un trade et publie `TradeBooked` sur RabbitMQ. Il n'attend pas que le message soit traité — il continue immédiatement. ◆ **Consommateur** : service qui lit et traite les messages. `RiskService` écoute `TradeBooked`, calcule les Greeks, vérifie les limites. Il traite à son propre rythme. ◆ **Backpressure** : si le producteur est plus rapide que le consommateur, la queue grossit. Solutions : ajouter des consommateurs (scale out), ou bounded queue avec rejet/attente. ◆ **Competing consumers** : plusieurs instances de `RiskService` consomment la même queue — chaque message est traité par un seul consommateur. RabbitMQ distribue les messages en round-robin. ◆ **Fan-out** : un message `TradeBooked` consommé par `RiskService` ET `AuditService` ET `BlotterService` simultanément — chacun a sa propre queue. ◆ **⚠️ Point de confusion** : dans RabbitMQ, un message est délivré à UNE SEULE queue par défaut (Direct/Topic). Pour le fan-out, utiliser un Fanout Exchange ou plusieurs bindings."
+  },
+  {
+    "question": "Résilience et gestion d'erreurs — Retry, Circuit Breaker, Dead-Letter Queue",
+    "answer": "**Retry** : retenter automatiquement les opérations transitoires. Avec Polly : `Policy.Handle<HttpRequestException>().WaitAndRetry(3, r => TimeSpan.FromSeconds(Math.Pow(2, r)))` — 3 tentatives avec backoff exponentiel (2s, 4s, 8s). Ne pas retenter les erreurs permanentes (401, 404). ◆ **Circuit Breaker** : après N erreurs consécutives, ouvrir le circuit 30s. Le service ne tente plus d'appeler le service down — réponse immédiate de refus. Se referme progressivement (half-open) pour tester la récupération. ◆ **Dead-Letter Queue** : message en erreur après N tentatives → redirigé vers la DLQ. L'équipe inspecte, corrige l'anomalie, rejoue. Sans DLQ : le message est perdu ou bloque la queue. ◆ **Timeout** : toujours configurer un timeout sur les `HttpClient`. Sans timeout : si le service distant ne répond jamais, le thread est bloqué indéfiniment. `client.Timeout = TimeSpan.FromSeconds(5)` ◆ **⚠️ Point de confusion** : Circuit Breaker ≠ Retry. Le retry retente sur erreur transitoire. Le circuit breaker arrête de tenter quand le service est clairement down — économise les ressources et accélère la détection de pannes."
+  },
+  {
+    "question": "Versioning d'API REST — URL, Header, négociation de contenu",
+    "answer": "**URL versioning** : `/api/v1/trades`, `/api/v2/trades` — le plus explicite. Visible dans les logs, simple à tester, simple à documenter. ◆ **Header versioning** : `Api-Version: 2` dans le header HTTP — URL propre, moins visible. `[ApiVersion(\"2.0\")][MapToApiVersion(\"2.0\")] public IActionResult GetV2()` ◆ **Query string** : `/api/trades?api-version=2` — facile à tester dans un navigateur, peu recommandé en production. ◆ **Pourquoi versionner** : un contrat JSON modifié (ajout de champ obligatoire, renommage) casse les clients qui n'ont pas encore migré. V1 doit rester stable pendant la période de migration. ◆ **Stratégie de dépréciation** : `Deprecation: true` header + `Sunset: 2025-06-01` — les clients ont un délai pour migrer. ◆ **⚠️ Point de confusion** : ajouter un champ OPTIONNEL au JSON est backward compatible (V1 clients ignorent le nouveau champ). Rendre un champ obligatoire ou le renommer est un breaking change nécessitant une nouvelle version."
+  },
+  {
+    "question": "Sécurité des échanges — HTTPS, JWT, Validation des inputs, Secrets",
+    "answer": "**HTTPS** : chiffre les données en transit. Obligatoire en finance. `app.UseHsts(); app.UseHttpsRedirection();` ◆ **JWT (JSON Web Token)** : token signé contenant des claims (userId, rôle, desk, expiration). Vérifié côté serveur sans accès DB — stateless. `[Authorize] [HttpPost] public IActionResult BookTrade(...)` — 401 si token absent ou invalide. ◆ **Validation des inputs** : `[Required][Range(0.01, 1_000_000)] public decimal Notional { get; set; }` — `[ApiController]` retourne 400 automatiquement si invalide. FluentValidation pour les règles métier complexes. ◆ **Secrets** : jamais de credentials dans le code source ou les fichiers appSettings versionnés. Utiliser `User Secrets` (dev), `Azure Key Vault` ou variables d'environnement (prod). ◆ **SQL Injection** : utiliser uniquement des requêtes paramétrées ou ORM. `WHERE Id = @id` (Dapper) ou `Where(t => t.Id == id)` (EF Core) — jamais concaténer des inputs utilisateur dans du SQL. ◆ **⚠️ Point de confusion** : JWT ≠ chiffrement — le payload est lisible (Base64), pas secret. JWT = signé (authentification). Utiliser HTTPS pour le chiffrement."
+  },
+  {
+    "question": "Traçabilité inter-services — Correlation ID, Structured Logging, Distributed Tracing",
+    "answer": "**Correlation ID** : UUID généré à l'entrée du système, propagé dans tous les headers et logs. `X-Correlation-ID: 550e8400-e29b-41d4-a716-446655440000` — permet de retrouver tous les événements d'une requête dans tous les services. ◆ **Structured Logging** : `_logger.LogInformation(\"Trade booked {TradeId} {ISIN} {Desk} {Notional}\", trade.Id, trade.Isin, trade.Desk, trade.Notional)` — chaque propriété est indexée séparément dans Elasticsearch. Recherche `TradeId=12345` retrouve tous les logs liés. ◆ **Serilog** : `Log.ForContext(\"TradeId\", id).ForContext(\"Service\", \"BookingService\").Information(\"Processing...\")` ◆ **OpenTelemetry** : standard de tracing distribué. Chaque service crée un span. Jaeger/Zipkin reconstituent le chemin complet. ◆ **⚠️ Point de confusion** : les logs textuels (sans structured logging) ne peuvent pas être filtrés efficacement. `LogError(\"Error for trade \" + tradeId)` = texte non indexé. `LogError(\"Error for trade {TradeId}\", tradeId)` = propriété indexée."
+  },
+  {
+    "question": "Entity Framework Core + LINQ — Requêtes efficaces sur la base de données",
+    "answer": "**DbContext** : `public class MapsDbContext : DbContext { public DbSet<Trade> Trades { get; set; } public DbSet<Instrument> Instruments { get; set; } }` ◆ **Requête simple** : `var trades = await _ctx.Trades.Where(t => t.DeskId == deskId && t.TradeDate >= DateTime.Today).AsNoTracking().ToListAsync(ct);` ◆ **Include (jointure)** : `var trades = await _ctx.Trades.Include(t => t.Instrument).Where(...).ToListAsync();` — charge les instruments en même temps (évite N+1). ◆ **Projection** : `var dtos = await _ctx.Trades.Select(t => new TradeDto(t.Id, t.Instrument.Isin, t.Notional)).ToListAsync();` — SQL ne charge que les colonnes nécessaires. ◆ **AsNoTracking** : pour les lectures seules — EF Core ne surveille pas les modifications, 2× plus rapide. ◆ **⚠️ Anti-pattern N+1** : `foreach(var trade in trades) { var instr = _ctx.Instruments.Find(trade.InstrumentId); }` → 1 requête pour les trades + N requêtes pour les instruments. Correction : `Include(t => t.Instrument)` = 1 seule requête SQL avec JOIN."
+  },
+  {
+    "question": "Cas pratique complet — Trade CIB de la saisie à la base de données",
+    "answer": "**Étape 1 — Saisie** : le trader POSTs `{ TradeId: 1, ISIN: \"FR0000131104\", Notional: 500000, Price: 52.3 }` sur `POST /api/v1/trades`. ◆ **Étape 2 — API REST** : `[Authorize][HttpPost] public async Task<IActionResult> Book([FromBody] BookingRequest req, CancellationToken ct)` — JWT validé, inputs validés (Notional > 0), ISIN format vérifié. ◆ **Étape 3 — Service** : `var isin = await _isinService.ResolveAsync(req.Isin, ct)` (cache Redis → Sophis). `var trade = await _tradeService.BookAsync(req, ct)`. ◆ **Étape 4 — Sérialisation JSON** : `JsonSerializer.Serialize(trade)` pour la publication sur RabbitMQ. ◆ **Étape 5 — MSMQ/RabbitMQ** : `await _bus.PublishAsync(\"trade.booked\", trade, ct)` — `RiskService`, `AuditService`, `BlotterService` consomment l'événement. ◆ **Étape 6 — async/await** : tous les appels DB, Sophis, RabbitMQ sont `await` — aucun thread bloqué. ◆ **Étape 7 — LINQ** : `_ctx.Trades.Where(t => t.DeskId == deskId).Sum(t => t.Notional)` — exposition nette du desk mise à jour. ◆ **Étape 8 — Réponse** : 201 Created + `{ tradeId: \"...\", location: \"/api/v1/trades/...\" }`."
   }
 ];
 
 const questions = {
   moyen: [
     {
-      "question": "À quoi sert le mot-clé `virtual` en C# ?",
+      "question": "[Terme → Définition] Qu'est-ce qu'un microservice dans une architecture CIB comme MAPS ?",
       "options": [
-        "Empêcher toute classe d'en hériter.",
-        "Autoriser une classe enfant à redéfinir la méthode via `override`.",
-        "Générer automatiquement une interface.",
-        "Restreindre l'accès à la même assembly."
+        "Une petite classe C# qui fait une seule chose.",
+        "Un service indépendant avec sa propre base de données, sa propre logique métier et son propre déploiement, communicant avec les autres via API ou MessageQueue.",
+        "Un service qui dépend d'une base de données partagée avec tous les autres services.",
+        "Un composant interne d'une application monolithique."
       ],
-      "answer": "Autoriser une classe enfant à redéfinir la méthode via `override`.",
-      "explanation": "Sans `virtual`, `override` est interdit par le compilateur. La classe enfant est forcée d'utiliser `new`, qui masque sans polymorphisme. En trading : `Derivative d = new EquityOption()` appellera `Derivative.Evaluate()`, pas la formule de l'option. Toujours `virtual` + `override` pour un dispatch correct."
+      "answer": "Un service indépendant avec sa propre base de données, sa propre logique métier et son propre déploiement, communicant avec les autres via API ou MessageQueue.",
+      "explanation": "Le principe fondamental d'un microservice : indépendance totale. Il ne partage pas sa DB, n'appelle pas directement les objets internes des autres services. En CIB : `TradeService`, `RiskService`, `InstrumentService` sont des projets C# séparés, déployés dans leurs propres containers Docker, communiquant via REST ou RabbitMQ. La DB partagée est l'anti-pattern n°1 des microservices — elle réintroduit le couplage qu'on cherchait à éliminer."
     },
     {
-      "question": "Quels sont les mots-clés caractéristiques du principe d'Encapsulation en C# ?",
+      "question": "[Confusion] En C#, `JsonSerializer.Serialize(trade)` et `JsonSerializer.Deserialize<Trade>(json)` — laquelle transforme l'objet C# en texte JSON ?",
       "options": [
-        "`virtual`, `override`, `new`",
-        "`private`, `public`, `get`, `set`",
-        "`:`, `base`, `protected`",
-        "`interface`, `abstract`, `sealed`"
+        "Deserialize — elle lit et reconstruit l'objet.",
+        "Serialize — elle transforme l'objet C# en texte JSON (vers l'extérieur).",
+        "Les deux font la même chose dans des sens différents.",
+        "Aucune des deux — JSON.Parse est la méthode correcte en C#."
       ],
-      "answer": "`private`, `public`, `get`, `set`",
-      "explanation": "Encapsulation = contrôler l'accès aux données d'une classe. `private` verrouille les champs internes, `public` expose ce qui doit l'être, `get`/`set` permettent un contrôle fin en lecture/écriture. En trading : `Order._price` est `private`, la propriété `Price { get; private set; }` empêche toute modification externe."
+      "answer": "Serialize — elle transforme l'objet C# en texte JSON (vers l'extérieur).",
+      "explanation": "Moyen mnémotechnique : Serialize = 'mettre en série' = transformer en texte plat pour transmettre. Deserialize = 'défaire la série' = reconstruire l'objet depuis le texte. En CIB : avant d'envoyer un trade sur RabbitMQ, on `Serialize` → texte JSON. Quand `RiskService` reçoit le message de la queue, il `Deserialize` → objet Trade C# qu'il peut manipuler."
     },
     {
-      "question": "Quels mots-clés sont caractéristiques de l'Héritage en C# ?",
+      "question": "[Confusion] Quelle est la différence entre `async void` et `async Task` en C# ?",
       "options": [
-        "`private`, `public`, `get`, `set`",
-        "`virtual`, `override`, `sealed`",
-        "`:`, `base`, `protected`",
-        "`interface`, `abstract`, `new`"
+        "Aucune différence — les deux s'utilisent indifféremment.",
+        "`async Task` est awaitable et propage les exceptions. `async void` n'est pas awaitable et les exceptions crashent le process — à utiliser SEULEMENT dans les event handlers UI.",
+        "`async void` est plus rapide car il ne crée pas de Task.",
+        "`async Task` bloque le thread, `async void` le libère."
       ],
-      "answer": "`:`, `base`, `protected`",
-      "explanation": "Héritage : `:` pour étendre une classe (`EquityOption : Derivative`), `base` pour appeler le constructeur ou une méthode du parent, `protected` pour partager un membre avec les enfants sans l'exposer publiquement. Ces trois mots-clés structurent la relation parent-enfant."
+      "answer": "`async Task` est awaitable et propage les exceptions. `async void` n'est pas awaitable et les exceptions crashent le process — à utiliser SEULEMENT dans les event handlers UI.",
+      "explanation": "Piège classique en entretien CIB : `async void ProcessMessage()` dans un service RabbitMQ → si une exception est lancée → le process crash sans catchable exception → messages perdus, service redémarre silencieusement. Règle absolue : toujours `async Task` dans les services backend. `async void` = event handlers WinForms/WPF uniquement (`Button_Click`). Le compilateur accepte les deux sans avertissement — erreur silencieuse."
     },
     {
-      "question": "Les mots-clés `virtual` et `override` sont les caractéristiques de quel concept POO ?",
+      "question": "[Confusion] `First()` vs `FirstOrDefault()` sur une collection LINQ — Que se passe-t-il si la collection est vide ?",
       "options": [
-        "Encapsulation",
-        "Abstraction",
-        "Héritage",
-        "Polymorphisme"
+        "Les deux retournent `null` si la collection est vide.",
+        "`First()` lance `InvalidOperationException`. `FirstOrDefault()` retourne `null` (ou la valeur par défaut du type).",
+        "`First()` retourne `null`, `FirstOrDefault()` retourne la valeur par défaut.",
+        "Les deux lancent une exception si la collection est vide."
       ],
-      "answer": "Polymorphisme",
-      "explanation": "Polymorphisme = une méthode, plusieurs comportements selon l'objet réel. `virtual` sur la méthode parente autorise la redéfinition ; `override` dans la classe enfant fournit la nouvelle implémentation. Sans ces deux mots-clés ensemble, il n'y a pas de polymorphisme réel — seulement du masquage (`new`)."
+      "answer": "`First()` lance `InvalidOperationException`. `FirstOrDefault()` retourne `null` (ou la valeur par défaut du type).",
+      "explanation": "En production CIB : `trades.First(t => t.Id == id)` → si l'ID n'existe pas → exception non gérée → 500 Internal Server Error pour le trader. `trades.FirstOrDefault(t => t.Id == id)` → `null` → le code peut gérer le cas avec `if (trade == null) return NotFound()`. Règle : utiliser `FirstOrDefault()` pour les recherches et vérifier le null. Utiliser `First()` uniquement quand l'absence est une erreur logique garantie (ex: après un `Any()` qui a confirmé l'existence)."
     },
     {
-      "question": "Les mots-clés `interface` et `abstract` sont les caractéristiques de quel concept POO ?",
+      "question": "[Terme → Définition] Qu'est-ce que MSMQ et pourquoi est-il utilisé dans MAPS plutôt qu'un appel HTTP direct ?",
       "options": [
-        "Polymorphisme",
-        "Héritage",
-        "Abstraction",
-        "Encapsulation"
+        "MSMQ est une base de données rapide pour les messages temporaires.",
+        "MSMQ est une file de messages — si le service destinataire est down, le message attend. Avec HTTP direct, si le service est down, l'appel échoue immédiatement.",
+        "MSMQ est plus rapide qu'un appel HTTP pour tous les types de requêtes.",
+        "MSMQ est utilisé uniquement pour les communications entre bases de données."
       ],
-      "answer": "Abstraction",
-      "explanation": "Abstraction = exposer l'essentiel, cacher la complexité. `interface` définit un contrat pur (signatures uniquement), `abstract` permet une classe hybride avec code commun + méthodes à implémenter. En trading : `IPricingEngine` expose `Calculate(trade)` — le desk ne sait pas si c'est Black-Scholes ou Monte Carlo."
+      "answer": "MSMQ est une file de messages — si le service destinataire est down, le message attend. Avec HTTP direct, si le service est down, l'appel échoue immédiatement.",
+      "explanation": "Scénario CIB : `TradeService` book un trade et doit notifier `RiskService`. Si `RiskService` est en maintenance, HTTP = erreur immédiate, trade potentiellement non risqué. MSMQ = le message `TradeBooked` attend dans la queue. Quand `RiskService` redémarre, il traite tous les messages en attente — aucun trade n'est passé sous le radar. Ce découplage temporel est la valeur principale des message queues."
     },
     {
-      "question": "Associez chaque mot-clé à son concept POO : `private` → ? / `override` → ? / `:` → ?",
+      "question": "[Confusion] Quelle est la différence entre `IQueryable<T>` et `IEnumerable<T>` dans une requête EF Core sur la table des trades ?",
       "options": [
-        "`private` → Héritage / `override` → Encapsulation / `:` → Polymorphisme",
-        "`private` → Encapsulation / `override` → Polymorphisme / `:` → Héritage",
-        "`private` → Abstraction / `override` → Héritage / `:` → Encapsulation",
-        "`private` → Polymorphisme / `override` → Abstraction / `:` → Encapsulation"
+        "Ce sont des types identiques — seule la syntaxe LINQ diffère.",
+        "`IQueryable<T>` traduit le filtre en SQL (exécuté en base). `IEnumerable<T>` charge TOUT en mémoire, puis filtre côté C#.",
+        "`IEnumerable<T>` est plus rapide car il n'a pas besoin de connexion SQL.",
+        "`IQueryable<T>` ne supporte pas le `Where` et le `Select`."
       ],
-      "answer": "`private` → Encapsulation / `override` → Polymorphisme / `:` → Héritage",
-      "explanation": "Correspondances fondamentales : `private`/`public`/`get`/`set` = Encapsulation. `virtual`/`override` = Polymorphisme. `:`/`base`/`protected` = Héritage. `interface`/`abstract` = Abstraction. Mémoriser ces associations permet d'identifier instantanément le concept derrière chaque mot-clé."
+      "answer": "`IQueryable<T>` traduit le filtre en SQL (exécuté en base). `IEnumerable<T>` charge TOUT en mémoire, puis filtre côté C#.",
+      "explanation": "Anti-pattern fréquent en CIB : `_ctx.Trades.ToList().Where(t => t.DeskId == deskId)` → `.ToList()` force l'exécution → `SELECT * FROM Trades` → charge 500 000 trades en RAM → `Where` filtre en C# les 50 qui appartiennent au desk. Correct : `_ctx.Trades.Where(t => t.DeskId == deskId).ToList()` → EF Core génère `SELECT * FROM Trades WHERE DeskId = @id` → 50 lignes en RAM. Sur une table de millions de trades en CIB, la différence est critique."
     },
     {
-      "question": "Quelle durée de vie DI crée une seule instance partagée pour toute la durée du processus ?",
+      "question": "[Terme → Définition] Pourquoi utiliser `async/await` dans un controller ASP.NET Core qui appelle une base SQL ?",
       "options": [
-        "AddTransient",
-        "AddScoped",
-        "AddSingleton",
-        "AddStatic"
+        "Pour rendre la requête SQL plus rapide.",
+        "Pour libérer le thread HTTP pendant l'attente SQL — Kestrel peut traiter d'autres requêtes avec le même thread, augmentant la scalabilité de l'API.",
+        "Pour exécuter la requête SQL sur un thread séparé.",
+        "Pour permettre plusieurs connections SQL simultanées."
       ],
-      "answer": "AddSingleton",
-      "explanation": "AddSingleton = une instance pour toute la vie du processus. AddScoped = une instance par requête HTTP (idéal pour DbContext EF Core). AddTransient = nouvelle instance à chaque injection (services légers, sans état). AddStatic n'existe pas dans ASP.NET Core."
+      "answer": "Pour libérer le thread HTTP pendant l'attente SQL — Kestrel peut traiter d'autres requêtes avec le même thread, augmentant la scalabilité de l'API.",
+      "explanation": "`async` ne rend pas UNE requête plus rapide — c'est une erreur de compréhension fréquente. Il permet à BEAUCOUP de requêtes d'être traitées simultanement avec peu de threads. Sans async : 500 req/sec × 10ms SQL = 5 threads constamment bloqués. Avec async : ces 5 threads, pendant qu'ils attendent SQL, servent 10-20 autres requêtes. En CIB à l'ouverture des marchés (pic de trafic) : la différence entre async et synchrone peut faire crasher ou non le service."
     },
     {
-      "question": "Quel principe SOLID est violé si `FuturesEngine` hérite de `DerivativeEngine` mais lève `NotImplementedException` dans `ComputeGreeks()` ?",
+      "question": "[Correspondance] Associez : `where` → ? / `select` → ? / `groupby` → ?",
       "options": [
-        "SRP — Single Responsibility Principle",
-        "OCP — Open/Closed Principle",
-        "LSP — Liskov Substitution Principle",
-        "DIP — Dependency Inversion Principle"
+        "Trier / Projeter / Filtrer",
+        "Filtrer / Projeter / Regrouper",
+        "Projeter / Filtrer / Trier",
+        "Regrouper / Trier / Projeter"
       ],
-      "answer": "LSP — Liskov Substitution Principle",
-      "explanation": "LSP : une classe dérivée doit pouvoir remplacer sa classe parent sans casser le programme. `NotImplementedException` signifie que le contrat n'est pas honoré. Solution : revoir la hiérarchie ou utiliser une interface plus ciblée qui ne force pas `FuturesEngine` à implémenter ce qu'il ne sait pas faire."
+      "answer": "Filtrer / Projeter / Regrouper",
+      "explanation": "`Where` = filtre (réduit le nombre d'éléments). `Select` = projection (transforme chaque élément, ne réduit pas le nombre). `GroupBy` = regroupe les éléments par une clé. En CIB : `trades.Where(t => t.Price > 100)` → filtre. `trades.Select(t => t.Isin)` → liste des ISIN seulement. `trades.GroupBy(t => t.Desk).Select(g => new { g.Key, Total = g.Sum(t => t.Notional) })` → notionnel total par desk."
     },
     {
-      "question": "Dans ACID, quelle propriété garantit qu'un trade reste enregistré même après un crash serveur ?",
+      "question": "[Confusion] Quelle est la différence entre HTTP synchrone et message queue asynchrone dans l'architecture MAPS ?",
       "options": [
-        "Atomicité",
-        "Cohérence",
-        "Isolation",
-        "Durabilité"
+        "HTTP est toujours meilleur car plus rapide.",
+        "HTTP (sync) : A attend la réponse de B, erreur si B est down. Queue (async) : A envoie le message et continue, B traite quand disponible, message conservé si B est down.",
+        "Message Queue est toujours meilleur car plus résilient.",
+        "HTTP et Message Queue servent exactement les mêmes cas d'usage."
       ],
-      "answer": "Durabilité",
-      "explanation": "Durabilité = un trade confirmé (committed) survit à n'importe quel crash. Le moteur SQL Server écrit sur disque avant de confirmer la transaction. Le transaction log garantit qu'aucune donnée committée ne peut être perdue, même en cas de coupure électrique ou redémarrage serveur."
+      "answer": "HTTP (sync) : A attend la réponse de B, erreur si B est down. Queue (async) : A envoie le message et continue, B traite quand disponible, message conservé si B est down.",
+      "explanation": "Choix du bon outil selon le cas d'usage : `POST /api/v1/trades` (HTTP) retourne le `TradeId` — le client a besoin de la réponse immédiatement pour confirmer le booking → HTTP obligatoire. `TradeBooked` → calcul des Greeks (RabbitMQ) — le trader n'attend pas que le risk soit calculé pour confirmer le booking → queue. Les deux coexistent dans MAPS. L'erreur est de vouloir tout mettre dans une queue ou tout en HTTP."
     },
     {
-      "question": "Quel principe SOLID justifie de séparer le calcul du P&L, la génération du PDF et l'envoi d'email en trois classes distinctes ?",
+      "question": "[Terme → Définition] Qu'est-ce qu'un contrat JSON dans une architecture microservices ?",
       "options": [
-        "OCP — Open/Closed Principle",
-        "LSP — Liskov Substitution Principle",
-        "SRP — Single Responsibility Principle",
-        "ISP — Interface Segregation Principle"
+        "Un fichier de configuration JSON pour les microservices.",
+        "La structure JSON partagée entre le producteur et le consommateur — changer un champ requis sans versioning casse les consommateurs qui attendaient l'ancien format.",
+        "Un document légal définissant les SLAs entre services.",
+        "Un schéma SQL stocké en JSON."
       ],
-      "answer": "SRP — Single Responsibility Principle",
-      "explanation": "SRP : une classe = une seule raison de changer. Une classe qui calcule, génère et envoie a trois raisons de changer. Si le format PDF évolue, on ne risque pas de casser le calcul du P&L. Découper = classes plus petites, plus testables, plus maintenables."
+      "answer": "La structure JSON partagée entre le producteur et le consommateur — changer un champ requis sans versioning casse les consommateurs qui attendaient l'ancien format.",
+      "explanation": "En CIB : `TradeService` publie `{ TradeId: 1, ISIN: \"FR...\", Notional: 500000 }` sur RabbitMQ. `RiskService` désérialise en supposant que `Notional` existe. Si `TradeService` renomme `Notional` en `Amount`, `RiskService` reçoit `Amount: 500000` et `Notional: null` → calcul de risque à 0 → trades non risqués → incident majeur. Le contrat JSON doit être versionné ou modifier uniquement de façon backward-compatible (ajouter des champs optionnels)."
     },
     {
-      "question": "Quel principe SOLID est respecté quand on déclare `IOrderReader`, `IOrderWriter` et `IOrderNotifier` au lieu d'une seule interface `IOrderService` ?",
+      "question": "[Confusion] `Task.Run()` vs `await` — est-ce que `await` crée un nouveau thread ?",
       "options": [
-        "SRP — Single Responsibility",
-        "OCP — Open/Closed",
-        "LSP — Liskov Substitution",
-        "ISP — Interface Segregation"
+        "Oui — `await` crée toujours un nouveau thread pour l'opération.",
+        "Non — `await` LIBÈRE le thread actuel pendant l'attente I/O. Il ne crée pas de thread. `Task.Run()` soumet un travail au ThreadPool.",
+        "`await` et `Task.Run()` créent tous les deux des threads.",
+        "`await` est uniquement pour les opérations SQL, `Task.Run()` pour le reste."
       ],
-      "answer": "ISP — Interface Segregation",
-      "explanation": "ISP : préférer plusieurs interfaces spécialisées à une grosse interface générale. Un service de reporting n'implémente que `IOrderReader`. Un service d'exécution implémente `IOrderWriter`. Chacun dépend uniquement de ce dont il a besoin — zéro méthode vide, zéro `NotImplementedException`."
+      "answer": "Non — `await` LIBÈRE le thread actuel pendant l'attente I/O. Il ne crée pas de thread. `Task.Run()` soumet un travail au ThreadPool.",
+      "explanation": "Confusion très fréquente en entretien. `await GetDataAsync()` : quand le thread atteint le `await`, il est libéré dans le pool. Quand les données SQL arrivent, un thread (souvent différent) reprend l'exécution. Aucun thread créé. `Task.Run(() => HeavyCalc())` : soumet `HeavyCalc` à un thread du ThreadPool — là, un thread de pool est utilisé. `await Task.Run(...)` = utilise un thread du pool + libère le thread appelant. En CIB : `await _ctx.SaveChangesAsync()` → zéro thread créé, un thread libéré."
     },
     {
-      "question": "Vous voyez ce code : `class FXOption : Derivative { protected decimal _notional; public override decimal Evaluate() { ... } }`. Quels concepts POO sont présents ?",
+      "question": "[Terme → Définition] Qu'est-ce que l'exécution différée en LINQ et pourquoi est-ce un piège fréquent ?",
       "options": [
-        "Encapsulation uniquement.",
-        "Héritage (`:`), Encapsulation (`protected`), Polymorphisme (`override`).",
-        "Abstraction (`abstract`) et Polymorphisme.",
-        "Héritage et Abstraction uniquement."
+        "LINQ s'exécute toujours au moment de la définition de la requête.",
+        "La requête LINQ n'est PAS exécutée à la ligne du `Where` — elle est exécutée au moment de l'itération (`foreach`, `.ToList()`). Si la source change entre les deux, le résultat reflète l'état au moment de l'itération.",
+        "L'exécution différée signifie que LINQ attend 100ms avant de s'exécuter.",
+        "L'exécution différée ne s'applique qu'aux requêtes EF Core, pas aux collections en mémoire."
       ],
-      "answer": "Héritage (`:`), Encapsulation (`protected`), Polymorphisme (`override`).",
-      "explanation": "`:` = Héritage (FXOption étend Derivative). `protected` = Encapsulation (le champ est partagé avec les enfants mais caché de l'extérieur). `override` = Polymorphisme (la méthode parente déclarée `virtual` est redéfinie). Lire un code et identifier ces mots-clés permet de diagnostiquer immédiatement la structure POO."
+      "answer": "La requête LINQ n'est PAS exécutée à la ligne du `Where` — elle est exécutée au moment de l'itération (`foreach`, `.ToList()`). Si la source change entre les deux, le résultat reflète l'état au moment de l'itération.",
+      "explanation": "Piège en CIB : `var activeTradesQuery = trades.Where(t => t.Status == \"Active\");` — requête construite. Si entre cette ligne et `activeTradesQuery.ToList()`, un autre thread modifie la liste `trades` (trade cancelled), le résultat contiendra l'état modifié — surprise ! Pour les IQueryable EF Core : le SQL est envoyé à la base seulement au `.ToListAsync()`. Si le DbContext a été modifié entre les deux, la requête peut retourner des données différentes de ce qu'on attendait."
     },
     {
-      "question": "Le code suivant respecte quel principe SOLID : `class RiskEngine { private IMarketDataService _mds; RiskEngine(IMarketDataService mds) { _mds = mds; } }` ?",
+      "question": "[Confusion] Producteur vs Consommateur dans RabbitMQ — qui crée le message et qui le traite ?",
       "options": [
-        "SRP — une seule responsabilité.",
-        "OCP — ouvert à l'extension.",
-        "DIP — dépendre d'abstractions plutôt que d'implémentations.",
-        "LSP — substitution de Liskov."
+        "Le consommateur crée le message, le producteur le traite.",
+        "Le producteur crée et envoie le message dans la queue. Le consommateur lit et traite le message depuis la queue.",
+        "Les deux peuvent être producteur et consommateur simultanément dans la même opération.",
+        "Dans RabbitMQ, le broker est aussi le producteur."
       ],
-      "answer": "DIP — dépendre d'abstractions plutôt que d'implémentations.",
-      "explanation": "DIP : le `RiskEngine` reçoit `IMarketDataService` (interface) par injection, jamais `new MarketDataService()` en dur. Changer de source de données (Bloomberg → Reuters) ne touche pas au moteur de risk. C'est le fondement de l'architecture découplée et testable."
+      "answer": "Le producteur crée et envoie le message dans la queue. Le consommateur lit et traite le message depuis la queue.",
+      "explanation": "`TradeService` (producteur) : `channel.BasicPublish(exchange, routingKey, body: Serialize(trade))` — envoie et oublie. `RiskService` (consommateur) : `channel.BasicConsume(queue, autoAck: false, consumer)` — lit et traite. En CIB, un service peut être les deux : `TradeService` consomme `MarketDataUpdated` pour enrichir les trades ET produit `TradeBooked` pour le risk. La séparation producteur/consommateur est logique, pas physique — un même service peut avoir les deux rôles."
     },
     {
-      "question": "[Nommage inversé] Une classe dont le constructeur est `private`, qui expose une propriété `static`, et dont l'instance est partagée dans tout le processus s'appelle ?",
+      "question": "[Terme → Définition] Pourquoi ne jamais concaténer une entrée utilisateur dans une requête SQL en C# ?",
       "options": [
-        "Factory Method",
-        "Builder",
-        "Singleton",
-        "Prototype"
+        "Pour des raisons de performance uniquement.",
+        "Pour éviter l'injection SQL — un input malveillant peut modifier la requête pour lire, modifier ou supprimer des données non autorisées. Les requêtes paramétrées ou ORM séparent code SQL et données.",
+        "Les entrées utilisateur contiennent toujours des caractères invalides pour SQL.",
+        "La concaténation SQL est interdite par le standard C# depuis .NET 5."
       ],
-      "answer": "Singleton",
-      "explanation": "Ces trois propriétés ensemble définissent le Singleton : constructeur `private` (personne ne peut instancier de l'extérieur), propriété `static Instance` (point d'accès unique), instance partagée dans tout le process. En C#, on ajoute `Lazy<T>` pour la thread-safety. Reconnaître ces propriétés abstraites permet d'identifier le pattern sans voir le nom de la classe."
+      "answer": "Pour éviter l'injection SQL — un input malveillant peut modifier la requête pour lire, modifier ou supprimer des données non autorisées. Les requêtes paramétrées ou ORM séparent code SQL et données.",
+      "explanation": "Exemple d'injection : `\"SELECT * FROM Trades WHERE Isin = '\" + userInput + \"'\"`. Si `userInput = \"'; DROP TABLE Trades; --\"` → `SELECT * FROM Trades WHERE Isin = ''; DROP TABLE Trades; --'` → destruction de la table Trades. En CIB, une telle attaque sur la table des positions serait catastrophique. Correction : Dapper `WHERE Isin = @isin` + `new { isin = userInput }` ou EF Core `.Where(t => t.Isin == userInput)` — le driver paramétrise automatiquement."
     },
     {
-      "question": "Dans ACID, que garantit l'Atomicité pour un trade en salle de marché ?",
+      "question": "[Confusion] La difference entre `Single()` et `First()` dans LINQ — dans quel cas `Single()` est-il préférable ?",
       "options": [
-        "Le trade s'exécute en moins d'une milliseconde.",
-        "Toutes les opérations du trade réussissent ensemble ou aucune n'est enregistrée.",
-        "Deux trades simultanés ne peuvent pas s'exécuter en même temps.",
-        "Le trade est automatiquement chiffré en base."
+        "`Single()` est toujours préférable à `First()` car plus strict.",
+        "`Single()` vérifie qu'il n'y a exactement qu'un résultat — utile pour chercher par clé primaire où plusieurs résultats seraient une erreur de données. `First()` prend le premier même si plusieurs existent.",
+        "`Single()` retourne `null` si la collection est vide, `First()` lance une exception.",
+        "`Single()` et `First()` sont identiques sauf pour les performances."
       ],
-      "answer": "Toutes les opérations du trade réussissent ensemble ou aucune n'est enregistrée.",
-      "explanation": "Atomicité = tout ou rien. Débiter le compte ET enregistrer l'exécution forment une seule unité logique. Si la base plante entre les deux, `TransactionScope` déclenche un rollback automatique — aucun écart comptable possible."
+      "answer": "`Single()` vérifie qu'il n'y a exactement qu'un résultat — utile pour chercher par clé primaire où plusieurs résultats seraient une erreur de données. `First()` prend le premier même si plusieurs existent.",
+      "explanation": "En CIB : `_ctx.Trades.Single(t => t.Id == tradeId)` — si deux trades ont le même ID (corruption de données), `Single()` lance une exception immédiatement — bug détecté. `First()` retournerait silencieusement le premier sans signaler le doublon. Règle : `Single()` pour les clés uniques (GUID, clé primaire) → sécurité de données. `First()` / `FirstOrDefault()` pour les cas où plusieurs résultats sont acceptables (tri par date, prendre le plus récent)."
     },
     {
-      "question": "[Anti-pattern] Un dev écrit `public List<Trade> Trades` dans sa classe `Portfolio`. Quel principe est violé ?",
+      "question": "[Confusion] `SelectMany()` vs `Select()` en LINQ — quelle est la différence clé ?",
       "options": [
-        "DIP — il devrait dépendre d'une interface.",
-        "SRP — la liste a trop de responsabilités.",
-        "Encapsulation — exposer `List<T>` permet à n'importe quel code de modifier la collection sans passer par la classe.",
-        "LSP — `List<Trade>` ne respecte pas le contrat du parent."
+        "`SelectMany()` sélectionne plusieurs colonnes, `Select()` en sélectionne une.",
+        "`Select()` retourne une collection de collections. `SelectMany()` aplatit — retourne tous les éléments imbriqués dans une seule collection.",
+        "`SelectMany()` filtre en plus de projeter.",
+        "`Select()` est pour les types simples, `SelectMany()` pour les objets complexes."
       ],
-      "answer": "Encapsulation — exposer `List<T>` permet à n'importe quel code de modifier la collection sans passer par la classe.",
-      "explanation": "Anti-pattern classique : `public List<Trade>` expose la collection brute — n'importe quel code peut appeler `Trades.Add()`, `Trades.Clear()` ou `Trades.Remove()` sans passer par les règles métier du `Portfolio`. Solution : `public IReadOnlyCollection<Trade> Trades` + méthode `AddTrade(Trade t)` qui valide les invariants avant d'insérer."
+      "answer": "`Select()` retourne une collection de collections. `SelectMany()` aplatit — retourne tous les éléments imbriqués dans une seule collection.",
+      "explanation": "En CIB : `desks.Select(d => d.Trades)` retourne `IEnumerable<IEnumerable<Trade>>` — une liste de listes. `desks.SelectMany(d => d.Trades)` retourne `IEnumerable<Trade>` — toutes les trades de tous les desks en une seule liste plate. Utile pour : calculer le notionnel total cross-desks `desks.SelectMany(d => d.Trades).Sum(t => t.Notional)`, ou pour obtenir tous les ISIN uniques de tous les portefeuilles `funds.SelectMany(f => f.Positions).Select(p => p.Isin).Distinct()`."
     },
     {
-      "question": "[Ordre de dépendance] Le principe DIP est inutilisable sans quel concept POO fondamental ?",
+      "question": "[Terme → Définition] Qu'est-ce qu'un acknowledgement (ACK) dans RabbitMQ et pourquoi est-il critique ?",
       "options": [
-        "Héritage — pour étendre les classes concrètes.",
-        "Polymorphisme — pour redéfinir les méthodes.",
-        "Abstraction (`interface` / `abstract class`) — sans elle, il n'existe pas d'abstraction sur laquelle dépendre.",
-        "Encapsulation — pour cacher les détails d'implémentation."
+        "Un message de confirmation envoyé par le producteur après publication.",
+        "Une confirmation envoyée par le consommateur après traitement réussi — sans ACK, RabbitMQ considère le message non traité et le redélivre. Permet d'éviter la perte de messages si le consommateur crash pendant le traitement.",
+        "Un token d'authentification pour accéder à RabbitMQ.",
+        "Un header JSON confirmant que le message a bien été désérialisé."
       ],
-      "answer": "Abstraction (`interface` / `abstract class`) — sans elle, il n'existe pas d'abstraction sur laquelle dépendre.",
-      "explanation": "DIP dit 'dépendre d'abstractions'. Mais si on n'a pas d'`interface` ou de `abstract class`, il n'y a pas d'abstraction à laquelle se référer — DIP est inapplicable. L'Abstraction POO est le prérequis technique qui rend le principe DIP concrètement réalisable en C#."
+      "answer": "Une confirmation envoyée par le consommateur après traitement réussi — sans ACK, RabbitMQ considère le message non traité et le redélivre. Permet d'éviter la perte de messages si le consommateur crash pendant le traitement.",
+      "explanation": "Scénario CIB sans ACK : `RiskService` reçoit un message `TradeBooked`, commence à calculer les Greeks, crash à mi-chemin. Sans ACK, RabbitMQ pense que le message a été traité — trade non risqué, position incorrecte. Avec ACK manuel (`autoAck: false`) : le message est redelivré à une autre instance de `RiskService`. `BasicAck(deliveryTag)` = traitement réussi, RabbitMQ supprime le message. `BasicNack(deliveryTag, requeue: false)` = échec, envoyer vers la DLQ. `autoAck: true` = dangereux en CIB (trade perdu si crash)."
     },
     {
-      "question": "[ACID ↔ POO] La propriété d'Isolation dans ACID ressemble à quel pilier POO, et pourquoi ?",
+      "question": "[Confusion] JWT — pourquoi le payload du token est-il visible en Base64 mais pas sécurisé comme un mot de passe ?",
       "options": [
-        "Héritage — chaque transaction hérite de l'état précédent.",
-        "Polymorphisme — chaque transaction se comporte différemment.",
-        "Encapsulation — chaque transaction cache son état intermédiaire aux autres transactions.",
-        "Abstraction — chaque transaction expose uniquement le résultat final."
+        "Le payload JWT est chiffré — il est illisible sans la clé secrète.",
+        "Le payload JWT est encodé en Base64 (lisible) mais SIGNÉ — quiconque peut le lire, mais personne ne peut le modifier sans invalider la signature. Les données sensibles (mot de passe) ne doivent jamais être dans le JWT.",
+        "JWT chiffre automatiquement les données sensibles dans le payload.",
+        "Le payload JWT est illisible — seul le serveur peut le déchiffrer."
       ],
-      "answer": "Encapsulation — chaque transaction cache son état intermédiaire aux autres transactions.",
-      "explanation": "L'Isolation en ACID fonctionne exactement comme l'Encapsulation en POO : une transaction en cours cache ses modifications intermédiaires aux autres transactions, exactement comme un objet cache ses champs `private`. Personne ne voit l'état interne tant que la transaction n'est pas committée — tout comme personne ne voit un champ `private` tant que l'objet ne l'expose pas via un getter."
+      "answer": "Le payload JWT est encodé en Base64 (lisible) mais SIGNÉ — quiconque peut le lire, mais personne ne peut le modifier sans invalider la signature. Les données sensibles (mot de passe) ne doivent jamais être dans le JWT.",
+      "explanation": "JWT = 3 parties séparées par `.` : Header.Payload.Signature. Le payload `{ userId: 123, role: TRADER, desk: equity }` est décodable par n'importe qui avec Base64. La signature (HMAC-SHA256 avec la clé secrète serveur) garantit l'intégrité — si quelqu'un modifie `role: ADMIN`, la signature ne correspond plus → rejet. HTTPS chiffre le token en transit. Ne jamais mettre un mot de passe, numéro de carte ou donnée confidentielle dans le JWT payload — visible."
     },
     {
-      "question": "[ACID ↔ SOLID] Quel principe SOLID garantit que la logique de transaction (`TransactionScope`) ne se trouve pas dans la classe métier `TradeService` ?",
+      "question": "[Terme → Définition] Quelle est l'utilité d'un Correlation ID dans une architecture microservices ?",
       "options": [
-        "OCP — le service est ouvert à l'extension.",
-        "LSP — le service peut être remplacé.",
-        "SRP — la gestion des transactions est une responsabilité distincte de la logique métier.",
-        "ISP — l'interface de transaction est séparée."
+        "Un identifiant de corrélation entre une table SQL et une entité C#.",
+        "Un UUID généré à l'entrée du système et propagé dans tous les logs et headers de tous les services — permet de retrouver tous les événements d'une requête en filtrant sur cet ID dans les logs centralisés.",
+        "Un token de sécurité alternatif au JWT pour les appels inter-services.",
+        "Un identifiant de version pour les contrats JSON."
       ],
-      "answer": "SRP — la gestion des transactions est une responsabilité distincte de la logique métier.",
-      "explanation": "SRP : `TradeService` a pour responsabilité la logique métier du trade — pas la gestion des transactions. Mélanger les deux crée une classe avec deux raisons de changer : l'évolution des règles métier ET l'évolution de la stratégie transactionnelle. Solution : déléguer la gestion ACID à une couche Infrastructure ou à un `UnitOfWork`."
+      "answer": "Un UUID généré à l'entrée du système et propagé dans tous les logs et headers de tous les services — permet de retrouver tous les événements d'une requête en filtrant sur cet ID dans les logs centralisés.",
+      "explanation": "Sans Correlation ID en CIB : un trade échoue, le trader appelle le support. Le support regarde les logs de `BookingService` → trouve l'erreur, mais ne sait pas quel appel `RiskService` a été fait, ni quel message `RabbitMQ` a été publié. Avec Correlation ID : `X-Correlation-ID: 550e8400-...` propagé dans tous les headers → dans Elasticsearch, filtrer `correlationId=\"550e8400\"` → voir tous les logs de tous les services pour ce trade spécifique. Débogage en secondes au lieu d'heures."
     },
     {
-      "question": "[Erreur de conception trading] Un dev enregistre un `PositionTracker` contenant le portefeuille du trader connecté avec `AddSingleton`. Quel concept POO a-t-il ignoré ?",
+      "question": "[Confusion] `AsNoTracking()` dans EF Core — dans quel cas NE PAS l'utiliser ?",
       "options": [
-        "Héritage — le tracker devrait hériter d'une classe parente.",
-        "Polymorphisme — le tracker devrait avoir plusieurs comportements.",
-        "Encapsulation — l'état du trader (données privées) est partagé entre tous les utilisateurs de l'application.",
-        "Abstraction — le tracker devrait dépendre d'une interface."
+        "Ne jamais utiliser `AsNoTracking()` — il est dangereux.",
+        "Ne pas utiliser `AsNoTracking()` quand on veut MODIFIER les entités chargées — le change tracking détecte les modifications et les sauvegarde avec `SaveChanges()`. Pour les lectures seules, `AsNoTracking()` est recommandé.",
+        "`AsNoTracking()` ne fonctionne pas avec `Include()` pour les jointures.",
+        "`AsNoTracking()` doit être utilisé uniquement pour les tables de plus de 1000 lignes."
       ],
-      "answer": "Encapsulation — l'état du trader (données privées) est partagé entre tous les utilisateurs de l'application.",
-      "explanation": "AddSingleton = une seule instance pour tout le processus. Si cette instance contient l'état du trader (ses positions, son portefeuille), tous les traders partagent le même objet en mémoire — les positions se mélangent. L'Encapsulation exige que les données d'un trader soient privées à sa session. Solution : `AddScoped` pour une instance par requête HTTP."
+      "answer": "Ne pas utiliser `AsNoTracking()` quand on veut MODIFIER les entités chargées — le change tracking détecte les modifications et les sauvegarde avec `SaveChanges()`. Pour les lectures seules, `AsNoTracking()` est recommandé.",
+      "explanation": "Avec change tracking (sans `AsNoTracking`) : `var trade = _ctx.Trades.First(t => t.Id == id); trade.Status = \"Cancelled\"; await _ctx.SaveChangesAsync();` → EF Core détecte la modification et génère `UPDATE Trades SET Status='Cancelled' WHERE Id=@id`. Avec `AsNoTracking()` : `trade.Status = \"Cancelled\"` → pas de suivi → `SaveChanges()` ne sauvegarde rien. En CIB : les endpoints GET (liste des positions, référentiel ISIN) → `AsNoTracking()`. Les endpoints POST/PATCH (booking, modification) → sans `AsNoTracking()`."
+    },
+    {
+      "question": "[Confusion] `.Result` et `.Wait()` sur une Task async en C# — pourquoi sont-ils dangereux dans ASP.NET Core ?",
+      "options": [
+        "Ils sont identiques à `await` — simple préférence de syntaxe.",
+        "Ils bloquent le thread appelant de façon synchrone, et dans ASP.NET Core provoquent un deadlock : le thread HTTP attend la Task, mais la continuation de la Task attend d'être schedulée sur ce même thread — impasse totale.",
+        "Ils sont dangereux uniquement dans les applications console, pas dans ASP.NET Core.",
+        "Ils causent uniquement une légère dégradation de performance."
+      ],
+      "answer": "Ils bloquent le thread appelant de façon synchrone, et dans ASP.NET Core provoquent un deadlock : le thread HTTP attend la Task, mais la continuation de la Task attend d'être schedulée sur ce même thread — impasse totale.",
+      "explanation": "Deadlock classique en CIB : `public IActionResult BookTrade() { var result = _service.BookAsync().Result; return Ok(result); }`. Le thread HTTP appelle `.Result` → se bloque en attendant. La continuation de `BookAsync()` essaie de reprendre sur le contexte de synchronisation ASP.NET (le même thread) → impasse. La requête ne revient jamais. Correction : `await _service.BookAsync()` jusqu'au bout de la chaîne. Si du code synchrone doit appeler du code async : `Task.Run(() => _service.BookAsync()).Result` (thread pool séparé) — mais mieux vaut refactoriser toute la chaîne en async."
+    },
+    {
+      "question": "[Terme → Définition] Quelle est la différence entre `Any()` et `Count() > 0` en LINQ pour vérifier si une collection contient des éléments ?",
+      "options": [
+        "Ce sont des équivalents stricts — le compilateur les optimise de la même façon.",
+        "`Any()` s'arrête dès qu'il trouve un premier élément (court-circuit). `Count() > 0` parcourt TOUTE la collection pour compter. Sur 1M d'éléments, `Any()` peut s'arrêter au premier, `Count()` parcourt tout.",
+        "`Count()` est recommandé car il retourne un entier réutilisable.",
+        "`Any()` ne fonctionne pas avec les `IQueryable` EF Core."
+      ],
+      "answer": "`Any()` s'arrête dès qu'il trouve un premier élément (court-circuit). `Count() > 0` parcourt TOUTE la collection pour compter. Sur 1M d'éléments, `Any()` peut s'arrêter au premier, `Count()` parcourt tout.",
+      "explanation": "En CIB sur `IQueryable` : `_ctx.Trades.Where(t => t.DeskId == id).Any()` génère `SELECT TOP 1 1 FROM Trades WHERE DeskId=@id` — SQL s'arrête dès le premier résultat. `_ctx.Trades.Where(t => t.DeskId == id).Count() > 0` génère `SELECT COUNT(*) FROM Trades WHERE DeskId=@id` — SQL compte tous les enregistrements. Sur une table de 10M trades, `Any()` retourne en microsecondes, `Count()` en secondes. Règle : pour une vérification d'existence → toujours `Any()`. Pour connaître le nombre exact → `Count()`."
+    },
+    {
+      "question": "[Confusion] Dans RabbitMQ, quelle est la différence entre une queue `durable` et `autoDelete` ?",
+      "options": [
+        "Ce sont des options contradictoires qui ne peuvent pas coexister.",
+        "`durable: true` = la queue survit au redémarrage du broker (persistée sur disque). `autoDelete: true` = la queue est supprimée quand le dernier consommateur se déconnecte. En CIB, les queues de booking doivent être `durable: true, autoDelete: false`.",
+        "`durable` concerne les messages, `autoDelete` concerne les exchanges.",
+        "`autoDelete` supprime les messages non consommés après un TTL."
+      ],
+      "answer": "`durable: true` = la queue survit au redémarrage du broker (persistée sur disque). `autoDelete: true` = la queue est supprimée quand le dernier consommateur se déconnecte. En CIB, les queues de booking doivent être `durable: true, autoDelete: false`.",
+      "explanation": "Scénario CIB sans `durable` : RabbitMQ redémarre (maintenance), la queue `trade.booked` est supprimée → tous les messages non consommés sont perdus → trades non risqués. Avec `durable: true` : la queue et ses messages survivent au redémarrage. Note : les messages eux-mêmes doivent aussi être persistants (`deliveryMode: 2`) pour survivre au redémarrage. `autoDelete: true` est utile pour les queues temporaires de réponse (pattern RPC), jamais pour les queues métier critiques en CIB."
+    },
+    {
+      "question": "[Terme → Définition] Qu'est-ce que le principe DRY (Don't Repeat Yourself) appliqué aux contrats JSON entre microservices ?",
+      "options": [
+        "Ne jamais définir deux endpoints REST qui retournent le même type de données.",
+        "Partager les DTOs et contrats JSON dans un package NuGet commun entre les services — évite de dupliquer les définitions `TradeBookedEvent` dans `TradeService` et `RiskService`, source d'incohérence si l'un est mis à jour et pas l'autre.",
+        "DRY s'applique uniquement au code C#, pas aux structures JSON.",
+        "Utiliser un seul endpoint qui retourne tous les types de données possibles."
+      ],
+      "answer": "Partager les DTOs et contrats JSON dans un package NuGet commun entre les services — évite de dupliquer les définitions `TradeBookedEvent` dans `TradeService` et `RiskService`, source d'incohérence si l'un est mis à jour et pas l'autre.",
+      "explanation": "Anti-pattern en CIB : `TradeService` définit `class TradeBookedEvent { string TradeId; decimal Notional; }` et `RiskService` définit sa propre copie `class TradeBookedEvent { string TradeId; decimal Amount; }`. Quand `TradeService` publie `Notional: 500000`, `RiskService` désérialise `Amount: null` → calcul de risque incorrect. Solution : package NuGet `Maps.Contracts` avec les classes partagées, référencé par les deux services. Inconvénient : couplage de build — toute modification du contrat nécessite de republier le package et mettre à jour tous les consommateurs."
     }
   ],
   avance: [
     {
-      "question": "Vous voyez : `private static readonly Lazy<MarketDataFeed> _instance = new Lazy<MarketDataFeed>(() => new MarketDataFeed()); public static MarketDataFeed Instance => _instance.Value;`. Quel design pattern est implémenté ?",
+      "question": "[Architecture] Pourquoi le pattern 'Base de données partagée' est-il l'anti-pattern n°1 des microservices en CIB ?",
       "options": [
-        "Factory Method",
-        "Builder",
-        "Singleton",
-        "Prototype"
+        "C'est uniquement un problème de performance.",
+        "La DB partagée réintroduit le couplage que les microservices cherchent à éliminer : une migration SQL affecte tous les services simultanément, les services ne peuvent pas être déployés indépendamment, et les transactions cross-services créent des dépendances cachées.",
+        "Deux services peuvent partager la même DB s'ils lisent les mêmes tables.",
+        "La DB partagée est acceptable si les services sont dans le même datacenter."
       ],
-      "answer": "Singleton",
-      "explanation": "Indicateurs clés : constructeur `private`, instance `static` + `readonly`, `Lazy<T>` pour l'initialisation thread-safe. Ces trois éléments ensemble = Singleton. `Lazy<T>` garantit qu'un seul thread instancie l'objet. Idéal pour une connexion market data partagée dans tout le processus."
+      "answer": "La DB partagée réintroduit le couplage que les microservices cherchent à éliminer : une migration SQL affecte tous les services simultanément, les services ne peuvent pas être déployés indépendamment, et les transactions cross-services créent des dépendances cachées.",
+      "explanation": "Anti-pattern 'Distributed Monolith' : `TradeService` et `RiskService` partagent `TradesDB`. `TradeService` ajoute une colonne NOT NULL → `RiskService` plante immédiatement (colonne inconnue). Les deux doivent être déployés ensemble. `ALTER TABLE` nécessite de tester et déployer les deux services. Correct : chaque service a sa propre DB. La communication se fait via API REST ou événements RabbitMQ. Le `RiskService` maintient sa propre copie des données de trade (eventual consistency) mise à jour via l'événement `TradeBooked`."
     },
     {
-      "question": "Quel concept POO retrouve-t-on au cœur du pattern Singleton, et pourquoi ?",
+      "question": "[Anti-pattern] Un développeur écrit `var risks = await Task.Run(() => trades.Where(t => t.Price > 100).Select(t => CalculateRisk(t)).ToList());` pour un calcul de risque. Quel problème architectural ?",
       "options": [
-        "Polymorphisme (`virtual`, `override`) — pour redéfinir l'instance.",
-        "Encapsulation (`private` constructeur, `public` propriété statique) — pour contrôler la création.",
-        "Héritage (`:`, `base`) — pour partager l'instance entre classes.",
-        "Abstraction (`interface`) — pour définir le contrat de l'instance unique."
+        "Le code est correct et optimal.",
+        "`Task.Run` avec du LINQ sur une `IEnumerable` charge en mémoire + calcul sur le ThreadPool = deux problèmes : LINQ non optimisé (pas IQueryable) ET `Task.Run` sur du CPU-bound sans `Parallel.For` = séquentiel sur un thread de pool. Correction : `Parallel.ForEach(trades, t => results.Add(CalculateRisk(t)))` pour CPU-bound.",
+        "Le seul problème est l'absence de `CancellationToken`.",
+        "`Task.Run` ne peut pas être awaitable dans ASP.NET Core."
       ],
-      "answer": "Encapsulation (`private` constructeur, `public` propriété statique) — pour contrôler la création.",
-      "explanation": "Le Singleton repose entièrement sur l'Encapsulation : le constructeur `private` empêche toute instanciation externe, la propriété `static` expose le seul point d'accès contrôlé. Sans encapsulation, n'importe quel code pourrait créer plusieurs instances — le pattern serait cassé."
+      "answer": "`Task.Run` avec du LINQ sur une `IEnumerable` charge en mémoire + calcul sur le ThreadPool = deux problèmes : LINQ non optimisé (pas IQueryable) ET `Task.Run` sur du CPU-bound sans `Parallel.For` = séquentiel sur un thread de pool. Correction : `Parallel.ForEach(trades, t => results.Add(CalculateRisk(t)))` pour CPU-bound.",
+      "explanation": "Double anti-pattern CIB : (1) `Task.Run` sur une opération CPU-bound (calcul de risque) ne parallélise pas — le calcul reste séquentiel sur un thread du pool. Pour le parallélisme CPU : `var results = new ConcurrentBag<Risk>(); Parallel.ForEach(trades, t => results.Add(CalculateRisk(t)));`. (2) `Task.Run` dans ASP.NET Core sur des opérations qui sont déjà async = ThreadPool thread starvation (prend un thread pour libérer un autre). Règle : async/await pour I/O-bound (DB, réseau). `Parallel.For/ForEach` pour CPU-bound (calculs numériques)."
     },
     {
-      "question": "Vous voyez une classe avec `event EventHandler<PriceChangedArgs> PriceChanged;` et des méthodes `Subscribe()`/`Unsubscribe()`. Quel pattern est implémenté ?",
+      "question": "[Code → Identification] `var notionnel = await _ctx.Trades.Where(t => t.DeskId == deskId && t.Status == \"Active\").AsNoTracking().SumAsync(t => t.Notional, ct);`. Identifiez tous les patterns utilisés.",
       "options": [
-        "Strategy",
-        "Observer",
-        "Chain of Responsibility",
-        "Builder"
+        "Seul async/await est utilisé.",
+        "IQueryable (SQL côté serveur) + async/await (libération thread) + AsNoTracking (lecture seule, 2× plus rapide) + CancellationToken (annulation propre) + projection directe SumAsync (SQL `SUM()` côté DB).",
+        "EF Core + LINQ + Repository Pattern.",
+        "Unit of Work + IQueryable + Circuit Breaker."
       ],
-      "answer": "Observer",
-      "explanation": "Indicateurs clés : `event`, handlers d'abonnement/désabonnement, notification automatique des abonnés. Observer = une source notifie N abonnés sans les connaître directement. En trading : le market feed publie `PriceChanged`, l'UI, le moteur risk et les alertes s'abonnent indépendamment."
+      "answer": "IQueryable (SQL côté serveur) + async/await (libération thread) + AsNoTracking (lecture seule, 2× plus rapide) + CancellationToken (annulation propre) + projection directe SumAsync (SQL `SUM()` côté DB).",
+      "explanation": "Analyse ligne par ligne : `_ctx.Trades` = `IQueryable<Trade>` (pas encore exécuté). `.Where(...)` = filtre traduit en `WHERE` SQL. `.AsNoTracking()` = pas de change tracking (lecture seule). `.SumAsync(t => t.Notional, ct)` = traduit en `SELECT SUM(Notional) FROM Trades WHERE DeskId=@d AND Status=@s` — UNE seule ligne retournée par SQL (pas 50k lignes en RAM). `await` = libère le thread pendant l'I/O SQL. `ct` = si le client ferme la connexion → SQL annulé. SQL généré très efficace pour une table de millions de trades."
     },
     {
-      "question": "Quel concept POO est fondamental dans le pattern Observer, et pourquoi ?",
+      "question": "[Refactoring] Un service MAPS publie un message RabbitMQ avec `channel.BasicPublish(...)` directement dans le controller. Comment refactoriser pour la testabilité et la résilience ?",
       "options": [
-        "Encapsulation — pour cacher les abonnés à l'intérieur de la source.",
-        "Polymorphisme — la source appelle une méthode de notification, chaque abonné l'implémente différemment.",
-        "Héritage — tous les abonnés héritent d'une classe `Observer` commune.",
-        "Abstraction — pour masquer la source de données aux abonnés."
+        "Déplacer le `BasicPublish` dans une méthode privée du controller.",
+        "Extraire `IMessageBus { Task PublishAsync<T>(string routingKey, T message, CancellationToken ct); }` + implémenter `RabbitMqMessageBus` + injecter dans le controller. En test : mocker `IMessageBus`. En prod : ajouter Polly retry sur `RabbitMqMessageBus`.",
+        "Utiliser un static helper `MessageBusHelper.Publish(...)` accessible partout.",
+        "Publisher directement depuis `DbContext.SaveChanges()` via un hook EF Core."
       ],
-      "answer": "Polymorphisme — la source appelle une méthode de notification, chaque abonné l'implémente différemment.",
-      "explanation": "Le polymorphisme permet à la source d'appeler `OnPriceChanged()` sur une liste d'`IObserver` sans savoir si c'est l'UI, le moteur risk ou les alertes. Chaque abonné implémente sa propre réaction. C'est la puissance du dispatch dynamique appliqué au pattern Observer."
+      "answer": "Extraire `IMessageBus { Task PublishAsync<T>(string routingKey, T message, CancellationToken ct); }` + implémenter `RabbitMqMessageBus` + injecter dans le controller. En test : mocker `IMessageBus`. En prod : ajouter Polly retry sur `RabbitMqMessageBus`.",
+      "explanation": "SRP + DIP + Testabilité : le controller ne doit pas connaître RabbitMQ directement. Avec `IMessageBus` injectée : test unitaire → `new Mock<IMessageBus>().Verify(m => m.PublishAsync(\"trade.booked\", trade, ct), Times.Once)`. `RabbitMqMessageBus` = implémentation concrète avec retry Polly (`Policy.Handle<BrokerUnreachableException>().WaitAndRetry(3, ...)`). Migration MSMQ→RabbitMQ : créer `RabbitMqMessageBus : IMessageBus` → le controller change zéro ligne. La mission mentionne explicitement MSMQ et RabbitMQ coexistants — cette abstraction est la clé."
     },
     {
-      "question": "Vous voyez : `class OrderValidator { private IValidator _next; public void SetNext(IValidator next) { _next = next; } public void Validate(Order o) { if (!Check(o)) return; _next?.Validate(o); } }`. Quel pattern ?",
+      "question": "[Situation → Architecture] `RiskService` crash pendant le traitement d'un message `TradeBooked`. Le message avait `autoAck: true`. Conséquences et correction.",
       "options": [
-        "Observer",
-        "Strategy",
-        "Chain of Responsibility",
-        "Decorator"
+        "Aucune conséquence — RabbitMQ redélivre le message automatiquement.",
+        "Avec `autoAck: true`, RabbitMQ supprime le message dès sa réception — si le service crash pendant le calcul, le message est perdu. Le trade n'est jamais risqué. Correction : `autoAck: false` + `BasicAck()` après traitement réussi + DLQ pour les rejets.",
+        "Le message est conservé dans la mémoire du serveur jusqu'au redémarrage.",
+        "RabbitMQ envoie automatiquement un NACK si le consommateur crash."
       ],
-      "answer": "Chain of Responsibility",
-      "explanation": "Indicateurs clés : référence vers le `_next` handler, méthode `SetNext()` pour chaîner, propagation conditionnelle (`_next?.Validate(o)`). Chain of Responsibility = chaque handler traite ce qu'il peut et passe au suivant. En trading : limite de position → KYC → liquidité, chaque règle dans son propre handler."
+      "answer": "Avec `autoAck: true`, RabbitMQ supprime le message dès sa réception — si le service crash pendant le calcul, le message est perdu. Le trade n'est jamais risqué. Correction : `autoAck: false` + `BasicAck()` après traitement réussi + DLQ pour les rejets.",
+      "explanation": "Scenario CIB : 100 trades sont bookés pendant un pic d'activité. `RiskService` reçoit les messages mais crash (OOM) à mi-traitement. Avec `autoAck: true` : les 50 premiers messages déjà reçus = perdus → 50 trades sans calcul de risque → exposition inconnue → incident majeur (MiFID II). Avec `autoAck: false` : les messages non ACKés sont redelivrés à une autre instance de `RiskService`. DLQ : si un message échoue 3× (donnée corrompue), il va en dead-letter pour inspection manuelle — pas de loop infinie."
     },
     {
-      "question": "Le pattern Strategy repose principalement sur quel(s) concept(s) POO ?",
+      "question": "[Anti-pattern] Un développeur définit `[JsonIgnore]` sur la propriété `Notional` d'un DTO de réponse de booking. Quel impact sur les clients RabbitMQ ?",
       "options": [
-        "Encapsulation uniquement — les algorithmes sont cachés dans des classes privées.",
-        "Héritage — chaque stratégie hérite d'une classe Strategy commune.",
-        "Abstraction + Polymorphisme — une interface commune, des implémentations différentes injectées au runtime.",
-        "Héritage + Encapsulation uniquement."
+        "Aucun impact — `JsonIgnore` n'affecte pas la désérialisation.",
+        "`[JsonIgnore]` exclut le champ lors de la sérialisation ET désérialisation — le JSON publié sur RabbitMQ ne contient pas `Notional`. `RiskService` qui lit ce champ reçoit `0` ou `null` → calcul de risque incorrect sur tous les trades.",
+        "`[JsonIgnore]` masque uniquement l'affichage, pas la valeur réelle.",
+        "`[JsonIgnore]` génère une erreur de compilation si le champ est requis."
       ],
-      "answer": "Abstraction + Polymorphisme — une interface commune, des implémentations différentes injectées au runtime.",
-      "explanation": "Strategy : `IRiskStrategy` (Abstraction) définit le contrat `Calculate()`. `StandardVaRStrategy` et `StressTestStrategy` l'implémentent différemment (Polymorphisme via `override`). Le moteur de risk appelle `_strategy.Calculate()` sans savoir laquelle s'exécute. DIP renforce : dépendre de l'interface, pas des classes concrètes."
+      "answer": "`[JsonIgnore]` exclut le champ lors de la sérialisation ET désérialisation — le JSON publié sur RabbitMQ ne contient pas `Notional`. `RiskService` qui lit ce champ reçoit `0` ou `null` → calcul de risque incorrect sur tous les trades.",
+      "explanation": "Contrat JSON brisé silencieusement : `TradeService` sérialise `BookedTradeEvent` avec `[JsonIgnore]` sur `Notional`. JSON publié : `{ TradeId: 1, ISIN: 'FR...' }` — sans Notional. `RiskService` désérialise → `trade.Notional = 0`. Calcul VaR à 0. Trades passent toutes les limites. Bug silencieux car aucune exception n'est lancée. Correction : utiliser `[JsonIgnore]` uniquement pour les données qui ne doivent JAMAIS être partagées (ex: hash de mot de passe dans un DTO utilisateur). Si `Notional` doit être dans le message interne mais pas dans la réponse HTTP, créer deux DTOs séparés."
     },
     {
-      "question": "Le principe SRP de SOLID est la version architecturale de quel concept POO ?",
+      "question": "[Multi-concepts] Comment implémenter un pipeline de traitement de trade en C# qui : (1) valide asynchonement, (2) calcule les Greeks en parallèle, (3) publie sur RabbitMQ, (4) persiste en SQL — en moins de 200ms ?",
       "options": [
-        "Polymorphisme — chaque classe peut avoir plusieurs comportements.",
-        "Encapsulation — chaque classe regroupe une seule responsabilité cohésive.",
-        "Héritage — chaque classe hérite d'une seule classe parente.",
-        "Abstraction — chaque classe expose une seule interface."
+        "Exécuter chaque étape séquentiellement avec `await` pour chaque appel.",
+        "`await ValidateAsync(trade, ct)` → `await Task.WhenAll(ComputeDeltaAsync(), ComputeVegaAsync(), CheckLimitsAsync())` → `await Task.WhenAll(_bus.PublishAsync(), _ctx.SaveChangesAsync(ct))` — validation séquentielle (nécessite le résultat) + Greeks en parallèle + publish+save en parallèle.",
+        "Utiliser `Parallel.ForEach` pour toutes les étapes.",
+        "Créer 4 threads séparés avec `new Thread()`."
       ],
-      "answer": "Encapsulation — chaque classe regroupe une seule responsabilité cohésive.",
-      "explanation": "SRP est une application directe de l'Encapsulation à l'échelle architecturale : regrouper ce qui change ensemble, séparer ce qui change indépendamment. Une classe qui calcule le P&L ET envoie l'email mélange deux responsabilités distinctes. L'Encapsulation garantit que chaque classe est un bloc cohésif avec une seule raison de changer."
+      "answer": "`await ValidateAsync(trade, ct)` → `await Task.WhenAll(ComputeDeltaAsync(), ComputeVegaAsync(), CheckLimitsAsync())` → `await Task.WhenAll(_bus.PublishAsync(), _ctx.SaveChangesAsync(ct))` — validation séquentielle (nécessaire car les étapes suivantes en dépendent) + Greeks en parallèle + publish+save en parallèle.",
+      "explanation": "Optimisation du pipeline : validation d'abord (séquentielle — pas la peine de calculer les Greeks si le trade est invalide). Greeks calculés en parallèle (`Task.WhenAll`) — si Delta=20ms, Vega=25ms, limites=15ms → total=25ms au lieu de 60ms. Publication RabbitMQ + save SQL en parallèle (indépendants l'un de l'autre) — si publish=5ms, save=10ms → total=10ms au lieu de 15ms. Résultat : ~50ms au lieu de ~100ms séquentiel. `CancellationToken` propagé partout — si annulation, toutes les Tasks sont annulées proprement."
     },
     {
-      "question": "Le principe OCP est rendu possible par quels mécanismes POO ? (Ordre de dépendance)",
+      "question": "[Thème ↔ Concept] Comment le pattern Outbox Pattern résout-il le problème de cohérence entre `SaveChangesAsync()` (SQL) et `PublishAsync()` (RabbitMQ) ?",
       "options": [
-        "Encapsulation + Héritage — cacher les données et étendre les classes.",
-        "Abstraction + Polymorphisme — définir une interface, fournir de nouvelles implémentations sans modifier le code appelant.",
-        "Héritage seul — créer une classe fille qui surcharge tout.",
-        "Polymorphisme seul — redéfinir les méthodes existantes."
+        "En utilisant une transaction distribuée XA entre SQL et RabbitMQ.",
+        "Écrire le message dans une table `OutboxMessages` SQL dans la même transaction que le trade. Un background service lit et publie les messages non envoyés sur RabbitMQ. Si RabbitMQ est down, les messages attendent en SQL — aucune incohérence.",
+        "Utiliser `Task.WhenAll(save, publish)` garantit l'atomicité.",
+        "Le problème n'existe pas — SQL et RabbitMQ peuvent être traités indépendamment."
       ],
-      "answer": "Abstraction + Polymorphisme — définir une interface, fournir de nouvelles implémentations sans modifier le code appelant.",
-      "explanation": "OCP est impossible sans ces deux prérequis POO. Abstraction (`IFeeCalculator`) = le code appelant dépend d'un contrat stable. Polymorphisme = chaque nouvelle implémentation produit un résultat différent sans modifier le code appelant. Sans Abstraction, il faudrait modifier le code existant pour chaque ajout — OCP ne peut pas s'appliquer."
+      "answer": "Écrire le message dans une table `OutboxMessages` SQL dans la même transaction que le trade. Un background service lit et publie les messages non envoyés sur RabbitMQ. Si RabbitMQ est down, les messages attendent en SQL — aucune incohérence.",
+      "explanation": "Problème CIB : `await _ctx.SaveChangesAsync()` réussit (trade en base) puis RabbitMQ est down → `await _bus.PublishAsync()` échoue → `RiskService` ne reçoit jamais `TradeBooked` → trade non risqué. `Task.WhenAll` ne garantit pas l'atomicité — si publish échoue, le save est déjà committé. Outbox Pattern : transaction SQL atomique `{ INSERT INTO Trades, INSERT INTO OutboxMessages }`. `IHostedService` lit l'Outbox toutes les secondes, publie sur RabbitMQ, marque les messages comme envoyés. Guaranteed delivery sans transaction distribuée."
     },
     {
-      "question": "[Anti-pattern] Lequel de ces codes implémente un Singleton thread-unsafe en C# ?",
+      "question": "[Confusion + Performance] `GroupBy` suivi de `Count()` en LINQ sur IQueryable vs IEnumerable — quelle est la différence de SQL généré ?",
       "options": [
-        "`private static readonly Lazy<T> _instance = new Lazy<T>();`",
-        "`private static T _instance; public static T Instance { get { if (_instance == null) _instance = new T(); return _instance; } }`",
-        "`private static readonly T _instance = new T();`",
-        "`private static T _instance = null; private static readonly object _lock = new object();`"
+        "Les deux génèrent le même SQL.",
+        "Sur `IQueryable` : `SELECT DeskId, COUNT(*) FROM Trades GROUP BY DeskId` — SQL côté serveur. Sur `IEnumerable` (après `.ToList()`) : charge TOUTES les trades en mémoire, groupe en C#. Sur 1M de trades, la différence est de secondes vs millisecondes.",
+        "`GroupBy` n'est pas supporté sur `IQueryable` — uniquement `IEnumerable`.",
+        "`GroupBy` sur `IQueryable` génère N+1 requêtes SQL."
       ],
-      "answer": "`private static T _instance; public static T Instance { get { if (_instance == null) _instance = new T(); return _instance; } }`",
-      "explanation": "Anti-pattern : le check `if (_instance == null)` sans verrou permet à deux threads d'entrer simultanément et de créer deux instances distinctes. C'est le Singleton sans protection multithread. Solutions correctes : `Lazy<T>` (option A), champ `static readonly` initialisé à la déclaration (option C), ou double-checked locking avec `lock` + `volatile` (option D incomplète mais dans la bonne direction)."
+      "answer": "Sur `IQueryable` : `SELECT DeskId, COUNT(*) FROM Trades GROUP BY DeskId` — SQL côté serveur. Sur `IEnumerable` (après `.ToList()`) : charge TOUTES les trades en mémoire, groupe en C#. Sur 1M de trades, la différence est de secondes vs millisecondes.",
+      "explanation": "Démonstration : `_ctx.Trades.GroupBy(t => t.DeskId).Select(g => new { Desk = g.Key, Count = g.Count() })` → SQL : `SELECT DeskId, COUNT(*) FROM Trades GROUP BY DeskId` → retourne N lignes (une par desk). `_ctx.Trades.ToList().GroupBy(...)` → SQL : `SELECT * FROM Trades` → 1M lignes en RAM → groupe en C# → 1M objets Trade créés pour obtenir le même N-lignes résultat. En CIB avec une table de positions historiques (10M lignes), la version `ToList()` avant `GroupBy` peut provoquer un OutOfMemoryException."
     },
     {
-      "question": "[ACID ↔ POO] L'Atomicité dans ACID correspond à quel concept POO ? Justifiez.",
+      "question": "[Anti-pattern] Un service publie `{ TradeId: 1, EmployeeSalary: 85000, JwtSecret: \"abc123\" }` dans un message RabbitMQ. Quels problèmes ?",
       "options": [
-        "Polymorphisme — les opérations peuvent avoir plusieurs comportements.",
-        "Héritage — les opérations héritent des propriétés de la transaction parente.",
-        "Encapsulation — `TransactionScope` encapsule plusieurs opérations en une seule unité indivisible.",
-        "Abstraction — la transaction masque les détails d'implémentation SQL."
+        "Aucun problème — les messages RabbitMQ sont chiffrés.",
+        "Surcharge du contrat JSON (données non nécessaires pour les consommateurs) + fuite d'informations sensibles (salaire, secret JWT) lisibles par tous les services consommateurs et dans les logs de monitoring RabbitMQ.",
+        "Le seul problème est la taille excessive du message.",
+        "Le problème est uniquement de sécurité — chiffrer le message suffit."
       ],
-      "answer": "Encapsulation — `TransactionScope` encapsule plusieurs opérations en une seule unité indivisible.",
-      "explanation": "L'Atomicité fonctionne comme l'Encapsulation : `TransactionScope` regroupe débiter + enregistrer + mettre à jour la position dans une seule unité logique opaque. De l'extérieur, on ne voit que le résultat final (commit ou rollback) — jamais l'état intermédiaire. Exactement comme un objet encapsule son état interne et n'expose que le résultat de ses méthodes."
+      "answer": "Surcharge du contrat JSON (données non nécessaires pour les consommateurs) + fuite d'informations sensibles (salaire, secret JWT) lisibles par tous les services consommateurs et dans les logs de monitoring RabbitMQ.",
+      "explanation": "Principe de minimisation (RGPD + sécurité) : les messages doivent contenir uniquement ce dont les consommateurs ont besoin. `RiskService` a besoin de `TradeId`, `ISIN`, `Notional`, pas du salaire. `JwtSecret` dans un message = catastrophe sécurité — visible dans les logs RabbitMQ management, dans les logs des consommateurs (Serilog), potentiellement stocké en DLQ. Règle : créer un DTO spécifique au message `TradeBookedEvent { TradeId, ISIN, Notional, Desk, Timestamp }` — seuls les champs nécessaires aux consommateurs."
     },
     {
-      "question": "[ACID ↔ SOLID] Comment OCP s'applique-t-il au choix d'`IsolationLevel` dans un système de trading ?",
+      "question": "[Situation → Pattern] Le `RiskService` a besoin des données d'un trade pour calculer le risque, mais il ne partage pas la DB avec `TradeService`. Comment maintenir sa copie locale des trades ?",
       "options": [
-        "On modifie `IsolationLevel` directement dans chaque méthode selon le contexte.",
-        "On crée une `ITransactionStrategy` avec des implémentations `ReadCommittedStrategy`, `SerializableStrategy` — le code appelant ne change pas.",
-        "On utilise un `switch/case` sur le type d'opération pour sélectionner le niveau.",
-        "On enregistre le niveau d'isolation en base de données et on le relit à chaque transaction."
+        "Appeler `GET /api/v1/trades/{id}` à chaque calcul de risque.",
+        "Pattern CQRS + Event Sourcing : consommer l'événement `TradeBooked` depuis RabbitMQ → stocker une copie locale dans la DB du `RiskService` (sa propre table `Trades_Risk`) → lire localement pour les calculs. Eventual consistency acceptable.",
+        "Accéder directement à la DB de `TradeService` en lecture seule.",
+        "Utiliser une transaction distribuée XA pour synchroniser les deux DBs."
       ],
-      "answer": "On crée une `ITransactionStrategy` avec des implémentations `ReadCommittedStrategy`, `SerializableStrategy` — le code appelant ne change pas.",
-      "explanation": "OCP appliqué à ACID : l'isolation est une stratégie variable. `ITransactionStrategy` définit le contrat, `ReadCommittedStrategy` et `SerializableStrategy` l'implémentent. Ajouter `SnapshotIsolationStrategy` pour les réconciliations = nouvelle classe, zéro modification du code appelant. OCP + Strategy + ACID ensemble — c'est l'architecture trading extensible."
+      "answer": "Pattern CQRS + Event Sourcing : consommer l'événement `TradeBooked` depuis RabbitMQ → stocker une copie locale dans la DB du `RiskService` (sa propre table `Trades_Risk`) → lire localement pour les calculs. Eventual consistency acceptable.",
+      "explanation": "DB per service + eventual consistency : `RiskService` a sa propre table `TradesForRisk { TradeId, ISIN, Notional, DeskId }` (uniquement les champs nécessaires au calcul de risque). `IHostedService` consomme `TradeBooked` depuis RabbitMQ → `INSERT OR UPDATE TradesForRisk`. Avantages : lecture locale ultra-rapide (pas d'appel HTTP vers `TradeService`), pas de couplage runtime, résilience (`TradeService` peut être down pendant le calcul de risque). Eventual consistency : le `RiskService` peut avoir quelques secondes de délai — acceptable en finance post-trade."
     },
     {
-      "question": "[ACID ↔ Design Pattern] Quel pattern garantit que `SaveChanges()` n'est appelé qu'une seule fois pour plusieurs Repositories dans une même transaction ?",
+      "question": "[Refactoring] Un `BookingController` de 400 lignes gère : désérialisation JSON, validation métier, appel Sophis, save SQL, publish RabbitMQ, logging, gestion d'erreurs. Refactorisez en SOLID.",
       "options": [
-        "Singleton — un seul `DbContext` dans tout le processus.",
-        "Repository seul — chaque Repository gère sa propre transaction.",
-        "Unit of Work — un `DbContext` partagé entre Repositories, un seul `SaveChanges()` depuis la couche Application.",
-        "Builder — on construit la transaction étape par étape."
+        "Diviser en méthodes privées dans le même controller.",
+        "SRP : `IBookingValidator` (validation), `IIsinService` (Sophis), `ITradeRepository` (SQL), `IEventPublisher` (RabbitMQ). `BookingController` = orchestrateur 20 lignes qui appelle chaque service injecté. DIP : interfaces injectées par constructeur. Tests : mocker chaque interface indépendamment.",
+        "Créer un service `BookingHelper` statique avec toutes les méthodes.",
+        "Utiliser des middlewares ASP.NET Core pour chaque responsabilité."
       ],
-      "answer": "Unit of Work — un `DbContext` partagé entre Repositories, un seul `SaveChanges()` depuis la couche Application.",
-      "explanation": "Unit of Work implémente l'Atomicité ACID au niveau applicatif. Un `DbContext` partagé (AddScoped) entre `TradeRepository` et `PositionRepository` traque toutes les modifications. La couche Application appelle `SaveChanges()` une seule fois — tout commit ensemble ou tout rollback. Chaque Repository ne committe jamais indépendamment."
+      "answer": "SRP : `IBookingValidator` (validation), `IIsinService` (Sophis), `ITradeRepository` (SQL), `IEventPublisher` (RabbitMQ). `BookingController` = orchestrateur 20 lignes qui appelle chaque service injecté. DIP : interfaces injectées par constructeur. Tests : mocker chaque interface indépendamment.",
+      "explanation": "SRP sur le controller : un controller 400 lignes = 5 raisons de changer = fragile. Après refactoring : `BookingController` → `await _validator.ValidateAsync(req)` → `var isin = await _isinService.ResolveAsync(req.Isin)` → `var trade = await _tradeRepo.CreateAsync(trade)` → `await _eventPublisher.PublishAsync(\"trade.booked\", trade)`. Chaque service testable isolément avec `Mock<IIsinService>`. Si Sophis change d'API : modifier uniquement `SophisIsinService`, zéro modification du controller. DIP : le controller dépend d'abstractions, pas des implémentations concrètes."
     },
     {
-      "question": "[Refactoring] Ce code viole SRP : `class TradeManager { public void Execute(Trade t) {...} public string GenerateReport(Trade t) {...} public void SendEmail(Trade t) {...} }`. Quelle est la bonne refactorisation ?",
+      "question": "[Architecture] Comment versionner un contrat JSON publié sur RabbitMQ sans casser les consommateurs existants ?",
       "options": [
-        "Créer une interface `ITradeManager` avec les trois méthodes.",
-        "Séparer en `TradeExecutor`, `TradeReporter` et `TradeNotifier` — chacun avec une seule responsabilité.",
-        "Marquer les méthodes `protected` pour limiter l'accès.",
-        "Utiliser `abstract` pour forcer les sous-classes à implémenter chaque méthode."
+        "Modifier directement le JSON — les consommateurs s'adapteront automatiquement.",
+        "Ajouter les nouveaux champs en optionnel (backward compatible). Pour les breaking changes : créer un nouveau routingKey `trade.booked.v2`, les anciens consommateurs gardent leur abonnement `trade.booked.v1`, les nouveaux s'abonnent à `v2`. Dual-publish pendant la transition.",
+        "Utiliser une transaction distribuée pour migrer tous les consommateurs simultanément.",
+        "Supprimer la queue et recréer — les messages en attente sont perdus."
       ],
-      "answer": "Séparer en `TradeExecutor`, `TradeReporter` et `TradeNotifier` — chacun avec une seule responsabilité.",
-      "explanation": "SRP : une classe = une seule raison de changer. `TradeManager` en a trois. Refactorisation : `TradeExecutor` (logique d'exécution), `TradeReporter` (génération de rapport), `TradeNotifier` (envoi email). Chaque classe est plus petite, testable indépendamment, et peut évoluer sans impacter les autres. C'est la refactorisation SRP canonique."
+      "answer": "Ajouter les nouveaux champs en optionnel (backward compatible). Pour les breaking changes : créer un nouveau routingKey `trade.booked.v2`, les anciens consommateurs gardent leur abonnement `trade.booked.v1`, les nouveaux s'abonnent à `v2`. Dual-publish pendant la transition.",
+      "explanation": "Versioning de contrat de message en CIB : Backward compatible (ajouter champ optionnel `CurrencyCode?`) — tous les consommateurs l'ignorent ou l'utilisent s'ils en ont besoin. Breaking change (renommer `Notional` → `Amount`) → dual-publish : `TradeService` publie sur `trade.booked` (format v1 pour les anciens) ET `trade.booked.v2` (format v2 pour les nouveaux). Quand tous les consommateurs ont migré, retirer le dual-publish. Timeline : 2-4 semaines de transition. Documenter le changelog avec la date de dépréciation de v1."
     },
     {
-      "question": "[Erreur de conception trading] Un dev utilise `public List<Trade> Trades` dans son agrégat `Portfolio`. Quel problème architectural cela crée-t-il ?",
+      "question": "[Confusion + Architecture] Quelle est la différence entre `Competing Consumers` et `Publish-Subscribe` dans RabbitMQ ?",
       "options": [
-        "DIP — il devrait dépendre d'une interface `IList<Trade>`.",
-        "Encapsulation rompue — tout code externe peut modifier la liste sans passer par les invariants de `Portfolio`.",
-        "SRP — la liste a trop de responsabilités.",
-        "LSP — `List<Trade>` ne respecte pas le contrat du parent."
+        "Ce sont deux noms pour le même pattern.",
+        "Competing Consumers : plusieurs instances du même service partagent une queue — chaque message traité par UN seul consommateur (load balancing). Publish-Subscribe : chaque service a SA propre queue (Fanout Exchange) — chaque message reçu par TOUS les abonnés.",
+        "Competing Consumers utilise Topic Exchange, Publish-Subscribe utilise Direct Exchange.",
+        "Publish-Subscribe est uniquement pour les messages prioritaires."
       ],
-      "answer": "Encapsulation rompue — tout code externe peut modifier la liste sans passer par les invariants de `Portfolio`.",
-      "explanation": "`public List<Trade>` = n'importe quel code peut appeler `Trades.Add()`, `Trades.Clear()`, `Trades.Remove()` sans que `Portfolio` le sache. Les règles métier (limite de position, validation du trade) sont court-circuitées. Solution : `public IReadOnlyCollection<Trade> Trades` + méthode `AddTrade(Trade t)` qui valide les invariants. C'est SRP + Encapsulation appliqués au domaine."
+      "answer": "Competing Consumers : plusieurs instances du même service partagent une queue — chaque message traité par UN seul consommateur (load balancing). Publish-Subscribe : chaque service a SA propre queue (Fanout Exchange) — chaque message reçu par TOUS les abonnés.",
+      "explanation": "Cas d'usage CIB : Competing Consumers → `RiskService` a 3 instances qui consomment toutes `risk.trade.booked` (une seule queue). Un message `TradeBooked` est traité par une seule des 3 instances — scale out horizontal, chaque trade risqué une seule fois. Publish-Subscribe → `TradeBooked` doit être reçu par `RiskService` ET `AuditService` ET `BlotterService` — Fanout Exchange copie le message dans 3 queues dédiées. Mélange des deux : `risk.trade.booked` (unique, 3 instances en competing consumers) + `audit.trade.booked` (unique) + `blotter.trade.booked` (unique)."
     },
     {
-      "question": "Le pattern Repository repose sur quel principe SOLID pour permettre les tests unitaires sans base de données ?",
+      "question": "[Code → Analyse] `services.AddScoped<ITradeRepository, EfTradeRepository>()`. Que signifie `Scoped` et pourquoi est-ce le bon choix pour un `DbContext` EF Core ?",
       "options": [
-        "SRP — chaque repository a une seule responsabilité.",
-        "OCP — le repository est ouvert à l'extension.",
-        "DIP — le domaine dépend de `ITradeRepository` (abstraction), pas d'EF Core directement.",
-        "LSP — le repository peut remplacer n'importe quel accès aux données."
+        "Scoped = une seule instance pour toute la durée de vie de l'application (même chose que Singleton).",
+        "Scoped = une instance créée par requête HTTP et partagée dans cette requête. Le `DbContext` EF Core est conçu pour une seule unité de travail (une requête) — réutiliser le même DbContext entre plusieurs requêtes causerait des incohérences de change tracking.",
+        "Scoped = une nouvelle instance créée à chaque injection (même chose que Transient).",
+        "Scoped s'applique uniquement aux services qui accèdent au cache Redis."
       ],
-      "answer": "DIP — le domaine dépend de `ITradeRepository` (abstraction), pas d'EF Core directement.",
-      "explanation": "DIP + Repository = testabilité maximale. Le domaine dépend de `ITradeRepository`. En test : `InMemoryTradeRepository`. En prod : `EfCoreTradeRepository`. Le moteur de risk ne sait pas la différence. Changer d'ORM ne touche pas au domaine. C'est l'application directe du DIP à la couche d'accès aux données."
+      "answer": "Scoped = une instance créée par requête HTTP et partagée dans cette requête. Le `DbContext` EF Core est conçu pour une seule unité de travail (une requête) — réutiliser le même DbContext entre plusieurs requêtes causerait des incohérences de change tracking.",
+      "explanation": "Cycles de vie DI en ASP.NET Core : Singleton = une instance pour toute l'app (pour les services stateless : `IMessageBus`, `IHttpClientFactory`). Scoped = une instance par requête HTTP (pour `DbContext` EF Core, `ITradeRepository`). Transient = nouvelle instance à chaque injection (pour les services légers sans état). Piège : injecter un service Scoped dans un Singleton → exception à l'exécution (`IServiceScopeFactory` obligatoire). En CIB : `DbContext` Scoped garantit que le change tracking d'une requête de booking n'interfère pas avec la requête suivante."
     },
     {
-      "question": "Vous lisez : `services.AddTransient<IPricingEngine, BlackScholesPricingEngine>();`. Quels principes SOLID sont appliqués ?",
+      "question": "[Situation → Architecture] Un `RiskService` appelle `TradeService` via HTTP pour chaque calcul de risque (100 appels/seconde). `TradeService` est down 5 minutes. Comment concevoir la résilience ?",
       "options": [
-        "SRP uniquement — la classe a une seule responsabilité.",
-        "DIP + OCP — dépendre d'une abstraction (`IPricingEngine`) et pouvoir changer d'implémentation sans modifier le code appelant.",
-        "LSP + ISP — substitution et interface séparée.",
-        "OCP uniquement — le code est ouvert à l'extension."
+        "Augmenter le timeout HTTP à 5 minutes pour attendre le retour de `TradeService`.",
+        "Circuit Breaker Polly : après 5 erreurs consécutives, ouvrir le circuit 30s (réponse immédiate de refus). Fallback : utiliser les données de trade en cache local. Retry avec backoff exponentiel pour les erreurs transitoires. Alert monitoring quand le circuit s'ouvre.",
+        "Supprimer l'appel HTTP et accéder directement à la DB de `TradeService`.",
+        "Retry infini toutes les 100ms — `TradeService` finira par répondre."
       ],
-      "answer": "DIP + OCP — dépendre d'une abstraction (`IPricingEngine`) et pouvoir changer d'implémentation sans modifier le code appelant.",
-      "explanation": "DIP : le code appelant dépend de `IPricingEngine`, pas de `BlackScholesPricingEngine` directement. OCP : pour utiliser Monte Carlo, on crée `MonteCarloPricingEngine : IPricingEngine` et on change l'enregistrement DI — zéro modification dans le code métier. Ces deux principes fonctionnent naturellement ensemble."
+      "answer": "Circuit Breaker Polly : après 5 erreurs consécutives, ouvrir le circuit 30s (réponse immédiate de refus). Fallback : utiliser les données de trade en cache local. Retry avec backoff exponentiel pour les erreurs transitoires. Alert monitoring quand le circuit s'ouvre.",
+      "explanation": "Sans circuit breaker : 100 appels/s × 5 minutes = 30 000 requêtes bloquées pendant le timeout (ex: 10s chacune) → 100 threads bloqués en permanence → `RiskService` crash également. Cascade de pannes. Circuit Breaker Polly : `services.AddHttpClient<ITradeServiceClient>().AddResilienceHandler(\"trade\", b => b.AddCircuitBreaker(new CircuitBreakerStrategyOptions { FailureRatio = 0.5, SamplingDuration = TimeSpan.FromSeconds(10), MinimumThroughput = 5, BreakDuration = TimeSpan.FromSeconds(30) }))`. Circuit ouvert → `RiskService` répond immédiatement avec données cache → reste disponible. Retry exponentiel (2s, 4s, 8s) pour les erreurs réseau transitoires seulement."
     },
     {
-      "question": "[Anti-pattern] Ce code viole quel principe SOLID : `class PricingService { public decimal Calculate(Trade t) { if (t.Type == \"Equity\") return EquityPrice(t); if (t.Type == \"Option\") return OptionPrice(t); if (t.Type == \"Future\") return FuturePrice(t); ... } }` ?",
+      "question": "[Anti-pattern + LINQ] Un développeur filtre une liste de 50k trades avec `trades.Where(t => t.Desk == \"Equity\").Count()` dans une boucle appelée 1000 fois. Quel problème et quelle correction ?",
       "options": [
-        "LSP — les types ne respectent pas le contrat du parent.",
-        "OCP — ajouter un nouveau type d'instrument nécessite de modifier `PricingService`.",
-        "ISP — l'interface est trop grande.",
-        "SRP — la méthode `Calculate` a trop de responsabilités."
+        "Aucun problème — LINQ est optimisé par le compilateur.",
+        "Exécution différée mal exploitée : `Count()` exécute le `Where` à chaque appel → O(n) × 1000 = 50M itérations. Correction : `var equityCount = trades.Where(t => t.Desk == \"Equity\").Count()` UNE FOIS hors de la boucle, ou `trades.GroupBy(t => t.Desk).ToDictionary(g => g.Key, g => g.Count())` pour tous les desks en une passe.",
+        "Le seul problème est que `Count()` devrait être remplacé par `Any()`.",
+        "Utiliser `Parallel.ForEach` sur la boucle résout le problème."
       ],
-      "answer": "OCP — ajouter un nouveau type d'instrument nécessite de modifier `PricingService`.",
-      "explanation": "Anti-pattern OCP : le `switch/if` sur le type est le signe classique d'une violation OCP. Ajouter un instrument crypto = modifier `PricingService` = risque de régression sur tous les autres types. Solution : `IPricingEngine` implémentée par `EquityPricingEngine`, `OptionPricingEngine`, `FuturePricingEngine`. Ajouter crypto = nouvelle classe, zéro modification."
-    },
-    {
-      "question": "[Ordre de dépendance] Quels concepts POO sont prérequis pour que le LSP soit respecté ?",
-      "options": [
-        "Encapsulation seule — cacher l'état interne.",
-        "Abstraction seule — définir une interface commune.",
-        "Héritage (`:`) + Abstraction (interface/abstract) — il faut une relation parent-enfant ET un contrat à honorer.",
-        "Polymorphisme seul — redéfinir les méthodes."
-      ],
-      "answer": "Héritage (`:`) + Abstraction (interface/abstract) — il faut une relation parent-enfant ET un contrat à honorer.",
-      "explanation": "LSP ne s'applique que s'il y a une relation d'héritage (`:`) ou d'implémentation d'interface — sans Héritage, pas de substitution possible. Et sans Abstraction (contrat défini par interface/abstract), il n'y a pas de règles à honorer. LSP est la règle d'or qui gouverne comment Héritage et Abstraction doivent être utilisés ensemble."
-    },
-    {
-      "question": "[ACID ↔ Design Pattern] Comment Repository + TransactionScope implémentent-ils les propriétés ACID ensemble en C# ?",
-      "options": [
-        "Repository gère l'Atomicité, TransactionScope gère la Durabilité.",
-        "Repository abstrait l'accès aux données (découplage) ; TransactionScope enveloppe les opérations Repository pour garantir l'Atomicité — ensemble ils couvrent A, C, I, D.",
-        "TransactionScope remplace Repository pour les opérations critiques.",
-        "Repository implémente Isolation, TransactionScope implémente Cohérence uniquement."
-      ],
-      "answer": "Repository abstrait l'accès aux données (découplage) ; TransactionScope enveloppe les opérations Repository pour garantir l'Atomicité — ensemble ils couvrent A, C, I, D.",
-      "explanation": "Repository fournit l'abstraction (DIP) et la testabilité. `TransactionScope` enveloppe plusieurs appels Repository : si `TradeRepository.Save()` et `PositionRepository.Update()` échouent, rollback automatique (Atomicité). SQL Server garantit Cohérence (contraintes), Isolation (`IsolationLevel`), Durabilité (transaction log). Repository + TransactionScope = couche applicative + ACID de bout en bout."
-    },
-    {
-      "question": "[Refactoring] Ce code utilise `new` au lieu de `override` : `class EquityOption : Derivative { public new decimal Evaluate() { return Strike * Multiplier; } }`. Quel est l'impact sur le polymorphisme, et comment corriger ?",
-      "options": [
-        "Aucun impact — `new` et `override` sont équivalents en C#.",
-        "`new` masque sans polymorphisme : `Derivative d = new EquityOption()` appelle `Derivative.Evaluate()`. Correction : déclarer `virtual` dans `Derivative` et `override` dans `EquityOption`.",
-        "`new` déclenche une exception au runtime si la variable est déclarée `Derivative`.",
-        "`new` est obligatoire quand `Evaluate()` n'est pas `abstract` dans le parent."
-      ],
-      "answer": "`new` masque sans polymorphisme : `Derivative d = new EquityOption()` appelle `Derivative.Evaluate()`. Correction : déclarer `virtual` dans `Derivative` et `override` dans `EquityOption`.",
-      "explanation": "Refactoring : remplacer `new decimal Evaluate()` par `public override decimal Evaluate()` dans `EquityOption`, et ajouter `virtual` à `Derivative.Evaluate()`. Résultat : `Derivative d = new EquityOption()` appellera désormais la formule de l'option — dispatch dynamique actif. En trading, cette correction garantit que la bonne formule de pricing s'exécute quel que soit le type déclaré de la variable."
-    },
-    {
-      "question": "[Erreur de conception trading] Un dev injecte `DbContext` directement dans son `RiskCalculator` via `AddScoped`. Quel problème architectural cela crée-t-il ?",
-      "options": [
-        "DbContext n'est pas thread-safe — AddScoped est insuffisant.",
-        "DIP violé : `RiskCalculator` dépend d'une implémentation concrète (EF Core) au lieu d'une abstraction (`ITradeRepository`). Tester sans base de données devient impossible.",
-        "ACID violé : DbContext ne supporte pas les transactions.",
-        "SRP respecté — DbContext a une seule responsabilité d'accès aux données."
-      ],
-      "answer": "DIP violé : `RiskCalculator` dépend d'une implémentation concrète (EF Core) au lieu d'une abstraction (`ITradeRepository`). Tester sans base de données devient impossible.",
-      "explanation": "Injecter `DbContext` directement = couplage fort à EF Core. `RiskCalculator` ne peut être testé qu'avec une vraie base de données. DIP exige une abstraction : injecter `ITradeRepository` permet d'injecter `InMemoryTradeRepository` en tests. C'est l'erreur de conception la plus fréquente chez les devs C# juniors en banque — elle rend le CI/CD lent et fragile."
-    },
-    {
-      "question": "Quels principes SOLID sont renforcés quand chaque handler du Chain of Responsibility ne contient qu'une seule règle ?",
-      "options": [
-        "OCP uniquement.",
-        "LSP uniquement.",
-        "SRP (une règle par handler) et OCP (ajouter une règle = nouveau handler sans modifier les existants).",
-        "DIP uniquement."
-      ],
-      "answer": "SRP (une règle par handler) et OCP (ajouter une règle = nouveau handler sans modifier les existants).",
-      "explanation": "SRP : chaque handler a une seule règle de validation. OCP : ajouter une vérification ESG = créer un nouveau handler et l'insérer dans la chaîne, sans toucher aux existants. Chain of Responsibility est l'un des rares patterns qui renforce naturellement deux principes SOLID simultanément."
-    },
-    {
-      "question": "[Nommage inversé] Une classe qui permet de construire un objet complexe étape par étape, expose des méthodes chaînables, et dont la méthode finale valide les invariants avant de retourner l'objet s'appelle ?",
-      "options": [
-        "Factory Method",
-        "Builder",
-        "Prototype",
-        "Abstract Factory"
-      ],
-      "answer": "Builder",
-      "explanation": "Ces propriétés définissent le Builder : construction étape par étape (Fluent API), méthodes chaînables (`ForSymbol().Strike().Buy()`), validation centralisée dans `Build()`. Sans voir le nom de la classe, ces trois caractéristiques suffisent à identifier le pattern. En trading : `new OrderBuilder().ForSymbol(\"BNP\").Strike(50).Buy(100).Build()` — lisible, sûr, sans constructeur à 12 paramètres."
-    },
-    {
-      "question": "[ACID ↔ POO] La propriété de Cohérence dans ACID est analogue à quel mécanisme POO, et pourquoi ?",
-      "options": [
-        "Polymorphisme — la base de données peut avoir plusieurs comportements.",
-        "Héritage — les contraintes héritent des règles de la transaction parente.",
-        "Encapsulation + Abstraction — les invariants de la base (contraintes, clés étrangères) sont encapsulés dans le schéma et abstraits du code applicatif.",
-        "Héritage seul — les tables héritent des contraintes du parent."
-      ],
-      "answer": "Encapsulation + Abstraction — les invariants de la base (contraintes, clés étrangères) sont encapsulés dans le schéma et abstraits du code applicatif.",
-      "explanation": "Cohérence ACID = la base reste dans un état valide après chaque transaction (contraintes NOT NULL, clés étrangères, règles CHECK). C'est l'Encapsulation des règles métier dans le schéma (cachées du code applicatif) combinée à l'Abstraction (le code appelle `SaveChanges()` sans connaître toutes les règles de validation). Les deux piliers POO protègent l'intégrité de la base comme ils protègent l'état d'un objet."
+      "answer": "Exécution différée mal exploitée : `Count()` exécute le `Where` à chaque appel → O(n) × 1000 = 50M itérations. Correction : `var equityCount = trades.Where(t => t.Desk == \"Equity\").Count()` UNE FOIS hors de la boucle, ou `trades.GroupBy(t => t.Desk).ToDictionary(g => g.Key, g => g.Count())` pour tous les desks en une passe.",
+      "explanation": "Exécution différée + boucle = piège de performance classique. En CIB pour un rapport de positions : calculer le nombre de trades par desk dans une boucle de 1000 itérations sur 50k trades = 50M comparaisons. Optimisation : matérialiser le résultat une fois (`var counts = trades.GroupBy(t => t.Desk).ToDictionary(g => g.Key, g => g.Count())`) → une seule passe sur 50k trades. Puis dans la boucle : `counts.GetValueOrDefault(\"Equity\", 0)` → O(1). Gain : 50M itérations → 50k + 1000 lookups O(1)."
     }
   ],
   expert: [
     {
-      "question": "Vous analysez ce code : `public interface IPricingEngine { decimal Calculate(Trade t); }` + `class BSEngine : IPricingEngine { public decimal Calculate(Trade t) => ...; }` + injection DI. Identifiez tous les concepts présents.",
+      "question": "[Architecture + Multi-concepts] Concevez un système garantissant qu'un trade booké dans MAPS est toujours risqué, même si RabbitMQ est temporairement indisponible. Nommez tous les patterns utilisés.",
       "options": [
-        "Abstraction (`interface`) + DIP (injection) + OCP (nouvelle implémentation sans modifier le code appelant).",
-        "Héritage + SRP + Singleton.",
-        "Polymorphisme + Encapsulation + LSP uniquement.",
-        "Observer + Strategy + Builder."
+        "Retry infini sur la publication RabbitMQ.",
+        "Outbox Pattern (message stocké en SQL dans la même transaction que le trade) + IHostedService (polling Outbox → publish RabbitMQ quand disponible) + Idempotency Key (RiskService ne recalcule pas deux fois le même trade) + Circuit Breaker sur RabbitMQ (ne pas bloquer le booking si RabbitMQ est down).",
+        "Transaction distribuée XA entre SQL Server et RabbitMQ.",
+        "Synchroniser directement les DBs de TradeService et RiskService."
       ],
-      "answer": "Abstraction (`interface`) + DIP (injection) + OCP (nouvelle implémentation sans modifier le code appelant).",
-      "explanation": "`interface` = Abstraction POO. Injection de `IPricingEngine` = DIP. Créer `MonteCarloPricingEngine : IPricingEngine` sans toucher au code appelant = OCP. Ce triptyque Abstraction + DIP + OCP est la base de toute architecture de trading extensible et testable."
+      "answer": "Outbox Pattern (message stocké en SQL dans la même transaction que le trade) + IHostedService (polling Outbox → publish RabbitMQ quand disponible) + Idempotency Key (RiskService ne recalcule pas deux fois le même trade) + Circuit Breaker sur RabbitMQ (ne pas bloquer le booking si RabbitMQ est down).",
+      "explanation": "Architecture garantie de livraison : (1) Outbox : `BEGIN TRANSACTION; INSERT INTO Trades; INSERT INTO OutboxMessages (tradeId, payload, sentAt=null); COMMIT;` — atomique. (2) `IHostedService` : toutes les 5s, `SELECT TOP 100 FROM OutboxMessages WHERE sentAt IS NULL` → publie → `UPDATE sentAt=NOW`. (3) Si RabbitMQ est down : le trade est en DB, l'OutboxMessage attend. Quand RabbitMQ revient : publication automatique. (4) Idempotency Key sur `RiskService` : si l'Outbox publie deux fois (retry) → `RiskService` vérifie `ProcessedTradeIds` → ignore le doublon. (5) Circuit Breaker Polly : si RabbitMQ down → circuit ouvert → publish échoue vite → Outbox conserve en SQL."
     },
     {
-      "question": "Vous voyez ce code dans un handler de commande : `public class PlaceOrderHandler { private readonly IOrderRepository _repo; private readonly IRiskStrategy _risk; PlaceOrderHandler(IOrderRepository r, IRiskStrategy s) {...} }`. Identifiez patterns et principes.",
+      "question": "[Nommage inversé] Un mécanisme garantit que si `SaveChangesAsync()` (SQL) réussit mais que `PublishAsync()` (RabbitMQ) échoue, le message sera quand même publié — éventuellement, sans transaction distribuée. Quel est ce mécanisme ?",
       "options": [
-        "Singleton + SRP uniquement.",
-        "Repository + Strategy + DIP (injection par interface) + SRP (handler = une seule responsabilité).",
-        "Observer + Builder + OCP.",
-        "Chain of Responsibility + LSP + ISP."
+        "Two-Phase Commit (2PC) distribué",
+        "Outbox Pattern — le message est persisté dans la même transaction SQL que l'entité métier. Il est publié asynchronement par un background service. La cohérence est éventuelle mais garantie.",
+        "Saga Pattern avec compensation",
+        "Dead-Letter Queue avec retry automatique"
       ],
-      "answer": "Repository + Strategy + DIP (injection par interface) + SRP (handler = une seule responsabilité).",
-      "explanation": "`IOrderRepository` = pattern Repository. `IRiskStrategy` = pattern Strategy. Injection par interfaces = DIP. Le handler n'a qu'une responsabilité : orchestrer la pose d'un ordre = SRP. C'est l'architecture CQRS typique d'un trading desk : chaque handler est une unité atomique, testable, découplée."
+      "answer": "Outbox Pattern — le message est persisté dans la même transaction SQL que l'entité métier. Il est publié asynchronement par un background service. La cohérence est éventuelle mais garantie.",
+      "explanation": "Outbox Pattern résout le problème 'dual write' : deux systèmes (SQL + RabbitMQ) qui doivent être mis à jour de façon cohérente sans transaction distribuée. La table `OutboxMessages { Id, Payload, RoutingKey, CreatedAt, PublishedAt? }` est dans la même DB que les trades. Transaction SQL atomique : trade + outbox message ensemble. Le background service (`IHostedService`) assure la publication avec retry. Idempotency Key côté consommateur gère les éventuels doublons. 2PC distribué (option A) = trop lourd, verrouille les deux systèmes."
     },
     {
-      "question": "[ACID ↔ POO — Expert] Mappez les quatre propriétés ACID à leurs piliers POO correspondants.",
+      "question": "[Situation → Multi-concepts] 10 services consomment l'événement `TradeBooked`. Chacun doit le recevoir indépendamment. Décrivez l'architecture RabbitMQ complète.",
       "options": [
-        "A=Polymorphisme / C=Héritage / I=Abstraction / D=Encapsulation",
-        "A=Encapsulation (unité indivisible) / C=Encapsulation+Abstraction (invariants cachés) / I=Encapsulation (état intermédiaire caché) / D=Abstraction (le code ne gère pas la persistance)",
-        "A=Héritage / C=Polymorphisme / I=Héritage / D=Polymorphisme",
-        "A=Abstraction / C=Polymorphisme / I=Héritage / D=Encapsulation"
+        "Une seule queue `trade.booked` partagée entre les 10 services — round-robin.",
+        "Fanout Exchange `trades.events` → 10 queues dédiées (`risk.trade.booked`, `audit.trade.booked`, `blotter.trade.booked`, etc.) via bindings. Chaque service a sa propre queue — indépendance totale, chaque service reçoit tous les messages.",
+        "Direct Exchange avec 10 routingKeys différents — le producteur publie 10 fois.",
+        "Un seul message copié manuellement vers 10 services via HTTP."
       ],
-      "answer": "A=Encapsulation (unité indivisible) / C=Encapsulation+Abstraction (invariants cachés) / I=Encapsulation (état intermédiaire caché) / D=Abstraction (le code ne gère pas la persistance)",
-      "explanation": "Atomicité = Encapsulation : `TransactionScope` encapsule N opérations en une unité. Cohérence = Encapsulation + Abstraction : les contraintes BD sont encapsulées dans le schéma, abstraites du code. Isolation = Encapsulation : chaque transaction cache son état intermédiaire. Durabilité = Abstraction : le code appelle `Commit()` sans savoir comment SQL Server persiste sur disque. ACID est SOLID pour les bases de données."
+      "answer": "Fanout Exchange `trades.events` → 10 queues dédiées (`risk.trade.booked`, `audit.trade.booked`, `blotter.trade.booked`, etc.) via bindings. Chaque service a sa propre queue — indépendance totale, chaque service reçoit tous les messages.",
+      "explanation": "Fan-out architecture CIB : `TradeService` publie UNE fois sur `trades.events` (Fanout Exchange). RabbitMQ copie le message dans les 10 queues liées. Chaque service consomme SA propre queue à son propre rythme. Si `AuditService` est lent, sa queue grossit — les autres services ne sont pas affectés. Si `BlotterService` est down 1h, ses messages attendent dans `blotter.trade.booked` — retrouvés au redémarrage. Une queue partagée (Competing Consumers) = chaque message traité par UN SEUL consommateur (load balancing). Fanout = chaque message traité par TOUS les consommateurs."
     },
     {
-      "question": "[Anti-pattern complet] Analysez ce code et identifiez toutes les violations : `class TradingSystem { public static TradingSystem Instance; public List<Trade> Trades = new List<Trade>(); public void Execute(Trade t) { Trades.Add(t); SqlHelper.Run(\"INSERT INTO...\"); SendEmail(t); } }`",
+      "question": "[Anti-pattern + Sécurité] Un développeur expose `GET /api/v1/trades?linq=trades.Where(t => t.Desk == {userInput}).ToList()` et évalue l'expression LINQ dynamiquement. Diagnostiquez.",
       "options": [
-        "Aucune violation — le code est simple et lisible.",
-        "Singleton mal implémenté (pas de `private` constructeur) + Encapsulation rompue (`public` champs mutables) + SRP violé (exécute, persiste ET notifie) + DIP violé (dépendance directe à `SqlHelper`).",
-        "LSP violé uniquement — la classe ne peut pas être substituée.",
-        "ISP violé — l'interface est trop grande."
+        "Acceptable si l'endpoint est protégé par JWT.",
+        "Code Injection identique au RCE — l'expression LINQ est compilée et exécutée avec tous les droits du process. Un attaquant peut accéder à `_ctx.Users`, `_ctx.AuditLogs`, exécuter des méthodes système. Correction : paramètres typés (`deskId`, `status`, `dateFrom`) + LINQ hardcodé + validation whitelist.",
+        "Le seul risque est que l'expression LINQ soit incorrecte.",
+        "L'expression LINQ est sécurisée car elle n'accède pas au SQL directement."
       ],
-      "answer": "Singleton mal implémenté (pas de `private` constructeur) + Encapsulation rompue (`public` champs mutables) + SRP violé (exécute, persiste ET notifie) + DIP violé (dépendance directe à `SqlHelper`).",
-      "explanation": "4 violations simultanées : (1) `public static Instance` sans constructeur `private` = Singleton cassé, n'importe qui peut créer une autre instance. (2) `public List<Trade> Trades` = Encapsulation rompue, l'état est modifiable de l'extérieur. (3) `Execute()` fait trois choses = SRP violé. (4) `SqlHelper.Run()` en dur = DIP violé, impossible de tester sans base. Ce type de code 'God class' est le pattern d'architecture le plus destructeur en trading."
+      "answer": "Code Injection identique au RCE — l'expression LINQ est compilée et exécutée avec tous les droits du process. Un attaquant peut accéder à `_ctx.Users`, `_ctx.AuditLogs`, exécuter des méthodes système. Correction : paramètres typés (`deskId`, `status`, `dateFrom`) + LINQ hardcodé + validation whitelist.",
+      "explanation": "LINQ dynamique évalué avec Roslyn/ExpressionBuilder = vecteur d'injection critique. Expression malveillante : `trades.Where(t => t.Desk == \"equity\"); _ctx.Users.ToList()` — double expression, accès à la table Users. Ou plus grave : utilisation des méthodes de réflexion pour accéder aux objets non exposés. En CIB : données de position, trades confidentiels, noms des traders, limites de risque. Architecture correcte : `GET /api/v1/trades?deskId=equity&status=Active&dateFrom=2024-01-01` → validation enum pour `deskId`, validation date pour `dateFrom` → LINQ hardcodé `.Where(t => t.DeskId == deskId && t.Status == status)` → pas d'injection possible."
     },
     {
-      "question": "Vous lisez : `abstract class BaseInstrument { protected decimal _notional; public abstract decimal Evaluate(); public string GetCurrency() => _currency; }`. Quels concepts POO identifiez-vous et quels patterns cela suggère-t-il ?",
+      "question": "[Multi-concepts] Décrivez comment implémenter un système de traçabilité end-to-end (de la saisie du trader jusqu'aux logs de compliance) pour un trade CIB, en nommant chaque composant.",
       "options": [
-        "Encapsulation uniquement — les champs sont protected.",
-        "Abstraction (`abstract`) + Encapsulation (`protected`) + Héritage implicite. Suggère Template Method ou Strategy.",
-        "Polymorphisme uniquement — `Evaluate()` est abstraite.",
-        "Héritage + Singleton — l'instance est partagée."
+        "Console.WriteLine dans chaque méthode.",
+        "1. Middleware génère `X-Correlation-ID` (UUID). 2. JWT claims propagent `userId + desk`. 3. Serilog enrichit chaque log avec `{CorrelationId, UserId, TradeId, ISIN, Service}`. 4. `X-Correlation-ID` propagé dans tous les headers RabbitMQ + HTTP. 5. OpenTelemetry spans sur chaque appel. 6. Elasticsearch indexe les logs. 7. Grafana/Kibana filtre par `correlationId`. 8. Immutable SQL audit table (INSERT-only).",
+        "Logs en fichiers texte sur chaque serveur, agrégés manuellement.",
+        "Utiliser `Debug.WriteLine` avec le mode verbose activé en production."
       ],
-      "answer": "Abstraction (`abstract`) + Encapsulation (`protected`) + Héritage implicite. Suggère Template Method ou Strategy.",
-      "explanation": "`abstract class` = Abstraction. `protected _notional` = Encapsulation partagée avec les enfants. `abstract decimal Evaluate()` = contrat que chaque instrument doit implémenter. Ce combo est la signature du Template Method (squelette commun, variation dans les enfants) ou d'une base pour Strategy. Reconnaître ces couches permet de diagnostiquer et maintenir le code efficacement."
+      "answer": "1. Middleware génère `X-Correlation-ID` (UUID). 2. JWT claims propagent `userId + desk`. 3. Serilog enrichit chaque log avec `{CorrelationId, UserId, TradeId, ISIN, Service}`. 4. `X-Correlation-ID` propagé dans tous les headers RabbitMQ + HTTP. 5. OpenTelemetry spans sur chaque appel. 6. Elasticsearch indexe les logs. 7. Grafana/Kibana filtre par `correlationId`. 8. Immutable SQL audit table (INSERT-only).",
+      "explanation": "Traçabilité CIB complète (MiFID II) : (1) Chaque requête HTTP reçoit un UUID `X-Correlation-ID` en entrée. (2) Le JWT porte `userId`, `desk`, `role`. (3) Serilog avec `LogContext.PushProperty` enrichit automatiquement tous les logs du contexte avec `CorrelationId + UserId`. (4) Les messages RabbitMQ portent le `CorrelationId` dans les headers AMQP. (5) OpenTelemetry crée un span par service traversé — `BookingService (50ms) → IsinService (5ms) → SophisAdapter (30ms) → RabbitMQ.Publish (1ms)`. (6) Table `AuditLogs { Id, TradeId, UserId, Action, Timestamp, OldValues, NewValues }` append-only — conforme MiFID II (5 ans de rétention)."
     },
     {
-      "question": "[Refactoring — SOLID + ACID] Ce code viole DIP et ne respecte pas l'Atomicité ACID : `class OrderService { public void Place(Order o) { new SqlOrderRepo().Save(o); new SqlPositionRepo().Update(o); } }`. Quelle est la correction complète ?",
+      "question": "[Ordre de dépendance] Pour construire le système MAPS complet (API REST + MSMQ/RabbitMQ + SQL + async + LINQ), dans quel ordre les fondations doivent-elles être maîtrisées ?",
       "options": [
-        "Ajouter `try/catch` autour des deux appels.",
-        "Injecter `IOrderRepository` et `IPositionRepository` + envelopper dans `TransactionScope` ou partager un `DbContext` (Unit of Work) pour garantir l'Atomicité.",
-        "Utiliser `async/await` pour exécuter les deux opérations en parallèle.",
-        "Marquer la méthode `virtual` pour permettre la redéfinition."
+        "Docker → Kubernetes → CI/CD → Code",
+        "1. C# OOP (classes, interfaces, async/await) → 2. LINQ (requêtes sur collections) → 3. SQL Server + EF Core (persistance) → 4. API REST ASP.NET Core (exposition) → 5. MSMQ/RabbitMQ (messaging async) → 6. Microservices patterns (DIP, SRP, Outbox) → 7. Docker + CI/CD (infrastructure).",
+        "Microservices → APIs → Bases de données → C# de base",
+        "Docker → API REST → SQL → C# OOP"
       ],
-      "answer": "Injecter `IOrderRepository` et `IPositionRepository` + envelopper dans `TransactionScope` ou partager un `DbContext` (Unit of Work) pour garantir l'Atomicité.",
-      "explanation": "Deux problèmes à corriger simultanément : (1) DIP : `new SqlOrderRepo()` crée un couplage fort — injecter les interfaces via constructeur. (2) ACID/Atomicité : si `Update(o)` échoue après `Save(o)`, l'ordre est enregistré mais la position n'est pas mise à jour — incohérence critique. Solution : `TransactionScope` ou `DbContext` partagé (Unit of Work). DIP + ACID doivent être corrigés ensemble."
+      "answer": "1. C# OOP (classes, interfaces, async/await) → 2. LINQ (requêtes sur collections) → 3. SQL Server + EF Core (persistance) → 4. API REST ASP.NET Core (exposition) → 5. MSMQ/RabbitMQ (messaging async) → 6. Microservices patterns (DIP, SRP, Outbox) → 7. Docker + CI/CD (infrastructure).",
+      "explanation": "Ordre de dépendance des fondations : Sans C# OOP solide (classes, interfaces, async/await), aucune autre compétence ne tient. LINQ est utilisé dans EF Core — doit être maîtrisé avant. EF Core (SQL) est la persistance de toutes les API — avant les controllers. L'API REST utilise les services (DIP) qui utilisent EF Core et async. RabbitMQ s'appuie sur async/await et la sérialisation JSON. Les patterns microservices (Outbox, CQRS) nécessitent de maîtriser les briques de base. Docker = empaqueter ce qui fonctionne déjà. Tentative inverse fréquente : apprendre Docker sans maîtriser async/await = impossible de diagnostiquer les problèmes."
     },
     {
-      "question": "[Nommage inversé — Expert] Une classe qui publie des événements sans connaître ses abonnés, où les abonnés s'enregistrent/désenregistrent dynamiquement, et où chaque abonné réagit différemment au même événement s'appelle ?",
+      "question": "[Confusion profonde] Quelle est la différence entre `await Task.WhenAll(t1, t2)` et `await t1; await t2;` pour deux appels simultanés dans un service de pricing ?",
       "options": [
-        "Chain of Responsibility",
-        "Mediator",
-        "Observer",
-        "Strategy"
+        "Aucune différence — les deux exécutent les tâches en parallèle.",
+        "`await t1; await t2` exécute les tâches SÉQUENTIELLEMENT (attend t1 entièrement, puis lance t2). `await Task.WhenAll(t1, t2)` lance les DEUX simultanément et attend que la plus lente finisse — gain de temps = durée de la plus longue, pas la somme.",
+        "`Task.WhenAll` est plus lent car il crée plus de threads.",
+        "`await t1; await t2` est recommandé pour éviter les race conditions."
       ],
-      "answer": "Observer",
-      "explanation": "Trois propriétés définissent l'Observer sans voir le code : publication sans connaissance des abonnés (découplage source-écouteurs), enregistrement/désenregistrement dynamique (`+=`/`-=`), réactions différentes au même événement (Polymorphisme). En trading : le market feed publie `PriceChanged` — l'UI, le moteur risk, les alertes ont chacun leur propre handler. Reconnaître ces propriétés permet d'identifier le pattern dans n'importe quelle implémentation."
+      "answer": "`await t1; await t2` exécute les tâches SÉQUENTIELLEMENT (attend t1 entièrement, puis lance t2). `await Task.WhenAll(t1, t2)` lance les DEUX simultanément et attend que la plus lente finisse — gain de temps = durée de la plus longue, pas la somme.",
+      "explanation": "Confusion critique en CIB : `var delta = await ComputeDeltaAsync(); var vega = await ComputeVegaAsync();` → 20ms + 25ms = 45ms séquentiel. `await Task.WhenAll(ComputeDeltaAsync(), ComputeVegaAsync())` → 25ms (la plus longue), les deux partent simultanément. Important : les Tasks doivent être créées AVANT le `WhenAll` pour vraiment démarrer simultanément. `await Task.WhenAll(ComputeDeltaAsync(), ComputeVegaAsync())` = correct. `var t1 = ComputeDeltaAsync(); var t2 = ComputeVegaAsync(); await Task.WhenAll(t1, t2)` = idem. Si une Task lève une exception, `WhenAll` propage la première exception — les autres continuent quand même."
     },
     {
-      "question": "Quel est le lien entre le pattern Singleton et l'Encapsulation POO ? Pourquoi ce lien est-il fondamental ?",
+      "question": "[Architecture complète] Un trade est créé en 3 étapes : validation (10ms), booking Sophis (150ms), publication RabbitMQ (5ms). Comment architecturer pour répondre au client le plus vite possible tout en garantissant la persistance et la notification ?",
       "options": [
-        "Le Singleton utilise l'Encapsulation pour protéger l'instance : constructeur `private`, accès via propriété `static` contrôlée.",
-        "Le Singleton utilise le Polymorphisme pour permettre à chaque classe d'avoir sa propre instance.",
-        "Le Singleton utilise l'Héritage pour partager l'instance entre classes filles.",
-        "Le Singleton utilise l'Abstraction pour définir le contrat de l'instance unique."
+        "Exécuter les 3 étapes de façon séquentielle et bloquer le client 165ms.",
+        "Validation (await, 10ms) → Booking Sophis (await, 150ms) → répondre 201 Created avec TradeId → publication RabbitMQ en fire-and-forget avec Outbox Pattern (si RabbitMQ down, le message est en SQL) → total ressenti client : 160ms, publication garantie.",
+        "Répondre immédiatement au client sans validation ni booking.",
+        "Tout exécuter en `Task.WhenAll` — validation, booking et publication simultanément."
       ],
-      "answer": "Le Singleton utilise l'Encapsulation pour protéger l'instance : constructeur `private`, accès via propriété `static` contrôlée.",
-      "explanation": "Sans Encapsulation, le Singleton est impossible. Le constructeur `private` est l'encapsulation qui empêche toute instanciation externe. La propriété `static` est le point d'accès contrôlé. `Lazy<T>` encapsule la logique thread-safe d'initialisation. Retirer l'encapsulation = n'importe quel code peut créer plusieurs instances — le pattern est détruit."
+      "answer": "Validation (await, 10ms) → Booking Sophis (await, 150ms) → répondre 201 Created avec TradeId → publication RabbitMQ en fire-and-forget avec Outbox Pattern (si RabbitMQ down, le message est en SQL) → total ressenti client : 160ms, publication garantie.",
+      "explanation": "Architecture optimale : certaines étapes sont bloquantes par nature (validation doit précéder le booking ; Sophis doit retourner un TradeId). La publication RabbitMQ peut être découplée de la réponse HTTP avec l'Outbox Pattern — le message est inséré dans la même transaction SQL que le trade (atomique), puis publié par un `IHostedService`. Le client reçoit 201 en 160ms. Si RabbitMQ est down : le trade est en DB, le message attend dans `OutboxMessages`. Quand RabbitMQ revient : publication automatique. Le `RiskService` reçoit le message 5-10 secondes plus tard — eventual consistency acceptable pour le calcul de risque post-trade. On NE peut PAS mettre validation et booking en `Task.WhenAll` car la logique est séquentielle (booking nécessite validation préalable)."
     },
     {
-      "question": "[ACID ↔ SOLID — Expert] Quel principe SOLID, combiné à ACID, justifie de créer une couche `Infrastructure` dédiée pour gérer `TransactionScope` et `IsolationLevel` ?",
+      "question": "[Nommage inversé + Confusion] Un mécanisme C# permet à un service de s'enregistrer comme dépendance et d'être injecté automatiquement dans les constructeurs sans que le consommateur sache quelle implémentation concrète est utilisée. Comment s'appelle ce mécanisme et quel en est l'avantage clé en tests ?",
       "options": [
-        "OCP — la couche Infrastructure est ouverte à l'extension.",
-        "SRP + DIP — SRP : la logique ACID est séparée du domaine métier. DIP : le domaine dépend d'abstractions de transaction, pas de `TransactionScope` directement.",
-        "LSP — la couche Infrastructure peut remplacer la couche métier.",
-        "ISP — les interfaces ACID sont séparées des interfaces métier."
+        "Le pattern Singleton — une seule instance partagée entre tous les services.",
+        "L'Injection de Dépendances (DI) via `IServiceCollection` — `services.AddScoped<ITradeRepository, EfTradeRepository>()`. En tests : remplacer `EfTradeRepository` par `MockTradeRepository` sans modifier le code du service testé.",
+        "La réflexion .NET — `Activator.CreateInstance(typeof(TradeRepository))`.",
+        "Le pattern Service Locator — `ServiceLocator.GetService<ITradeRepository>()`."
       ],
-      "answer": "SRP + DIP — SRP : la logique ACID est séparée du domaine métier. DIP : le domaine dépend d'abstractions de transaction, pas de `TransactionScope` directement.",
-      "explanation": "SRP : le domaine métier (`TradeService`) n'a pas à gérer `TransactionScope`, `IsolationLevel` ou le rollback — c'est la responsabilité de l'Infrastructure. DIP : le domaine dépend d'`IUnitOfWork` (abstraction), pas de `TransactionScope` directement — testable sans base. SRP + DIP + ACID ensemble = architecture en couches propre : Domain ← Application ← Infrastructure."
-    },
-    {
-      "question": "[Erreur de conception trading — Expert] Vous reviewez ce code en prod : `class BloombergFeed { private static BloombergFeed _instance; public Dictionary<string, decimal> Prices = new Dictionary<string, decimal>(); ... }`. Listez toutes les violations.",
-      "options": [
-        "Aucune violation — Singleton simple et efficace.",
-        "Singleton thread-unsafe (pas de `Lazy<T>` ni de `lock`) + Encapsulation rompue (`public Dictionary` mutable) + race conditions garanties sous charge (Dictionary non thread-safe).",
-        "DIP violé uniquement — devrait dépendre d'une interface.",
-        "ISP violé — le Dictionary expose trop de méthodes."
-      ],
-      "answer": "Singleton thread-unsafe (pas de `Lazy<T>` ni de `lock`) + Encapsulation rompue (`public Dictionary` mutable) + race conditions garanties sous charge (Dictionary non thread-safe).",
-      "explanation": "Trois violations critiques en production HFT : (1) Singleton sans `Lazy<T>` ni `lock` = deux threads peuvent créer deux instances simultanément. (2) `public Dictionary<string, decimal> Prices` = n'importe quel composant peut modifier les prix directement, sans validation. (3) `Dictionary` non thread-safe sous charge = `InvalidOperationException` ou corruption mémoire lors des resize. Correction : `Lazy<T>` + `private` champ + `ConcurrentDictionary` + propriété `IReadOnlyDictionary`."
-    },
-    {
-      "question": "[Ordre de dépendance — Expert] Établissez la chaîne de dépendance correcte : quel concept POO est prérequis à quel principe SOLID, lui-même prérequis à quel pattern ?",
-      "options": [
-        "Héritage → SRP → Singleton",
-        "Abstraction → DIP → Repository (le domaine dépend d'une interface, pas d'EF Core)",
-        "Polymorphisme → LSP → Chain of Responsibility",
-        "Encapsulation → ISP → Builder"
-      ],
-      "answer": "Abstraction → DIP → Repository (le domaine dépend d'une interface, pas d'EF Core)",
-      "explanation": "Chaîne de dépendance : Abstraction (`interface ITradeRepository`) est le mécanisme POO prérequis. DIP (dépendre de cette abstraction) est le principe SOLID qui l'exploite. Repository est le pattern qui concrétise DIP pour l'accès aux données. Sans Abstraction, DIP est une intention vide. Sans DIP, le Repository n'apporte pas de valeur architecturale. Les trois niveaux (POO → SOLID → Pattern) forment une chaîne logique indissociable."
-    },
-    {
-      "question": "Analysez : `class OrderValidationPipeline { private readonly IEnumerable<IOrderValidator> _validators; void Validate(Order o) { foreach(var v in _validators) v.Validate(o); } }`. Quels patterns et principes identifiez-vous ?",
-      "options": [
-        "Singleton + AddSingleton + SRP.",
-        "Chain of Responsibility (collection de validators) + ISP (`IOrderValidator` ciblée) + DIP (injection de la liste) + SRP (chaque validator = une règle).",
-        "Observer + Strategy + OCP.",
-        "Builder + Repository + LSP."
-      ],
-      "answer": "Chain of Responsibility (collection de validators) + ISP (`IOrderValidator` ciblée) + DIP (injection de la liste) + SRP (chaque validator = une règle).",
-      "explanation": "Collection d'`IOrderValidator` = Chain of Responsibility simplifié. `IOrderValidator` petite et ciblée = ISP. Injection via constructeur = DIP. Chaque implémentation = une seule règle = SRP. Ce code applique simultanément 4 principes SOLID via 1 pattern — architecture de validation typique d'un système d'ordres en trading."
-    },
-    {
-      "question": "[Refactoring — Anti-pattern + ACID] Ce code ne garantit pas l'Atomicité : `class SettlementService { async Task Settle(Trade t) { await _tradeRepo.MarkSettled(t); await _accountRepo.Debit(t.Amount); await _positionRepo.Close(t); } }`. Quel est le risque et comment corriger ?",
-      "options": [
-        "Aucun risque — `async/await` garantit l'ordre d'exécution.",
-        "Si `Debit` ou `Close` échoue, `MarkSettled` est déjà committée — incohérence comptable. Correction : envelopper dans une `TransactionScope` ou utiliser un `DbContext` partagé (Unit of Work) avec un seul `SaveChanges()`.",
-        "Utiliser `Task.WhenAll()` pour exécuter les trois en parallèle.",
-        "Marquer le service `AddSingleton` pour garantir l'unicité de la transaction."
-      ],
-      "answer": "Si `Debit` ou `Close` échoue, `MarkSettled` est déjà committée — incohérence comptable. Correction : envelopper dans une `TransactionScope` ou utiliser un `DbContext` partagé (Unit of Work) avec un seul `SaveChanges()`.",
-      "explanation": "Violation ACID Atomicité : si `Debit` plante après `MarkSettled`, le trade est marqué réglé mais le compte n'est pas débité — catastrophique en comptabilité trading. `async/await` ne garantit pas l'atomicité des transactions. Correction : Unit of Work avec `DbContext` partagé (AddScoped) + `SaveChanges()` unique à la fin, ou `TransactionScope` autour des trois opérations. L'Atomicité ACID est indépendante de l'asynchronisme."
-    },
-    {
-      "question": "[Expert global] Quel est le lien entre l'Encapsulation POO, le principe SRP, le pattern Repository et la propriété d'Isolation ACID ?",
-      "options": [
-        "Ils sont indépendants — chacun opère sur une couche différente.",
-        "Tous quatre expriment le même principe à des niveaux différents : protéger un état ou une responsabilité des interférences extérieures.",
-        "SRP dépend de Repository, Repository dépend d'Isolation, Isolation dépend d'Encapsulation.",
-        "Seuls SRP et Encapsulation sont liés — Repository et Isolation sont indépendants."
-      ],
-      "answer": "Tous quatre expriment le même principe à des niveaux différents : protéger un état ou une responsabilité des interférences extérieures.",
-      "explanation": "Vision unifiée : Encapsulation = protéger l'état d'un objet (niveau classe). SRP = protéger une responsabilité des changements extérieurs (niveau architecture). Repository = protéger le domaine des détails d'infrastructure (niveau couche). Isolation ACID = protéger une transaction des interférences des autres (niveau base de données). Le même principe — isolation et protection contre les interférences — se retrouve à tous les niveaux d'une architecture C# bien conçue."
-    },
-    {
-      "question": "[Nommage inversé — Expert] Une solution architecturale qui : abstrait l'accès aux données, dépend d'une interface, permet d'injecter une implémentation in-memory en tests, respecte DIP, et couvre la propriété d'Isolation ACID au niveau applicatif s'appelle ?",
-      "options": [
-        "Singleton",
-        "Observer",
-        "Repository (+ Unit of Work pour l'Atomicité)",
-        "Strategy"
-      ],
-      "answer": "Repository (+ Unit of Work pour l'Atomicité)",
-      "explanation": "Ces propriétés définissent le Repository : abstraction de l'accès aux données (`ITradeRepository`), injection d'implémentation différente selon le contexte (DIP), in-memory pour les tests, EF Core en prod. L'Isolation ACID au niveau applicatif est assurée par le `DbContext` partagé entre Repositories (Unit of Work) — chaque transaction voit un état cohérent. Repository + Unit of Work = DIP + ACID dans une architecture C# propre."
-    },
-    {
-      "question": "Pourquoi le pattern Mediator (MediatR) est-il souvent combiné avec CQRS dans les applications de trading ASP.NET Core ?",
-      "options": [
-        "Car MediatR génère automatiquement le SQL pour EF Core.",
-        "Car Mediator découple l'émetteur d'une commande de son handler, facilitant l'ajout de comportements transversaux sans modifier les handlers.",
-        "Car MediatR remplace le conteneur DI natif.",
-        "Car Mediator garantit l'isolation ACID sans TransactionScope."
-      ],
-      "answer": "Car Mediator découple l'émetteur d'une commande de son handler, facilitant l'ajout de comportements transversaux sans modifier les handlers.",
-      "explanation": "Mediator + CQRS : les controllers envoient des `Command`/`Query` sans connaître les handlers. Les `IPipelineBehavior` permettent d'injecter logging, validation FluentValidation, retry Polly en cross-cutting concern — sans toucher aux handlers métier. SRP et OCP appliqués à la couche Application."
-    },
-    {
-      "question": "Vous analysez un système complet : `abstract class BasePricingModel { protected decimal _vol; public abstract decimal Price(); }` + `class BSModel : BasePricingModel` + injection via `IPricingEngine` + `TransactionScope` autour du calcul et de la persistance. Listez tous les concepts POO, SOLID, ACID et patterns présents.",
-      "options": [
-        "Singleton + Builder + Observer.",
-        "Abstraction + Héritage + Encapsulation + Polymorphisme + Strategy + DIP + OCP + SRP + Atomicité ACID.",
-        "SRP + OCP + LSP uniquement.",
-        "Chain of Responsibility + Repository + Template Method."
-      ],
-      "answer": "Abstraction + Héritage + Encapsulation + Polymorphisme + Strategy + DIP + OCP + SRP + Atomicité ACID.",
-      "explanation": "`abstract class` = Abstraction. `:` = Héritage. `protected _vol` = Encapsulation. `abstract Price()` + `override` dans BSModel = Polymorphisme. Injection via `IPricingEngine` = Strategy + DIP. Nouvelle implémentation sans modifier le code = OCP. Chaque modèle a une responsabilité = SRP. `TransactionScope` = Atomicité ACID. C'est l'architecture de pricing complète d'un trading desk : les 4 piliers POO + 3 principes SOLID + 1 pattern + 1 propriété ACID coexistent dans un seul système cohérent."
-    },
-    {
-      "question": "Quelle combinaison de concepts permet à une architecture microservices de trading d'être testable, évolutive et découplée ?",
-      "options": [
-        "Singleton + Héritage + Serializable.",
-        "DIP (interfaces partout) + Repository (accès données abstrait) + Strategy (algorithmes interchangeables) + Observer/Events (communication découplée) + ACID (intégrité transactionnelle).",
-        "OCP + `new` + `static` + `TransactionScope`.",
-        "LSP + `AddScoped` + `abstract class` uniquement."
-      ],
-      "answer": "DIP (interfaces partout) + Repository (accès données abstrait) + Strategy (algorithmes interchangeables) + Observer/Events (communication découplée) + ACID (intégrité transactionnelle).",
-      "explanation": "L'architecture testable + évolutive + découplée repose sur ce quintette : DIP (tout dépend d'abstractions = testabilité). Repository (swap infrastructure prod/test). Strategy (swap algorithmes VaR, pricing). Observer/Events (changement d'un service sans impacter les autres). ACID (intégrité des données sous charge concurrente). Ces 5 éléments couvrent les trois axes de qualité architecturale d'une salle de marché en C#."
+      "answer": "L'Injection de Dépendances (DI) via `IServiceCollection` — `services.AddScoped<ITradeRepository, EfTradeRepository>()`. En tests : remplacer `EfTradeRepository` par `MockTradeRepository` sans modifier le code du service testé.",
+      "explanation": "DI + testabilité en CIB : `BookingService(ITradeRepository repo, IMessageBus bus, IIsinService isin)` — le service dépend d'abstractions, pas d'implémentations. En production : DI injecte `EfTradeRepository`, `RabbitMqMessageBus`, `SophisIsinService`. En test unitaire : `new BookingService(new Mock<ITradeRepository>().Object, new Mock<IMessageBus>().Object, new Mock<IIsinService>().Object)` — aucun SQL, aucun RabbitMQ, aucun Sophis instancié. Test rapide, isolé, reproductible. Service Locator (anti-pattern) = le service appelle lui-même `ServiceLocator.Get<ITradeRepository>()` → couplage caché, impossible à mocker sans modifier le service. La DI par constructeur est le pattern recommandé en ASP.NET Core."
     }
   ]
 };
+
 const renderInlineTokens = (text, keyPrefix) => {
   const regex = /(\*\*.*?\*\*|`.*?`|\*.*?\*)/g;
   const parts = text.split(regex);
   return parts.map((part, idx) => {
-    if (part.startsWith("**") && part.endsWith("**")) {
-      return <strong key={`${keyPrefix}-${idx}`} style={{ display: 'inline', fontWeight: 'bold' }}>{part.slice(2, -2)}</strong>;
-    }
-    if (part.startsWith("`") && part.endsWith("`")) {
-      return (
-        <code key={`${keyPrefix}-${idx}`} style={{
-          display: 'inline',
-          backgroundColor: '#eef2f7',
-          padding: '1px 5px',
-          borderRadius: '3px',
-          fontFamily: 'monospace',
-          color: '#e01e5a',
-          fontWeight: 'bold',
-          fontSize: '13px'
-        }}>
-          {part.slice(1, -1)}
-        </code>
-      );
-    }
-    if (part.startsWith("*") && part.endsWith("*")) {
-      return <em key={`${keyPrefix}-${idx}`} style={{ display: 'inline' }}>{part.slice(1, -1)}</em>;
-    }
+    if (part.startsWith("**") && part.endsWith("**")) return <strong key={`${keyPrefix}-${idx}`} style={{ display: 'inline', fontWeight: 'bold' }}>{part.slice(2, -2)}</strong>;
+    if (part.startsWith("`") && part.endsWith("`")) return (
+      <code key={`${keyPrefix}-${idx}`} style={{ display: 'inline', backgroundColor: '#eef2f7', padding: '1px 5px', borderRadius: '3px', fontFamily: 'monospace', color: '#e01e5a', fontWeight: 'bold', fontSize: '13px' }}>
+        {part.slice(1, -1)}
+      </code>
+    );
+    if (part.startsWith("*") && part.endsWith("*")) return <em key={`${keyPrefix}-${idx}`} style={{ display: 'inline' }}>{part.slice(1, -1)}</em>;
     return part;
   });
 };
@@ -777,24 +663,16 @@ const renderInlineTokens = (text, keyPrefix) => {
 const renderFormattedText = (text) => {
   if (!text) return null;
   let cleanText = text
-    .replace(/\r?\n- /g, " ◆ ")
-    .replace(/\r?\n• /g, " ◆ ")
-    .replace(/\r?\n/g, " ")
-    .replace(/\.-\s*\*\*/g, " ◆ **")
-    .replace(/-\s*\*\*/g, " ◆ **");
-
+    .replace(/\r?\n- /g, " ◆ ").replace(/\r?\n• /g, " ◆ ").replace(/\r?\n/g, " ")
+    .replace(/\.-\s*\*\*/g, " ◆ **").replace(/-\s*\*\*/g, " ◆ **");
   if (cleanText.startsWith(" ◆ ")) cleanText = cleanText.substring(3);
   if (cleanText.startsWith("- ")) cleanText = cleanText.substring(2);
-
   const segments = cleanText.split(" ◆ ");
-
   return (
     <span style={{ display: 'block', lineHeight: '1.7' }}>
       {segments.map((segment, segIdx) => (
         <span key={segIdx} style={{ display: 'block', marginBottom: segIdx < segments.length - 1 ? '6px' : '0' }}>
-          {segIdx > 0 && (
-            <span style={{ color: '#1a73e8', fontWeight: 'bold', marginRight: '5px' }}>◆</span>
-          )}
+          {segIdx > 0 && <span style={{ color: '#1a73e8', fontWeight: 'bold', marginRight: '5px' }}>◆</span>}
           {renderInlineTokens(segment, `seg-${segIdx}`)}
         </span>
       ))}
@@ -829,171 +707,81 @@ const Flashcard = ({ slide }) => (
 
 const Results = ({ scores }) => {
   const totalScore = scores.moyen + scores.avance + scores.expert;
-  const totalQuestions = Object.values(questions).flat().length;
+  const totalQuestions = questions.moyen.length + questions.avance.length + questions.expert.length;
   return (
     <div className="results">
       <h3>🎯 Score : {totalScore} / {totalQuestions}</h3>
       <p>✅ Moyen : {scores.moyen}/{questions.moyen.length} | ✅ Avancé : {scores.avance}/{questions.avance.length} | ✅ Expert : {scores.expert}/{questions.expert.length}</p>
-      {totalScore >= Math.floor(totalQuestions * 0.6) ? <h3 className="success">🚀 Excellent ! Principes SOLID & design patterns validés.</h3> : <p className="fail">📚 Révisez les parties où vous avez perdu des points.</p>}
+      {totalScore >= Math.floor(totalQuestions * 0.6)
+        ? <h3 className="success">🚀 Fondations Microservices / JSON / async / LINQ maîtrisées !</h3>
+        : <p className="fail">📚 Révisez les slides — focus sur les points de confusion marqués ⚠️.</p>}
     </div>
   );
 };
 
-const SLIDE_DURATION = 12000;
-const QUESTION_TIME = 25;
-const LEVELS = ["moyen", "avance", "expert"];
-
-const Page4 = () => {
-  // Single source of truth: one state object avoids inter-render race conditions
-  const [phase, setPhase] = useState("basic"); // "basic" | "moyen" | "avance" | "expert" | "results"
+const MicroservicesFoundationsQCM = () => {
+  const [level, setLevel] = useState("basic");
   const [currentSlide, setCurrentSlide] = useState(0);
   const [currentQuestion, setCurrentQuestion] = useState(0);
   const [scores, setScores] = useState({ moyen: 0, avance: 0, expert: 0 });
-  const [timeLeft, setTimeLeft] = useState(QUESTION_TIME);
-  const [answered, setAnswered] = useState(false); // locks input after answer
+  const [timeLeft, setTimeLeft] = useState(25);
+  const [showResult, setShowResult] = useState(false);
   const [message, setMessage] = useState("");
 
-  // Derived safe accessors — never crash even mid-transition
-  const isQcm = phase !== "basic" && phase !== "results";
-  const currentQs = isQcm ? (questions[phase] || []) : [];
-  const safeIdx = Math.min(currentQuestion, currentQs.length - 1);
-  const currentQ = currentQs[safeIdx] || null;
-
-  // ── Slide auto-advance ──────────────────────────────────────────────────────
-  useEffect(() => {
-    if (phase !== "basic") return;
-    const timer = setTimeout(() => {
-      if (currentSlide + 1 < basicSlides.length) {
-        setCurrentSlide(s => s + 1);
-      } else {
-        // All slides done → start QCM
-        setPhase("moyen");
-        setCurrentQuestion(0);
-        setTimeLeft(QUESTION_TIME);
-        setAnswered(false);
-        setMessage("");
-      }
-    }, SLIDE_DURATION);
-    return () => clearTimeout(timer);
-  }, [phase, currentSlide]);
-
-  // ── Question countdown ──────────────────────────────────────────────────────
-  useEffect(() => {
-    if (!isQcm || answered) return;
-    if (timeLeft <= 0) { advanceQuestion(false); return; }
-    const t = setTimeout(() => setTimeLeft(tl => tl - 1), 1000);
-    return () => clearTimeout(t);
-  // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [timeLeft, isQcm, answered]);
-
-  // ── Navigation helpers ──────────────────────────────────────────────────────
-  const advanceQuestion = (scored) => {
-    const qs = questions[phase] || [];
-    const nextIdx = safeIdx + 1;
-    if (nextIdx < qs.length) {
-      setCurrentQuestion(nextIdx);
-      setTimeLeft(QUESTION_TIME);
-      setAnswered(false);
-      setMessage("");
-    } else {
-      const nextLevelIdx = LEVELS.indexOf(phase) + 1;
-      if (nextLevelIdx < LEVELS.length) {
-        const nextLevel = LEVELS[nextLevelIdx];
-        setPhase(nextLevel);
-        setCurrentQuestion(0);
-        setTimeLeft(QUESTION_TIME);
-        setAnswered(false);
-        setMessage("");
-      } else {
-        setPhase("results");
-      }
+  const handleNextQuestion = () => {
+    const qs = questions[level];
+    if (currentQuestion + 1 < qs.length) { setCurrentQuestion(q => q + 1); setTimeLeft(25); setMessage(""); }
+    else {
+      if (level === "moyen") setLevel("avance");
+      else if (level === "avance") setLevel("expert");
+      else setShowResult(true);
+      setCurrentQuestion(0); setTimeLeft(25); setMessage("");
     }
   };
+
+  useEffect(() => {
+    if (level !== "basic" && !showResult) {
+      if (timeLeft > 0) { const t = setTimeout(() => setTimeLeft(t2 => t2 - 1), 1000); return () => clearTimeout(t); }
+      else handleNextQuestion();
+    }
+  }, [timeLeft, level, showResult]);
+
+  useEffect(() => {
+    if (level === "basic" && !showResult) {
+      const i = setInterval(() => {
+        setCurrentSlide(prev => {
+          if (prev + 1 < basicSlides.length) return prev + 1;
+          setLevel("moyen"); setCurrentQuestion(0); setTimeLeft(25); return 0;
+        });
+      }, 20000);
+      return () => clearInterval(i);
+    }
+  }, [level, showResult]);
 
   const handleAnswerClick = (option) => {
-    if (answered || !currentQ) return; // guard against double-click or missing question
-    setAnswered(true);
-    const correct = option === currentQ.answer;
-    if (correct) {
-      setScores(p => ({ ...p, [phase]: p[phase] + 1 }));
-      setMessage("✅ Correct !");
-    } else {
-      setMessage(`❌ ${currentQ.answer}\n\nℹ️ ${currentQ.explanation}`);
-    }
-    setTimeout(() => advanceQuestion(correct), 4000);
+    const current = questions[level][currentQuestion];
+    if (option === current.answer) { setScores(p => ({ ...p, [level]: p[level] + 1 })); setMessage("✅ Correct !"); }
+    else { setMessage(`❌ ${current.answer}\n\nℹ️ ${current.explanation}`); }
+    setTimeout(handleNextQuestion, 4000);
   };
-
-  const handleSlideNext = () => {
-    if (currentSlide + 1 < basicSlides.length) {
-      setCurrentSlide(s => s + 1);
-    } else {
-      setPhase("moyen");
-      setCurrentQuestion(0);
-      setTimeLeft(QUESTION_TIME);
-      setAnswered(false);
-      setMessage("");
-    }
-  };
-
-  const handleSlidePrev = () => {
-    if (currentSlide > 0) setCurrentSlide(s => s - 1);
-  };
-
-  // ── Render ──────────────────────────────────────────────────────────────────
-  if (phase === "results") {
-    return (
-      <div className="qcm-container">
-        <Results scores={scores} />
-      </div>
-    );
-  }
-
-  if (phase === "basic") {
-    return (
-      <div className="qcm-container">
-        <Flashcard slide={basicSlides[currentSlide]} />
-{/*         <div style={{ display: 'flex', justifyContent: 'space-between', marginTop: '8px' }}>
-          <button
-            onClick={handleSlidePrev}
-            disabled={currentSlide === 0}
-            className="option-button"
-            style={{ width: 'auto', padding: '4px 14px', fontSize: '12px', opacity: currentSlide === 0 ? 0.4 : 1 }}
-          >
-            ← Précédent
-          </button>
-          <button
-            onClick={handleSlideNext}
-            className="option-button"
-            style={{ width: 'auto', padding: '4px 14px', fontSize: '12px' }}
-          >
-            {currentSlide + 1 < basicSlides.length ? 'Suivant →' : 'Démarrer le QCM →'}
-          </button>
-        </div> */}
-      </div>
-    );
-  }
-
-  // QCM phase — currentQ is guaranteed non-null here
-  if (!currentQ) return null;
 
   return (
     <div className="qcm-container">
-      <h4 className="subtitle" style={{ fontSize: '10px', margin: '0 0 6px 0' }}>
-        QCM {phase.toUpperCase()} 🔹 Q{safeIdx + 1}/{currentQs.length}
-      </h4>
-      <QuestionCard
-        question={currentQ.question}
-        options={currentQ.options}
-        onAnswerClick={handleAnswerClick}
-        timeLeft={timeLeft}
-      />
-      {message && (
-        <p className="message" style={{ whiteSpace: 'pre-wrap', marginTop: '8px' }}>
-          {message}
-        </p>
+      {showResult ? <Results scores={scores} /> : (
+        <div>
+          <h4 className="subtitle" style={{ fontSize: '10px', margin: '0 0 6px 0' }}>
+            Microservices · JSON · MSMQ · async · LINQ 🔹 {level === "basic"
+              ? `Slide ${currentSlide + 1}/${basicSlides.length}`
+              : `QCM ${level.toUpperCase()} — Q${currentQuestion + 1}/${questions[level].length}`}
+          </h4>
+          {level === "basic"
+            ? <Flashcard slide={basicSlides[currentSlide]} />
+            : <QuestionCard question={questions[level][currentQuestion].question} options={questions[level][currentQuestion].options} onAnswerClick={handleAnswerClick} timeLeft={timeLeft} />}
+          {message && <p className="message" style={{ whiteSpace: 'pre-wrap', marginTop: '8px' }}>{message}</p>}
+        </div>
       )}
     </div>
   );
 };
 
-export default Page4;
+export default MicroservicesFoundationsQCM;

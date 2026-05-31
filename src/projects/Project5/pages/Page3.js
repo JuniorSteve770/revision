@@ -683,7 +683,7 @@ const CIBRestApiInfraQCM = () => {
           if (prev + 1 < basicSlides.length) return prev + 1;
           setLevel("moyen"); setCurrentQuestion(0); setTimeLeft(25); return 0;
         });
-      }, 12000);
+      }, 20000);
       return () => clearInterval(i);
     }
   }, [level, showResult]);
