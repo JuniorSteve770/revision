@@ -47,7 +47,14 @@ const HomePage = () => {
         {/* Bouton Projet 5 */}
         <Link to="/project5">
           <button className="home-page-button" id="project5-button">
-          Backend
+          Backend C# 
+          </button>
+        </Link>
+
+                {/* Bouton Projet 5 */}
+        <Link to="/project6">
+          <button className="home-page-button" id="project6-button">
+          SQL
           </button>
         </Link>
         

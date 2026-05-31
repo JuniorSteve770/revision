@@ -8,6 +8,7 @@ import Project2 from './projects/Project2';
 import Project3 from './projects/Project3';
 import Project4 from './projects/Project4';
 import Project5 from './projects/Project5';
+import Project6 from './projects/Project6';
 
 const AppRoutes = () => {
   return (
@@ -20,6 +21,7 @@ const AppRoutes = () => {
         <Route path="/project3/*" element={<Project3 />} />
         <Route path="/project4/*" element={<Project4 />} />
         <Route path="/project5/*" element={<Project5 />} />
+        <Route path="/project6/*" element={<Project6 />} />
         <Route path="*" element={<NotFoundPage />} />
       </Routes>
     </Router>

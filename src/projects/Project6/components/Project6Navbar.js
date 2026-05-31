@@ -10,7 +10,6 @@ const Project5Navbar = () => {
       <Link to="/project5/page2">2. Prcing-PrTrad</Link>
       <Link to="/project5/page3">3. Finance Intro</Link>
       <Link to="/project5/page4">4. Microservices</Link>
-      <Link to="/project5/page5">5. async ≠ parallèl C#</Link>
     </nav>
   );
 };
