@@ -43,6 +43,13 @@ const HomePage = () => {
           fer Ami
           </button>
         </Link>
+
+        {/* Bouton Projet 5 */}
+        <Link to="/project5">
+          <button className="home-page-button" id="project5-button">
+          Backend
+          </button>
+        </Link>
         
       </div>
     </div>
