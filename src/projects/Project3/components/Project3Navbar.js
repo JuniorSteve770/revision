@@ -1,21 +1,19 @@
-// src/projects/Project3/components/Project3Navbar.js
+// src/projects/project3/components/project3Navbar.js
 import React from 'react';
 import { Link } from 'react-router-dom';
 
 const Project3Navbar = () => {
   return (
-    <nav style={{ backgroundColor: '#f0f0f0', padding: '10px', display: 'flex', flexWrap: 'wrap', gap: '10px' }}>
-      <Link to="/" style={{ marginRight: '15px', fontWeight: 'bold' }}>🏡 Main</Link>
-      <Link to="/project3">1. GC & Debug</Link>
-      <Link to="/project3/page2">2. Solid/OOP</Link>
-      <Link to="/project3/page3">3. Finance Intro</Link>
-      <Link to="/project3/page4">4. POO/SOLID/ACID</Link>
-      <Link to="/project3/page5">5. Arch & OMS</Link>
-      <Link to="/project3/page5_1">5.1 OMS Low_Freq</Link>
-      <Link to="/project3/page6">6. C# Concurrence</Link>
-      <Link to="/project3/page7">7. C# Tests</Link>
+    <nav style={{ backgroundColor: '#f0f0f0', padding: '10px' }}>
+      <Link to="/" style={{ margin: '0 10px' }}>Main</Link>
+      <Link to="/project3" style={{ margin: '0 10px' }}>rep0</Link>
+      <Link to="/project3/page2" style={{ margin: '0 10px' }}>Page 2</Link>
+      <Link to="/project3/page3" style={{ margin: '0 10px' }}>Page 03</Link>
+      <Link to="/project3/page4" style={{ margin: '0 10px' }}>Page 04</Link>
+      
     </nav>
   );
 };
 
 export default Project3Navbar;
+

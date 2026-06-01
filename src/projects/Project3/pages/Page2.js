@@ -1,235 +1,323 @@
-// src/projects/Project3/pages/Page2.js
+// src/projects/Project2/pages/Page2.js
 
 import React, { useState, useEffect } from "react";
 import "./Page.css";
+// partie 
+// Flashcards pour le niveau basic
 
 const basicSlides = [
-  {
-    "question": "SOLID en Finance de Marché",
-    "answer": "**SRP** : `TradeValidator` valide, `TradeRepository` persiste. Pas de classe fourre-tout. ◆ **OCP** : Ajouter un nouveau type d'option (ex: *BarrierOption*) sans modifier le moteur de pricing existant en utilisant une interface `IPricingEngine`."
-  },
-  {
-    "question": "SOLID — LSP, ISP, DIP",
-    "answer": "**LSP** : Une classe dérivée `FutureContract` ne doit pas lever de `NotImplementedException` sur des méthodes de son parent `FinancialInstrument`. ◆ **ISP** : Diviser les interfaces volumineuses. `IFixSender` séparé de `IFixReceiver`. ◆ **DIP** : Les contrôleurs dépendent de l'interface `IBookingService`, pas d'une classe d'implémentation directe."
-  },
-  {
-    "question": "Piliers de la POO",
-    "answer": "**Encapsulation** : Restreindre l'accès direct aux champs de position via des accesseurs `get/set` contrôlant les limites de risque. ◆ **Abstraction** : Exposer un contrat d'exécution `IExecutionVenue` sans exposer le protocole réseau sous-jacent (FIX, API REST)."
-  },
-  {
-    "question": "Piliers de la POO — Héritage & Polymorphisme",
-    "answer": "**Héritage** : Réutiliser le code commun (ex: `BaseOrder` étendu en `MarketOrder` et `LimitOrder`). ◆ **Polymorphisme** : Appeler une méthode de pricing `Price()` sur une collection d'instruments génériques `List<FinancialInstrument>`."
-  },
-  {
-    "question": "Thread vs Task (Gestion Asynchrone)",
-    "answer": "**Thread** : Ressource physique lourde gérée par l'OS (1 Mo de stack). ◆ **Task** : Abstraction logique légère gérée par le `TaskScheduler` de .NET sur un thread pool. Idéal pour optimiser l'I/O réseau des flux d'ordres."
-  },
-  {
-    "question": "LINQ vs PLINQ en Trading",
-    "answer": "**LINQ** : Requêtes expressives et lisibles sur des flux de données en mémoire. ◆ **PLINQ** : Exécution parallèle automatique sur plusieurs cœurs physiques du processeur. Idéal pour traiter de gros volumes de trades historiques ou calculer des statistiques de portefeuille."
-  }
-];
 
+ 
+  {
+      "question": "Quelle phrase simple utiliser pour encourager un échange ouvert avec un collègue ?",
+      "answer": "Peux-tu m’expliquer comment tu vois ce point ?\nMots-clés : écoute active, ouverture, valorisation.\nContexte : montrer de l’intérêt pour la vision de l’autre, faciliter le dialogue."
+    },
+    {
+      "question": "Comment remercier un collègue qui vous donne un retour constructif ?",
+      "answer": "Merci pour ton retour, cela m’aide à mieux comprendre la situation.\nMots-clés : feedback constructif, reconnaissance, transparence.\nEffet : valoriser l’échange pour favoriser la collaboration."
+    },
+    {
+      "question": "Quelle phrase simple proposer pour offrir de l’aide à un collègue débordé ?",
+      "answer": "N’hésite pas à me solliciter si tu as besoin d’un coup de main sur ce dossier.\nMots-clés : bienveillance, collaboration, soutien.\nContexte : créer un climat d’entraide accessible."
+    },
+    {
+      "question": "Comment encourager la communication directe pour éviter les malentendus ?",
+      "answer": "Je préfère qu’on échange directement plutôt que par mail pour éviter les malentendus.\nMots-clés : communication claire, réactivité, transparence.\nUsage : dans un environnement où la rapidité compte, comme le trading."
+    },
+    {
+      "question": "Quelle phrase simple inviter à exprimer son ressenti sur un projet ?",
+      "answer": "Comment tu ressens l’évolution de ce projet jusqu’à présent ?\nMots-clés : écoute empathique, feedback, collaboration.\nBut : favoriser l’expression personnelle pour mieux comprendre les enjeux."
+    },
+    {
+      "question": "Comment nuancer une demande de clarification en valorisant la collaboration ?",
+      "answer": "J’aimerais clarifier certains points ensemble afin d’aligner nos visions et optimiser le pricing de manière collaborative.\nMots-clés : collaboration, alignement, rigueur.\nContexte : trading, gestion des risques."
+    },
+    {
+      "question": "Quelle phrase montre de la reconnaissance tout en demandant plus de détails techniques ?",
+      "answer": "Ton analyse sur le stress test est pertinente ; pourrais-tu détailler les hypothèses sous-jacentes pour que nous soyons pleinement transparents dans le reporting ?\nMots-clés : valorisation, transparence, rigueur.\nUsage : échanges entre équipes quant et risk management."
+    },
+    {
+      "question": "Comment exprimer de l’empathie face à des contraintes réglementaires complexes ?",
+      "answer": "Je comprends la complexité des contraintes réglementaires ; abordons-les étape par étape pour assurer une gestion des risques efficace et partagée.\nMots-clés : empathie, pédagogie, gestion des risques.\nEffet : apaiser et structurer la discussion."
+    },
+    {
+      "question": "Quelle formulation propose un cadre bienveillant pour un suivi d’équipe ?",
+      "answer": "Pour faciliter la prise de décision, je te propose un point de suivi régulier où chacun pourra exprimer ses observations sans jugement.\nMots-clés : bienveillance, organisation, communication.\nContexte : réunions périodiques dans un environnement exigeant."
+    },
+    {
+      "question": "Comment valoriser une contribution technique en soulignant son impact concret ?",
+      "answer": "En intégrant vos retours sur les modèles GARCH, nous pourrons affiner notre stratégie tout en respectant les contraintes opérationnelles du front office.\nMots-clés : valorisation, impact, rigueur.\nUsage : échanges entre risk managers et traders."
+    },
+     {
+    "question": "Quelle phrase permet d’encourager un échange ouvert avec un collègue en finance ?",
+    "answer": "Peux-tu m’expliquer comment tu vois ce point ?\nMots-clés : écoute active, valorisation, ouverture.\nExemple : lors d’une discussion sur un pricing complexe, cette phrase invite l’autre à détailler son raisonnement."
+  },
+  {
+    "question": "Quelle formulation est adaptée pour remercier un collègue qui a donné un feedback sur un rapport de stress tests ?",
+    "answer": "Merci pour ton retour, cela m’aide à mieux comprendre la situation.\nMots-clés : feedback constructif, reconnaissance, transparence.\nExplication : la reconnaissance du retour facilite les échanges futurs."
+  },
+  {
+    "question": "Comment proposer une communication plus directe pour éviter les malentendus dans une équipe trading ?",
+    "answer": "Je préfère qu’on échange directement plutôt que par mail pour éviter les malentendus.\nMots-clés : communication directe, clarté, réactivité.\nExemple : lors d’une question urgente sur un pricing en temps réel."
+  },
+  {
+    "question": "Quelle phrase avancée montre de l’empathie tout en abordant un sujet réglementaire complexe ?",
+    "answer": "Je comprends la complexité des contraintes réglementaires ; abordons-les étape par étape pour assurer une gestion des risques efficace et partagée.\nMots-clés : empathie, pédagogie, gestion des risques.\nExplication : cela apaise et structure la discussion."
+  },
+  {
+    "question": "Comment valoriser la contribution d’un collègue tout en demandant plus de détails dans un environnement de gestion des risques ?",
+    "answer": "Ton analyse sur le stress test est pertinente ; pourrais-tu détailler les hypothèses sous-jacentes pour que nous soyons pleinement transparents dans le reporting ?\nMots-clés : valorisation, transparence, rigueur.\nExemple : demander des précisions techniques sans jugement."
+  },
+
+];
+// QCM pour les niveaux moyen et avancé
 const questions = {
   moyen: [
-    {
-      "question": "Comment applique-t-on le principe Open/Closed (OCP) lors du développement d'un système de calcul de taxes sur les transactions financières ?",
-      "options": [
-        "En ajoutant des blocs if-else dans la classe principale à chaque nouveau pays fiscal",
-        "En créant une interface ITaxCalculator implémentée par des classes de calcul spécifiques à chaque juridiction",
-        "En rendant toutes les variables de calcul globales et statiques",
-        "En sérialisant les données fiscales en JSON"
-      ],
-      "answer": "En créant une interface ITaxCalculator implémentée par des classes de calcul spécifiques à chaque juridiction",
-      "explanation": "Pour ajouter de nouveaux pays sans modifier le code existant, on injecte une liste de ITaxCalculator. Le code est fermé à la modification mais ouvert à l'extension par ajout de classes."
-    },
-    {
-      "question": "Quelle méthode de pricing enfreint le principe de Substitution de Liskov (LSP) ?",
-      "options": [
-        "Une méthode Price() qui calcule le prix d'un Swap de taux",
-        "Une classe EuropeanOption héritant d'Option qui lève NotImplementedException dans sa méthode exerciseEarly()",
-        "Une classe dérivée qui renvoie un nombre décimal",
-        "L'utilisation de méthodes virtuelles"
-      ],
-      "answer": "Une classe EuropeanOption héritant d'Option qui lève NotImplementedException dans sa méthode exerciseEarly()",
-      "explanation": "LSP stipule que le comportement du parent doit être préservé. Jeter une exception pour une méthode essentielle de la classe de base montre une mauvaise hiérarchie (une option européenne ne supporte pas l'exercice anticipé)."
-    },
-    {
-      "question": "Pourquoi PLINQ peut-il parfois être plus lent qu'un simple LINQ synchrone sur une collection de transactions ?",
-      "options": [
-        "Parce que PLINQ n'est pas optimisé pour les processeurs modernes",
-        "À cause du coût de synchronisation, du découpage des threads et de la fusion des résultats sur des collections de petite taille",
-        "Parce que PLINQ bloque le Garbage Collector pendant le calcul",
-        "Parce que PLINQ nécessite une licence Microsoft payante"
-      ],
-      "answer": "À cause du coût de synchronisation, du découpage des threads et de la fusion des résultats sur des collections de petite taille",
-      "explanation": "Pour de petites collections, le temps passé à distribuer les tâches sur différents threads et à rassembler les résultats (surcharge de coordination) dépasse le gain de performance du calcul parallèle."
-    }
+  {
+    "question": "Quelle phrase est la plus adaptée pour montrer de l’écoute active lors d’un échange sur une nouvelle méthodologie de pricing ?",
+    "options": [
+      "Je ne suis pas d’accord, il faut suivre ma méthode.",
+      "Peux-tu m’expliquer comment tu vois ce point ?",
+      "On n’a pas le temps pour ça, passons à autre chose.",
+      "Je vais faire comme je veux sans discuter."
+    ],
+    "answer": "Peux-tu m’expliquer comment tu vois ce point ?",
+    "explanation": "Cette phrase encourage l’échange et montre une vraie volonté d’écoute et de compréhension."
+  },
+  {
+    "question": "Face à un collègue stressé par un reporting complexe, que dire pour instaurer un climat bienveillant ?",
+    "options": [
+      "Ne t’inquiète pas, tout le monde est dans le même cas.",
+      "Je comprends la complexité des contraintes réglementaires ; abordons-les étape par étape pour assurer une gestion des risques efficace et partagée.",
+      "Ce n’est pas mon problème, concentre-toi sur ton travail.",
+      "On n’a pas le temps pour tes questions."
+    ],
+    "answer": "Je comprends la complexité des contraintes réglementaires ; abordons-les étape par étape pour assurer une gestion des risques efficace et partagée.",
+    "explanation": "Cette phrase montre de l’empathie et propose une approche structurée pour avancer ensemble."
+  },
+  {
+    "question": "Quelle attitude est la plus efficace pour gérer une demande urgente d’un trader tout en respectant les délais IT ?",
+    "options": [
+      "Promettre une résolution rapide sans validation.",
+      "Proposer une solution intermédiaire et alerter la DSI.",
+      "Ignorer la demande du trader.",
+      "Reporter la demande sans explication."
+    ],
+    "answer": "Proposer une solution intermédiaire et alerter la DSI.",
+    "explanation": "Cela permet de gérer la pression tout en maintenant une communication claire et responsable."
+  },
+  {
+    "question": "Dans un mail, quelle formule est la plus claire pour inviter à un échange direct afin d’éviter des malentendus ?",
+    "options": [
+      "Je préfère qu’on échange directement plutôt que par mail pour éviter les malentendus.",
+      "Tu devrais comprendre tout seul, pas besoin de réunion.",
+      "Écris-moi quand tu as du temps, je ne suis pas pressé.",
+      "Ignore ce mail, on verra plus tard."
+    ],
+    "answer": "Je préfère qu’on échange directement plutôt que par mail pour éviter les malentendus.",
+    "explanation": "Encourager la communication directe améliore la compréhension et réduit les erreurs."
+  }
   ],
   avance: [
-    {
-      "question": "Vous implémentez un moteur d'arbitrage qui écoute 5 flux de prix externes. Comment orchestrer les appels asynchrones pour réagir dès que l'un d'entre eux répond, sans attendre les autres ?",
-      "options": [
-        "En faisant un Task.WaitAll()",
-        "En utilisant await Task.WhenAny(tasks) pour récupérer et traiter la première tâche complétée",
-        "En lançant des Threads en boucle infinie avec Thread.Sleep(1)",
-        "En utilisant Parallel.ForEach"
-      ],
-      "answer": "En utilisant await Task.WhenAny(tasks) pour récupérer et traiter la première tâche complétée",
-      "explanation": "Task.WhenAny renvoie la première tâche terminée parmi une liste de tâches en cours. C'est le pattern standard pour réagir immédiatement à l'opportunité de marché la plus rapide."
-    },
-    {
-      "question": "Dans le cadre du multithreading .NET, quel est le danger d'exécuter un code LINQ paresseux (Deferred Execution) accédant à une liste partagée modifiable sans verrou ?",
-      "options": [
-        "La liste est automatiquement vidée",
-        "Une InvalidOperationException ('Collection was modified') ou une corruption silencieuse des index au moment de l'évaluation",
-        "Le Garbage Collector s'arrête",
-        "La variable de retour devient nulle"
-      ],
-      "answer": "Une InvalidOperationException ('Collection was modified') ou une corruption silencieuse des index au moment de l'évaluation",
-      "explanation": "LINQ n'exécute le filtre/projection qu'au moment de l'itération (ex: ToList() ou foreach). Si un autre thread modifie la collection sous-jacente entre-temps, une exception de concurrence se produit."
-    }
+     {
+    "question": "Lors d’une réunion sur la gestion des risques, un collègue exprime un désaccord sur le modèle GARCH utilisé. Quelle phrase est la plus adaptée pour maintenir un dialogue ouvert et constructif ?",
+    "options": [
+      "Tu te trompes, on utilise ce modèle depuis des années.",
+      "Peux-tu m’expliquer comment tu vois ce point ?",
+      "On n’a pas le temps pour ça, passons à autre chose."
+    ],
+    "answer": "Peux-tu m’expliquer comment tu vois ce point ?",
+    "explanation": "Cette formulation invite à clarifier le désaccord tout en valorisant l’échange."
+  },
+  {
+    "question": "Un collègue du front office semble débordé par les derniers stress tests et vous demande de l’aide. Comment lui répondre de manière accessible et bienveillante ?",
+    "options": [
+      "N’hésite pas à me solliciter si tu as besoin d’un coup de main sur ce dossier.",
+      "Je suis trop occupé pour ça, débrouille-toi.",
+      "Tu devrais mieux t’organiser la prochaine fois."
+    ],
+    "answer": "N’hésite pas à me solliciter si tu as besoin d’un coup de main sur ce dossier.",
+    "explanation": "Proposer son aide sans jugement favorise un bon esprit d’équipe."
+  },
+  {
+    "question": "Vous recevez un mail confus d’un collègue sur un problème de pricing. Quelle phrase conviendrait pour demander des précisions de manière professionnelle ?",
+    "options": [
+      "Ton mail est incompréhensible, renvoie-moi quelque chose de clair.",
+      "Peux-tu préciser certains points afin que je comprenne mieux ta demande ?",
+      "Fais attention à ce que tu écris, c’est important."
+    ],
+    "answer": "Peux-tu préciser certains points afin que je comprenne mieux ta demande ?",
+    "explanation": "Cette phrase encourage une communication claire et respectueuse."
+  },
+  {
+    "question": "En fin de réunion, vous voulez proposer un suivi régulier pour améliorer la collaboration autour des reportings. Quelle phrase utiliseriez-vous ?",
+    "options": [
+      "Je propose un point de suivi régulier où chacun pourra exprimer ses observations sans jugement.",
+      "On fera ça quand on aura le temps, ce n’est pas urgent.",
+      "Chacun fait son boulot, inutile de perdre du temps en réunions."
+    ],
+    "answer": "Je propose un point de suivi régulier où chacun pourra exprimer ses observations sans jugement.",
+    "explanation": "Instaurer un cadre bienveillant favorise l’expression et la collaboration."
+  },
   ]
 };
 
-const renderFormattedText = (text) => {
-  if (!text) return null;
-  let cleanText = text
-    .replace(/\r?\n- /g, " ◆ ")
-    .replace(/\r?\n• /g, " ◆ ")
-    .replace(/\r?\n/g, " ")
-    .replace(/\.-\s*\*\*/g, " ◆ **")
-    .replace(/-\s*\*\*/g, " ◆ **");
 
-  if (cleanText.startsWith(" ◆ ")) cleanText = cleanText.substring(3);
-  if (cleanText.startsWith("- ")) cleanText = cleanText.substring(2);
+// Timer
+const Timer = ({ timeLeft }) => (
+  <p className="timer">⏳ Temps restant : <span>{timeLeft}s</span></p>
+);
 
-  const regex = /(\*\*.*?\*\*|`.*?`|\*.*?\*)/g;
-  const parts = cleanText.split(regex);
-
-  return (
-    <span style={{ display: 'inline', lineHeight: '1.5' }}>
-      {parts.map((part, idx) => {
-        if (part.startsWith("**") && part.endsWith("**")) {
-          return <strong key={idx} style={{ display: 'inline', fontWeight: 'bold' }}>{part.slice(2, -2)}</strong>;
-        }
-        if (part.startsWith("`") && part.endsWith("`")) {
-          return (
-            <code key={idx} style={{ 
-              display: 'inline', 
-              backgroundColor: '#eef2f7', 
-              padding: '1px 5px', 
-              borderRadius: '3px', 
-              fontFamily: 'monospace', 
-              color: '#e01e5a', 
-              fontWeight: 'bold', 
-              fontSize: '13px' 
-            }}>
-              {part.slice(1, -1)}
-            </code>
-          );
-        }
-        if (part.startsWith("*") && part.endsWith("*")) {
-          return <em key={idx} style={{ display: 'inline' }}>{part.slice(1, -1)}</em>;
-        }
-        return part;
-      })}
-    </span>
-  );
-};
-
-const Timer = ({ timeLeft }) => <p className="timer">⏳ <span>{timeLeft}s</span></p>;
-
+// Composant QCM
 const QuestionCard = ({ question, options, onAnswerClick, timeLeft }) => (
   <div className="question-card">
     <h4>💡 {question}</h4>
     <Timer timeLeft={timeLeft} />
     <div className="options-container">
       {options.map((option, index) => (
-        <button key={index} onClick={() => onAnswerClick(option)} className="option-button">
-          {String.fromCharCode(65 + index)}. {option}
+        <button key={index} onClick={() => onAnswerClick(option, index)} className="option-button">
+          {String.fromCharCode(65 + index)}.{option}
         </button>
       ))}
     </div>
   </div>
 );
 
-const Flashcard = ({ slide }) => (
+// Composant Flashcard
+const Flashcard = ({ slide, index, total }) => (
   <div className="question-card" style={{ fontSize: '14px', margin: '0' }}>
-    <p style={{ fontWeight: 'bold', fontSize: '15px', color: '#1a73e8', margin: '0 0 10px 0' }}>{slide.question}</p>
-    <div style={{ padding: '12px 15px', background: '#f8f9fa', borderRadius: '8px', borderLeft: '4px solid #1a73e8', textAlign: 'left' }}>
-      {renderFormattedText(slide.answer)}
-    </div>
+    {/* <h5>🧠 Flashcard {index + 1} / {total}</h5> */}
+    <strong>Question :</strong>
+    <pre style={{ margin: '0', padding: '4px', background: '#f5f5f5', borderRadius: '3px', overflowX: 'auto' }}>
+      <code style={{ fontFamily: 'monospace', whiteSpace: 'pre-wrap', lineHeight: '0.4' }}>
+        {slide.question}
+      </code>
+    
+    </pre>
+    <strong>Réponse :</strong> {slide.answer}
   </div>
 );
 
+
+
+
+// Composant Résultat
 const Results = ({ scores }) => {
   const totalScore = scores.moyen + scores.avance;
   const totalQuestions = Object.values(questions).flat().length;
   return (
     <div className="results">
-      <h3>🎯 Score : {totalScore} / {totalQuestions}</h3>
-      <p>✅ Moyen : {scores.moyen} | ✅ Avancé : {scores.avance}</p>
-      {totalScore >= Math.floor(totalQuestions * 0.6) ? <h3 className="success">🚀 Félicitations ! Principes SOLID & concurrence maîtrisés.</h3> : <p className="fail">📚 Révisez la POO et le parallélisme.</p>}
+      <h3>🎯 Score final : {totalScore} / {totalQuestions}</h3>
+      <p>✅ Niveau Moyen : {scores.moyen}</p>
+      <p>✅ Niveau Avancé : {scores.avance}</p>
+      {totalScore > 3 ? (
+        <h3 className="success">🚀 Excellent travail ! Vous maîtrisez bien les Produits !</h3>
+      ) : (
+        <p className="fail">📚 Révisez encore un peu pour bien comprendre les concepts, ou retournez voir les flashcards !</p>
+      )}
     </div>
   );
 };
 
+// Page principale
 const Page2 = () => {
   const [level, setLevel] = useState("basic");
   const [currentSlide, setCurrentSlide] = useState(0);
   const [currentQuestion, setCurrentQuestion] = useState(0);
   const [scores, setScores] = useState({ moyen: 0, avance: 0 });
-  const [timeLeft, setTimeLeft] = useState(25);
+  const [timeLeft, setTimeLeft] = useState(20);
   const [showResult, setShowResult] = useState(false);
   const [message, setMessage] = useState("");
 
-  const handleNextQuestion = () => {
-    const qs = questions[level];
-    if (currentQuestion + 1 < qs.length) { setCurrentQuestion(q => q + 1); setTimeLeft(25); setMessage(""); }
-    else {
-      if (level === "moyen") { setLevel("avance"); } else { setShowResult(true); }
-      setCurrentQuestion(0); setTimeLeft(25); setMessage("");
-    }
-  };
-
+  // Timer pour les niveaux QCM
   useEffect(() => {
-    if (level !== "basic" && !showResult) {
-      if (timeLeft > 0) { const t = setTimeout(() => setTimeLeft(t2 => t2 - 1), 1000); return () => clearTimeout(t); }
-      else handleNextQuestion();
+    if (level !== "basic" && !showResult && timeLeft > 0) {
+      const timer = setTimeout(() => setTimeLeft(timeLeft - 1), 1000);
+      return () => clearTimeout(timer);
+    } else if (level !== "basic" && timeLeft === 0) {
+      handleNextQuestion();
     }
   }, [timeLeft, level, showResult]);
 
+  // Slide auto pour les flashcards
   useEffect(() => {
     if (level === "basic" && !showResult) {
-      const i = setInterval(() => {
-        setCurrentSlide(prev => {
-          if (prev + 1 < basicSlides.length) return prev + 1;
-          setLevel("moyen"); setCurrentQuestion(0); setTimeLeft(25); return 0;
+      const interval = setInterval(() => {
+        setCurrentSlide((prev) => {
+          if (prev + 1 < basicSlides.length) {
+            return prev + 1;
+          } else {
+            setLevel("moyen");
+            setCurrentQuestion(0);
+            setTimeLeft(20);
+            return 0;
+          }
         });
-      }, 12000);
-      return () => clearInterval(i);
+      }, 10000);
+      return () => clearInterval(interval);
     }
   }, [level, showResult]);
 
-  const handleAnswerClick = (option) => {
-    const current = questions[level][currentQuestion];
-    if (option === current.answer) { setScores(p => ({ ...p, [level]: p[level] + 1 })); setMessage("✅ Correct !"); }
-    else { setMessage(`❌ ${current.answer}\n\nℹ️ ${current.explanation}`); }
-    setTimeout(handleNextQuestion, 4000);
+const handleAnswerClick = (option, index) => {
+  const currentQuestions = questions[level];
+  const current = currentQuestions[currentQuestion];
+  const correctAnswer = current.answer;
+
+  const isCorrect =
+    /^[A-D]$/.test(correctAnswer) // Si c’est une lettre
+      ? index === correctAnswer.charCodeAt(0) - 65
+      : option === correctAnswer; // Sinon compare le texte
+
+  if (isCorrect) {
+    setScores((prevScores) => ({ ...prevScores, [level]: prevScores[level] + 1 }));
+    setMessage("✅ Correct !");
+  } else {
+    setMessage(`❌ Incorrect ! La bonne réponse était : ${correctAnswer}\n ℹ️ ${current.explanation}`);
+  }
+
+  setTimeout(handleNextQuestion, 2500);
+};
+
+  const handleNextQuestion = () => {
+    const currentQuestions = questions[level];
+    if (currentQuestion + 1 < currentQuestions.length) {
+      setCurrentQuestion(currentQuestion + 1);
+      setTimeLeft(20);
+      setMessage("");
+    } else {
+      if (level === "moyen") {
+        setLevel("avance");
+      } else {
+        setShowResult(true);
+      }
+      setCurrentQuestion(0);
+      setTimeLeft(20);
+      setMessage("");
+    }
   };
 
   return (
     <div className="qcm-container">
-      {showResult ? <Results scores={scores} /> : (
+      {showResult ? (
+        <Results scores={scores} />
+      ) : (
         <div>
-          <h4 className="subtitle" style={{ fontSize: '10px', margin: '0 0 6px 0' }}>
-            SOLID & POO 🔹 {level === "basic" ? `Slide ${currentSlide + 1}/${basicSlides.length}` : `QCM ${level.toUpperCase()}`}
+          <h4 className="subtitle" style={{ fontSize: '10px', margin: '0' }}>
+              Fixed Inc! 🔹 Niveau : {level.toUpperCase()}
           </h4>
-          {level === "basic" ? <Flashcard slide={basicSlides[currentSlide]} /> : (
-            <QuestionCard question={questions[level][currentQuestion].question} options={questions[level][currentQuestion].options} onAnswerClick={handleAnswerClick} timeLeft={timeLeft} />
+
+          {level === "basic" ? (
+            <Flashcard slide={basicSlides[currentSlide]} index={currentSlide} total={basicSlides.length} />
+          ) : (
+            <QuestionCard
+              question={questions[level][currentQuestion].question}
+              options={questions[level][currentQuestion].options}
+              onAnswerClick={handleAnswerClick}
+              timeLeft={timeLeft}
+            />
           )}
-          {message && <p className="message" style={{ whiteSpace: 'pre-wrap', marginTop: '8px' }}>{message}</p>}
+
+          {message && <p className="message">{message}</p>}
         </div>
       )}
     </div>

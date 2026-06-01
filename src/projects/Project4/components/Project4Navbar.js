@@ -1,21 +1,22 @@
-// src/projects/Project4/components/Project4Navbar.js
+// src/projects/project4/components/project4Navbar.js
 import React from 'react';
 import { Link } from 'react-router-dom';
 
 const Project4Navbar = () => {
   return (
-    <nav style={{ backgroundColor: '#f0f0f0', padding: '10px' }}>
-      <Link to="/" style={{ margin: '0 10px' }}>Main</Link>
-      <Link to="/project4" style={{ margin: '0 10px' }}>Mousashi</Link>
-      <Link to="/project4/page2" style={{ margin: '0 10px' }}>Charisma</Link>
-      <Link to="/project4/page3" style={{ margin: '0 10px' }}>Page 3</Link>
-      <Link to="/project4/page4" style={{ margin: '0 10px' }}>Page 4</Link>
-      <Link to="/project4/page5" style={{ margin: '0 10px' }}>Page 5</Link>
-      <Link to="/project4/page6" style={{ margin: '0 10px' }}>Page 6</Link>
-      <Link to="/project4/page7" style={{ margin: '0 10px' }}>Page 7</Link>
-      <Link to="/project4/page8" style={{ margin: '0 10px' }}>Page 8</Link>
+    <nav style={{ backgroundColor: '#f0f0f0', padding: '10px', display: 'flex', flexWrap: 'wrap', gap: '10px' }}>
+      <Link to="/" style={{ marginRight: '15px', fontWeight: 'bold' }}>🏡 Main</Link>
+      <Link to="/project4">1. GC & Debug</Link>
+      <Link to="/project4/page2">2. Solid/OOP</Link>
+      <Link to="/project4/page3">3. Finance Intro</Link>
+      <Link to="/project4/page4">4. POO/SOLID/ACID</Link>
+      <Link to="/project4/page5">5. Arch & OMS</Link>
+      <Link to="/project4/page5_1">5.1 OMS Low_Freq</Link>
+      <Link to="/project4/page6">6. C# Concurrence</Link>
+      <Link to="/project4/page7">7. C# Tests</Link>
     </nav>
   );
 };
 
 export default Project4Navbar;
+

@@ -42,39 +42,102 @@
 }
 
 /* Styles spécifiques pour chaque bouton */
-#project0-button {
+#project1-button {
   background-color: #20b2aa;
 }
-#project0-button:hover {
+#project1-button:hover {
   background-color: #178a83;
 }
 
-#project1-button {
+#project2-button {
   background-color: #ff7f50;
 }
-#project1-button:hover {
+#project2-button:hover {
   background-color: #ff6347;
 }
 
-#project2-button {
+#project3-button {
   background-color: #6a5acd;
 }
-#project2-button:hover {
+#project3-button:hover {
   background-color: #483d8b;
 }
 
-#project3-button {
+#project4-button {
   background-color: #32cd32;
 }
-#project3-button:hover {
+#project4-button:hover {
   background-color: #228b22;
 }
 
-#project4-button {
+#project5-button {
   background-color: #4682b4;
 }
-#project4-button:hover {
+#project5-button:hover {
   background-color: #36648b;
+}
+
+#project6-button {
+  background-color: #e67e22;
+}
+#project6-button:hover {
+  background-color: #d35400;
+}
+
+#project7-button {
+  background-color: #8e44ad;
+}
+#project7-button:hover {
+  background-color: #71368a;
+}
+
+#project8-button {
+  background-color: #1abc9c;
+}
+#project8-button:hover {
+  background-color: #16a085;
+}
+
+#project9-button {
+  background-color: #e74c3c;
+}
+#project9-button:hover {
+  background-color: #c0392b;
+}
+
+#project10-button {
+  background-color: #3498db;
+}
+#project10-button:hover {
+  background-color: #2980b9;
+}
+
+#project11-button {
+  background-color: #2c3e50;
+}
+#project11-button:hover {
+  background-color: #1a252f;
+}
+
+#project12-button {
+  background-color: #d81b60;
+}
+#project12-button:hover {
+  background-color: #b0003a;
+}
+
+#project13-button {
+  background-color: #2e7d32;
+}
+#project13-button:hover {
+  background-color: #1b5e20;
+}
+
+#project14-button {
+  background-color: #ffb300;
+}
+#project14-button:hover {
+  background-color: #ff8f00;
 }
 
 /* Media Queries pour les petits écrans */

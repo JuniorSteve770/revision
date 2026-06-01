@@ -1,646 +1,540 @@
-// src/projects/CIBPricing/MicroservicesFoundationsQCM.js
+// src/projects/CSharpAsync/AsyncProgrammingQCM.js
 
 import React, { useState, useEffect } from "react";
 import "./Page.css";
 
 const basicSlides = [
   {
-    "question": "Vue d'ensemble — 20 fondations essentielles C#/.NET Finance/IT",
-    "answer": "**Microservices** : découper une application en services indépendants (Trading, Risque, Reporting). Chaque service a sa propre DB, son déploiement, sa logique. ◆ **JSON** : format d'échange standard entre services — sérialisation/désérialisation `JsonSerializer`, contrats partagés. ◆ **MSMQ / RabbitMQ** : file de messages asynchrone — le producteur envoie, le consommateur traite quand il est prêt. Aucune perte si le service B est down. ◆ **async/await** : libère le thread pendant l'I/O (SQL, API, fichiers) — scalabilité sans threads bloqués. `Task` vs `Thread` : Task = léger, pool géré. Thread = lourd, manuel. ◆ **LINQ** : requêter des collections C# comme du SQL. `Where`, `Select`, `OrderBy`, `GroupBy`, `FirstOrDefault`. Traduit en SQL par Entity Framework. ◆ **Points de confusion clés** : `async void` vs `async Task`, `First()` vs `FirstOrDefault()`, `IQueryable` vs `IEnumerable`, `Serialize` vs `Deserialize`, `HTTP` vs `MSMQ`, producteur vs consommateur."
+    "question": "Vue d'ensemble — Feuille de route complète : Threads → Async → Parallel",
+    "answer": "**Processus** : instance d'exécution isolée — mémoire séparée, indépendance totale. ◆ **Thread** : unité d'exécution DANS un processus — mémoire partagée, accès aux mêmes objets. ◆ **Parallélisme** : plusieurs threads sur plusieurs cœurs CPU en même temps → problèmes CPU-bound (rendu, calcul). Nécessite plusieurs cœurs. ◆ **Asynchronisme** : un thread qui ne BLOQUE pas pendant les I/O (réseau, disque, BD) → libère le CPU pour autre chose. Ne nécessite PAS plusieurs cœurs. ◆ **Agenda complet** : Multithreading (Thread, ThreadPool, Task) → Async/Await → Parallel.For/ForEach → Parallel.Invoke → Parallel LINQ (PLINQ). ◆ **⚠️ La confusion n°1** : async ≠ parallélisme. Async = ne pas BLOQUER. Parallèle = faire SIMULTANÉMENT. Un seul cœur suffit pour l'async. Le parallélisme réel nécessite plusieurs cœurs."
   },
   {
-    "question": "Microservice — Définition, responsabilité unique, exemple Trading CIB",
-    "answer": "**Définition** : un microservice est un service indépendant qui gère une responsabilité métier unique. Il a sa propre base de données, son propre déploiement, sa propre logique. Il ne partage RIEN avec les autres services directement. ◆ **Exemple CIB** : `TradeService` (créer/modifier/annuler les trades), `RiskService` (calculer VaR, Greeks, limites), `InstrumentService` (référentiel ISIN, caractéristiques), `ReportingService` (P&L, positions EOD). Chacun est un projet C# séparé déployé dans son propre container Docker. ◆ **Ce qu'un microservice NE fait PAS** : il ne lit pas directement la base d'un autre service, il ne partage pas ses objets internes, il ne connaît pas l'implémentation des autres. ◆ **Communication** : via REST API (synchrone) ou MessageQueue (asynchrone). Jamais via DB partagée — c'est l'anti-pattern n°1. ◆ **Règle de taille** : un microservice = ce qu'une petite équipe peut développer, déployer et comprendre complètement."
+    "question": "Processus vs Thread — Mémoire, isolation, ordonnanceur OS",
+    "answer": "**Processus** : programme en cours d'exécution. Chaque processus a sa propre mémoire isolée — le processus A ne peut PAS lire la mémoire du processus B. Si un processus crash, l'autre continue. ◆ **Thread** : 'fil d'exécution' à l'intérieur d'un processus. Plusieurs threads PARTAGENT la même mémoire du processus. `List<string> maListe` créée dans le thread 1 est visible par les threads 2 et 3 → risque de race conditions. ◆ **Thread Local Storage** : exception — données privées à un thread spécifique. ◆ **Ordonnanceur OS** : distribue le temps CPU entre tous les processus et threads. Sur 2 cœurs, 20 processus peuvent tourner grâce au time-slicing — l'OS bascule très rapidement entre eux. ◆ **Thread pool .NET** : pool de threads pré-créés réutilisables. Créer un thread coûte cher (~1MB RAM). Le pool réutilise les threads existants. Par défaut : taille ≈ nombre de cœurs CPU."
   },
   {
-    "question": "Monolithe vs Microservices — Tableau comparatif et quand choisir",
-    "answer": "**Monolithe** : une seule application, un seul déploiement, tout est couplé. Simple à démarrer, difficile à maintenir en équipe. Modifier le service Risque nécessite de redéployer toute l'application. ◆ **Microservices** : chaque service déployé indépendamment. `TradeService` peut être mis à jour sans toucher `RiskService`. Scalabilité : `RiskService` (CPU intensif) peut avoir 10 pods Kubernetes, `ReportingService` (utilisé 1×/jour) en a 1. ◆ **Quand choisir Microservices** : grande équipe (> 5 devs), plusieurs domaines métiers distincts, besoin de scalabilité différenciée, cycle de déploiement fréquent. ◆ **Quand garder un monolithe** : petite équipe, projet au démarrage (YAGNI), domaine métier non stabilisé — migrer vers microservices plus tard avec Strangler Fig. ◆ **⚠️ Point de confusion** : microservices ≠ meilleur dans tous les cas. Un monolithe bien structuré est préférable à des microservices mal découpés ('distributed monolith')."
+    "question": "Programmation Parallèle — Quand, Pourquoi, Mécanisme CPU-bound",
+    "answer": "**Définition** : exécuter plusieurs calculs VRAIMENT en même temps sur plusieurs cœurs CPU. ◆ **Prérequis absolu** : plusieurs cœurs CPU. Sans eux, le parallélisme n'apporte rien (l'OS simule avec du time-slicing). ◆ **Cas d'usage** : calculs intensifs CPU — rendu 3D (diviser l'image en zones), simulations Monte Carlo, calcul de Greeks sur 1000 options, traitement d'images. ◆ **Mécanisme** : `Thread 1 sur CPU1` calcule la moitié supérieure de l'image PENDANT QUE `Thread 2 sur CPU2` calcule la moitié inférieure. Les deux s'exécutent littéralement en même temps. ◆ **Outils .NET** : `Parallel.For`, `Parallel.ForEach`, `Parallel.Invoke`, PLINQ (`.AsParallel()`). ◆ **⚠️ Serveur web** : le développeur n'a PAS besoin de programmer le parallélisme explicitement — le serveur web distribue automatiquement les requêtes HTTP sur les threads du pool, qui sont répartis sur les cœurs. Le parallélisme 'global' vient du cloud (Docker containers multiples)."
   },
   {
-    "question": "Communication synchrone vs asynchrone — HTTP REST vs Message Queue",
-    "answer": "**HTTP REST (synchrone)** : `A → appelle B → attend la réponse → continue`. Si B est down : erreur immédiate pour A. Si B est lent (3s) : A attend 3s, thread bloqué. Utilisé quand : la réponse est nécessaire immédiatement pour continuer (`BookTrade` doit retourner le `TradeId`). ◆ **Message Queue (asynchrone)** : `A → envoie un message dans la queue → continue immédiatement`. B traite le message quand il est disponible. Si B est down : le message attend dans la queue, aucune perte. Utilisé quand : la réponse n'est pas nécessaire immédiatement (calcul de risk après booking, envoi d'email de confirmation). ◆ **Analogie** : HTTP = appel téléphonique (attend que l'autre décroche). Queue = envoyer un SMS (l'autre répond quand il peut). ◆ **⚠️ Point de confusion** : MSMQ et RabbitMQ ne remplacent PAS HTTP — ce sont des outils complémentaires. Certains flows nécessitent les deux dans le même système."
+    "question": "Programmation Asynchrone — Quand, Pourquoi, Mécanisme I/O-bound",
+    "answer": "**Problème** : une requête SQL prend 200ms. Sans async, le thread attend 200ms en faisant RIEN — il bloque le CPU inutilement. ◆ **Solution async** : le thread lance la requête SQL, LIBÈRE le thread dans le pool, et est notifié quand la réponse arrive. ◆ **Mécanisme sur 1 seul cœur** : Thread 1 reçoit HTTP GET → lance requête BD → retourne au pool libre → Thread 1 reçoit HTTP GET 2 → lance requête BD 2 → retourne au pool → résultat BD 1 arrive → Thread 1 (ou n'importe quel thread libre) traite et envoie la réponse. ◆ **Pas besoin de plusieurs cœurs** : tout ça fonctionne sur UN seul cœur — l'astuce est de ne jamais bloquer, pas de faire tourner 2 choses en même temps. ◆ **Cas d'usage** : TOUT ce qui touche le réseau, les fichiers, la BD, les APIs externes. ◆ **Analogie** : commander un café, ne pas rester debout à fixer la machine — aller faire autre chose et revenir quand c'est prêt."
   },
   {
-    "question": "JSON — Sérialisation, désérialisation, contrat, erreurs fréquentes",
-    "answer": "**Sérialisation** : objet C# → texte JSON. `string json = JsonSerializer.Serialize(trade);` ◆ **Désérialisation** : texte JSON → objet C#. `Trade t = JsonSerializer.Deserialize<Trade>(json);` ◆ **Options importantes** : `new JsonSerializerOptions { PropertyNamingPolicy = JsonNamingPolicy.CamelCase, WriteIndented = true, DefaultIgnoreCondition = JsonIgnoreCondition.WhenWritingNull }` ◆ **Attributs** : `[JsonPropertyName(\"trade_id\")]` sur une propriété pour mapper un nom JSON différent du nom C#. `[JsonIgnore]` pour exclure un champ de la sérialisation. ◆ **Contrat JSON** : structure partagée entre services. Changer `TradeId` en `Id` dans le JSON casse tous les consommateurs. Versionner : `/api/v1/trades` garde l'ancien format, `/api/v2/trades` introduit le nouveau. ◆ **⚠️ Points de confusion** : `Serialize` = C# vers JSON (vers l'extérieur). `Deserialize` = JSON vers C# (depuis l'extérieur). `null` en JSON ≠ valeur absente — utiliser `[JsonIgnore]` ou `JsonIgnoreCondition`."
+    "question": "Thread vs Task — La bonne abstraction pour l'asynchronisme C#",
+    "answer": "**`Thread`** (bas niveau) : `new Thread(() => { DoWork(); }).Start()` — crée un NOUVEAU thread OS. Coûteux (~1MB stack), géré manuellement (Start, Join, Abort), pas de valeur de retour native. À utiliser : consommateur qui tourne indéfiniment (service Windows), contrôle précis. ◆ **`Task`** (recommandé) : `Task.Run(() => DoWork())` — utilise le ThreadPool existant. Léger, recyclé, valeur de retour `Task<T>`, composable (`WhenAll`, `WhenAny`, `ContinueWith`). ◆ **`Task.Run()` vs `await`** : `Task.Run` soumet du travail CPU-bound au pool. `await` libère le thread pendant une I/O. Ce sont deux choses différentes. ◆ **ThreadPool .NET** : géré automatiquement. Crée des threads à la demande (jusqu'à une limite), les recycle. `Task.Run(() => calc())` prend un thread libre du pool — si tous sont occupés, la Task attend qu'un thread se libère. ◆ **Règle** : préférer `Task` et `async/await` dans 95% des cas. `Thread` direct = cas rares et spéciaux."
   },
   {
-    "question": "MSMQ — Architecture, producteur, consommateur, persistance",
-    "answer": "**MSMQ (Microsoft Message Queuing)** : système de files de messages intégré à Windows. Persistance locale — les messages survivent aux redémarrages. Transactionnel — envoi et réception atomiques. ◆ **Producteur** : `using System.Messaging; var queue = new MessageQueue(\".\\\\Private$\\\\TradeQueue\"); queue.Send(new Message(trade) { Label = \"NewTrade\", Formatter = new XmlMessageFormatter() });` ◆ **Consommateur** : `var msg = queue.Receive(TimeSpan.FromSeconds(10)); var trade = (Trade)msg.Body;` ◆ **Queue transactionnelle** : `queue.Send(msg, MessageQueueTransactionType.Single)` — si l'application plante après l'envoi mais avant le traitement, le message reste dans la queue. ◆ **Limitations MSMQ** : Windows uniquement, pas de broker centralisé, pas de monitoring web, pas de routing complexe, difficile à scaler horizontalement. ◆ **⚠️ Point de confusion** : MSMQ ≠ RabbitMQ. MSMQ = local, legacy, .NET Framework. RabbitMQ = broker centralisé, moderne, multi-langages, cloud-native."
+    "question": "async / await — Mécanisme interne, machine à états, règles fondamentales",
+    "answer": "**Syntaxe** : `async Task<string> GetDataAsync() { var result = await httpClient.GetStringAsync(url); return result; }` ◆ **Ce que fait le compilateur** : transforme la méthode en une machine à états (state machine). À chaque `await`, le compilateur génère un point de continuation — le thread est libéré, et quand l'opération I/O termine, un thread reprend à ce point exact. ◆ **Règle fondamentale** : si tu `await` quelque chose, ta méthode DOIT être `async`. Si ta méthode est `async`, elle DOIT retourner `Task`, `Task<T>`, ou `ValueTask<T>`. ◆ **Chaîne async** : `Controller → async Service → async Repository → async DbContext`. Briser la chaîne avec `.Result` ou `.Wait()` = deadlock potentiel. ◆ **`await` libère, ne crée pas** : `await sql.QueryAsync()` ne crée PAS de thread — il LIBÈRE le thread appelant pendant l'attente I/O. ◆ **ConfigureAwait(false)** : dans les bibliothèques (pas les apps UI), ajouter `.ConfigureAwait(false)` évite de capturer inutilement le contexte de synchronisation."
   },
   {
-    "question": "RabbitMQ — Exchange, Queue, Binding, patterns de routing",
-    "answer": "**Concepts** : Producer → Exchange → Binding → Queue → Consumer. L'exchange reçoit les messages et les route vers les queues selon les bindings et le routingKey. ◆ **Direct exchange** : `channel.BasicPublish(exchange: \"trades\", routingKey: \"trade.booked\", body: payload)` → queue liée à exactement `\"trade.booked\"`. ◆ **Topic exchange** : `routingKey: \"trade.equity.booked\"` → queue abonnée à `\"trade.equity.*\"` ou `\"trade.#\"`. ◆ **Fanout exchange** : broadcast — toutes les queues liées reçoivent le message (audit, risk, reporting, blotter simultanément). ◆ **Acknowledgements** : `channel.BasicAck(deliveryTag, false)` après traitement réussi. `channel.BasicNack(deliveryTag, false, requeue: true)` si erreur → rejeu. ◆ **Dead-letter queue** : messages rejetés → `trades.dlq` pour inspection. ◆ **⚠️ Point de confusion** : l'exchange NE stocke PAS les messages — c'est la queue qui stocke. L'exchange route seulement. Un message non routé (aucune queue binding) est perdu."
+    "question": "async void vs async Task — La confusion la plus dangereuse",
+    "answer": "**`async Task`** : méthode awaitable. Les exceptions sont capturées dans la Task et propagées à l'appelant via `try/catch`. La méthode peut être attendue, testée, composée. ◆ **`async void`** : NON awaitable. Les exceptions ne sont PAS capturées dans la Task — elles sont lancées directement sur le SynchronizationContext → crash du process entier sans possibilité de try/catch. ◆ **SEUL usage légitime de `async void`** : event handlers UI obligatoires : `private async void Button_Click(object sender, EventArgs e)`. La signature est imposée par le framework. ◆ **Erreur classique** : `private async void ProcessMessage(Message msg) { await repo.SaveAsync(msg); }` → si `SaveAsync` lève une exception → process crash → messages perdus. ◆ **Le piège silencieux** : le compilateur compile `async void` sans erreur NI avertissement. C'est une bombe à retardement qui ne se manifeste qu'en production sous charge. ◆ **Règle absolue** : dans tout code non-UI, si tu veux écrire `async void` → écris `async Task` à la place."
   },
   {
-    "question": "async/await — Fonctionnement interne, libération de thread, règles",
-    "answer": "**Sans async (bloquant)** : `var data = GetData();` — le thread attend, immobilisé pendant toute la durée de l'I/O. Sur ASP.NET Core : si 200 requêtes simultanées chacune attendant 100ms SQL → 200 threads bloqués → pool de threads épuisé → nouvelles requêtes en attente. ◆ **Avec async** : `var data = await GetDataAsync();` — le thread est libéré pendant l'attente I/O, il revient dans le pool et peut traiter d'autres requêtes. Quand le résultat SQL arrive, un thread (pas forcément le même) reprend l'exécution après le `await`. ◆ **Règle du bout en bout** : si une méthode utilise `await`, elle doit être `async Task` jusqu'au contrôleur. Interrompre la chaîne avec `.Result` ou `.Wait()` = deadlock potentiel. ◆ **CancellationToken** : `async Task GetDataAsync(CancellationToken ct)` — si le client ferme la connexion, l'opération est annulée proprement. ◆ **⚠️ Point de confusion majeur** : `async` ne rend pas le code plus rapide pour une seule requête — il améliore la scalabilité (plus de requêtes simultanées avec moins de threads)."
+    "question": "Task.WhenAll vs Task.WhenAny — Parallélisme logique async",
+    "answer": "**`Task.WhenAll`** : lance N tâches async SIMULTANÉMENT, attend que TOUTES soient terminées. `await Task.WhenAll(t1, t2, t3)` — durée totale = durée de la plus LONGUE (pas la somme). ◆ **Exemple** : `var t1 = ComputeDeltaAsync(); var t2 = ComputeVegaAsync(); var t3 = CheckLimitsAsync(); await Task.WhenAll(t1, t2, t3)` — 20ms + 25ms + 15ms → 25ms au lieu de 60ms séquentiel. ◆ **Erreur fréquente** : `await t1; await t2; await t3;` — séquentiel ! t1 doit finir avant que t2 commence. ◆ **`Task.WhenAny`** : attend que LA PREMIÈRE tâche se termine. Utile pour : timeout (`Task.WhenAny(operation, Task.Delay(5000))` — prendre le résultat si l'opération finit avant 5s). ◆ **Exceptions dans WhenAll** : si une tâche lève une exception, `WhenAll` collecte toutes les exceptions dans une `AggregateException`. Les autres tâches continuent quand même jusqu'à leur fin. ◆ **`Task.WhenAll` ≠ parallélisme CPU** : les tâches sont async I/O-bound — elles attendent des résultats réseau/BD, pas du calcul CPU."
   },
   {
-    "question": "async void vs async Task — La confusion la plus dangereuse en C#",
-    "answer": "**`async Task`** : méthode awaitable. Les exceptions sont capturées et propagées à l'appelant. `await MaMethodeAsync()` — l'appelant peut gérer l'exception avec `try/catch`. La méthode peut être attendue (testable, composable). ◆ **`async void`** : NON awaitable. Les exceptions NE sont PAS capturées — elles plantent le process entier sans possibilité de try/catch. Utilisable UNIQUEMENT pour les event handlers UI (obligation de signature) : `private async void Button_Click(object sender, EventArgs e)`. ◆ **Pourquoi c'est dangereux** : `private async void ProcessMessage(Message msg) { await _repo.SaveAsync(msg); }` → si `SaveAsync` lève une exception → le process crash → tous les messages en cours sont perdus. ◆ **Règle absolue** : toujours `async Task`, sauf event handlers. `async void` dans un service backend = bombe à retardement. ◆ **⚠️ Point de confusion** : les deux se compilent sans erreur — le compilateur n'avertit pas pour `async void`. C'est une erreur silencieuse."
+    "question": "Parallel.For et Parallel.ForEach — Parallélisme CPU-bound",
+    "answer": "**Usage** : remplacer une boucle `for/foreach` séquentielle par une exécution parallèle sur tous les cœurs CPU. ◆ **`Parallel.For`** : `Parallel.For(0, N_SIMULATIONS, i => { payoffs[i] = SimulatePath(option, marketData); });` — .NET découpe automatiquement les itérations entre les cœurs. Sur 8 cœurs : ~8× plus rapide pour du calcul pur. ◆ **`Parallel.ForEach`** : `var results = new ConcurrentBag<Greeks>(); Parallel.ForEach(optionsBook, opt => { results.Add(opt.ComputeGreeks(marketData)); });` ◆ **`ParallelOptions`** : `new ParallelOptions { MaxDegreeOfParallelism = Environment.ProcessorCount }` — limiter le nombre de threads pour ne pas saturer le CPU. ◆ **⚠️ Thread-safety obligatoire** : les lambdas partagent la mémoire du processus — utiliser `ConcurrentBag<T>`, `ConcurrentDictionary<K,V>`, `Interlocked`, ou des variables locales indexées (`decimal[] results = new decimal[N]` + accès par index). ◆ **⚠️ NE PAS utiliser** sur des I/O-bound (DB, réseau) — utiliser `async/await` + `Task.WhenAll` à la place. `Parallel.For` est fait pour du CPU pur."
   },
   {
-    "question": "Task vs Thread — Différences fondamentales et quand utiliser chaque",
-    "answer": "**Thread** : `new Thread(() => { DoWork(); }).Start()` — crée un thread OS dédié. Lourd (~1MB de stack), géré manuellement (Start, Join, Abort). Pas de valeur de retour native. Pas de composition. ◆ **Task** : `Task.Run(() => DoWork())` — utilise le ThreadPool géré par .NET. Léger, recyclé entre les opérations. Valeur de retour (`Task<T>`). Composable (`Task.WhenAll`, `ContinueWith`). ◆ **Quand utiliser Thread** : opérations longues (thread dédié pour un consommateur RabbitMQ qui tourne indéfiniment), cas où le contrôle précis du thread est nécessaire. ◆ **Quand utiliser Task** : tout le reste — calculs parallèles, opérations async, parallélisme logique. ◆ **ThreadPool** : `Thread` crée un thread neuf. `Task.Run` prend un thread du pool (déjà créé). Créer 1000 `Thread` = 1000 threads OS = ~1GB de stack. 1000 `Task.Run` = réutilise ~20-50 threads du pool. ◆ **⚠️ Point de confusion** : `await` ne crée PAS un thread — il libère un thread. La confusion entre 'parallélisme' et 'asynchronisme' est très fréquente."
+    "question": "Parallel.Invoke — Lancer des méthodes différentes en parallèle",
+    "answer": "**Usage** : exécuter plusieurs méthodes DIFFÉRENTES en parallèle (pas des itérations sur une collection). ◆ **Syntaxe** : `Parallel.Invoke( () => LoadMarketData(), () => LoadPositions(), () => LoadRiskLimits() );` — les trois méthodes s'exécutent simultanément sur des threads séparés, `Parallel.Invoke` attend que toutes soient terminées. ◆ **Différence avec `Task.WhenAll`** : `Parallel.Invoke` est synchrone (bloque le thread appelant jusqu'à la fin de toutes les actions). `Task.WhenAll` est async (libère le thread appelant pendant l'attente). ◆ **Cas d'usage** : initialisation parallèle au démarrage d'une application (charger plusieurs données indépendantes en même temps), opérations CPU-bound distinctes. ◆ **Retour de valeurs** : `Parallel.Invoke` ne retourne pas de valeur. Pour récupérer des résultats, utiliser des variables capturées par les lambdas ou `Task.WhenAll` avec `Task<T>`. ◆ **⚠️ Attention** : les actions partagent la mémoire — synchroniser les accès aux variables partagées."
   },
   {
-    "question": "LINQ — Where, Select, OrderBy, GroupBy, FirstOrDefault — Syntaxe et pièges",
-    "answer": "**Where** : `trades.Where(t => t.Price > 100 && t.Status == \"Active\")` — filtre, retourne `IEnumerable<T>`. ◆ **Select** : `trades.Select(t => new TradeDto(t.Id, t.Price))` — projection, transforme chaque élément. `Select` retourne toujours autant d'éléments qu'en entrée. ◆ **SelectMany** : aplatit une collection de collections. `desks.SelectMany(d => d.Trades)` — toutes les trades de tous les desks en une seule liste. ◆ **OrderBy / ThenBy** : `trades.OrderBy(t => t.Maturity).ThenBy(t => t.Strike)` — tri multi-niveaux. ◆ **GroupBy** : `trades.GroupBy(t => t.Desk).Select(g => new { Desk = g.Key, Total = g.Sum(t => t.Notional) })` ◆ **FirstOrDefault / SingleOrDefault** : `FirstOrDefault()` = premier élément ou `null` si vide. `SingleOrDefault()` = un seul élément attendu, exception si plusieurs. ◆ **⚠️ Point de confusion** : `Select` ≠ filtre — c'est une projection. Pour filtrer : `Where`. `First()` lève une exception si la collection est vide. `FirstOrDefault()` retourne `null`."
+    "question": "PLINQ — Parallel LINQ, AsParallel(), requêtes parallèles sur collections",
+    "answer": "**PLINQ** : version parallèle de LINQ. Ajouter `.AsParallel()` à une requête LINQ pour la distribuer sur plusieurs cœurs. ◆ **Syntaxe** : `var results = options.AsParallel().Where(o => o.Delta > 0.5m).Select(o => o.ComputeGreeks(md)).ToList();` — .NET découpe la collection, distribue sur les cœurs, réassemble les résultats. ◆ **`.AsOrdered()`** : `options.AsParallel().AsOrdered().Select(...)` — préserve l'ordre original des éléments (au coût d'une synchronisation supplémentaire). ◆ **`.WithDegreeOfParallelism(n)`** : `options.AsParallel().WithDegreeOfParallelism(4).Select(...)` — limiter à 4 threads. ◆ **`.ForAll()`** : alternative parallèle à `foreach` dans PLINQ — `options.AsParallel().ForAll(o => process(o))` — plus rapide que `.ToList()` + `foreach` si on n'a pas besoin du résultat. ◆ **⚠️ Quand NE PAS utiliser PLINQ** : collections petites (< quelques milliers d'éléments) — l'overhead de parallélisation dépasse le gain. Collections ordonnées où l'ordre importe. Opérations avec effets de bord non thread-safe."
   },
   {
-    "question": "LINQ — Exécution différée vs immédiate — Le piège des IEnumerable",
-    "answer": "**Exécution différée** : `IEnumerable<T>` — la requête n'est PAS exécutée à la ligne du `Where`/`Select`. Elle est exécutée au moment de l'itération (`foreach`, `.ToList()`, `.Count()`, `.Any()`). ◆ **Démonstration** : `var query = trades.Where(t => t.Price > 100);` ← requête construite, pas exécutée. `var result = query.ToList();` ← requête exécutée ici. ◆ **Conséquence piège** : `var q = trades.Where(t => t.Price > 100); trades.Clear(); var list = q.ToList();` → la liste est vide — la requête lit `trades` au moment de `.ToList()`, pas au moment du `Where`. ◆ **Exécution immédiate** : `.ToList()`, `.ToArray()`, `.Count()`, `.Any()`, `.First()`, `.Sum()`, `.Max()`, `.Min()` — forcent l'exécution. ◆ **IQueryable vs IEnumerable** : `IQueryable` traduit en SQL (exécuté côté serveur). `IEnumerable` exécuté côté client après chargement. `db.Trades.Where(...)` = `IQueryable` → SQL filtré. `db.Trades.ToList().Where(...)` = `IEnumerable` → TOUT chargé en mémoire, puis filtré en C#. ◆ **⚠️ Point de confusion** : appeler `.ToList()` trop tôt est l'une des erreurs de performance LINQ les plus fréquentes."
+    "question": "CancellationToken — Annulation coopérative des opérations async",
+    "answer": "**Problème** : un client HTTP ferme la connexion pendant un calcul long. Sans annulation : le serveur continue à calculer → gaspillage de ressources. ◆ **`CancellationTokenSource`** : crée et contrôle l'annulation. `var cts = new CancellationTokenSource(); cts.CancelAfter(TimeSpan.FromSeconds(5)); var ct = cts.Token;` ◆ **Propagation** : `async Task<decimal> ComputeVarAsync(Portfolio p, CancellationToken ct) { await Task.Delay(1000, ct); /* simulation */ ct.ThrowIfCancellationRequested(); return result; }` ◆ **Dans ASP.NET Core** : le controller reçoit automatiquement `HttpContext.RequestAborted` comme `CancellationToken` — si le client ferme la connexion, le token est annulé → propagé aux appels SQL/réseau en aval. `public async Task<IActionResult> Get(CancellationToken ct) { var data = await _service.GetAsync(ct); }` ◆ **Annulation coopérative** : le token ne FORCE pas l'arrêt — il signale l'intention. Le code doit vérifier `ct.IsCancellationRequested` ou appeler `ct.ThrowIfCancellationRequested()` aux points d'annulation. ◆ **`OperationCanceledException`** : exception levée lors de l'annulation — l'attraper séparément des autres exceptions."
   },
   {
-    "question": "First() vs FirstOrDefault() vs Single() vs SingleOrDefault() — Tableau des différences",
-    "answer": "**`First()`** : premier élément — lance `InvalidOperationException` si la collection est VIDE. ◆ **`FirstOrDefault()`** : premier élément ou `null` (ou valeur par défaut du type) si vide — ne plante JAMAIS. ◆ **`Single()`** : exactement un seul élément — lance `InvalidOperationException` si vide OU si plus d'un élément. ◆ **`SingleOrDefault()`** : zéro ou un élément — retourne `null` si vide, lance si plus d'un. ◆ **Quand utiliser quoi** : `First()` = je sais que la collection n'est pas vide (données critiques, logique garantie). `FirstOrDefault()` = la collection peut être vide (recherche optionnelle). `Single()` = je veux exactement 1 résultat et c'est une erreur s'il y en a 0 ou 2 (chercher par clé primaire). `SingleOrDefault()` = 0 ou 1 résultat attendu. ◆ **Exemple CIB** : `var trade = trades.FirstOrDefault(t => t.Id == id);` puis `if (trade == null) return NotFound();`. NE PAS faire : `var trade = trades.First(t => t.Id == id)` si l'ID peut ne pas exister — exception en production. ◆ **⚠️ Point de confusion** : `First()` n'est PAS 'meilleur' que `FirstOrDefault()`. Utiliser le bon selon le contrat métier."
+    "question": "Thread-safety — Race conditions, lock, ConcurrentDictionary, Interlocked",
+    "answer": "**Race condition** : deux threads lisent-modifient-écrivent la même variable simultanément → résultat imprévisible. `count++` n'est PAS atomique (lire, incrémenter, écrire = 3 opérations). ◆ **`lock`** : `private readonly object _syncObj = new(); lock(_syncObj) { _cache[key] = value; }` — garantit qu'un seul thread exécute le bloc à la fois. Simple mais bloquant. ◆ **`Interlocked`** : opérations atomiques sans lock. `Interlocked.Increment(ref _counter)` — incrément thread-safe. `Interlocked.Exchange(ref _surface, newSurface)` — swap atomique d'une référence. ◆ **`ConcurrentDictionary<K,V>`** : `_cache.GetOrAdd(isin, _ => LoadFromDb(isin))` — thread-safe sans lock explicite. ◆ **`ConcurrentBag<T>`** : collection thread-safe pour ajouts parallèles sans ordre garanti. Idéal avec `Parallel.ForEach`. ◆ **`volatile`** : indique au compilateur de ne pas mettre en cache la variable — garantit la visibilité entre threads. `private volatile bool _isRunning;` ◆ **⚠️ Règle d'or** : minimiser les données partagées entre threads. Préférer les variables locales (thread-local) aux variables partagées."
   },
   {
-    "question": "Producteur et Consommateur — Pattern fondamental des architectures distribuées",
-    "answer": "**Producteur** : service qui crée et envoie des messages. `TradeService` crée un trade et publie `TradeBooked` sur RabbitMQ. Il n'attend pas que le message soit traité — il continue immédiatement. ◆ **Consommateur** : service qui lit et traite les messages. `RiskService` écoute `TradeBooked`, calcule les Greeks, vérifie les limites. Il traite à son propre rythme. ◆ **Backpressure** : si le producteur est plus rapide que le consommateur, la queue grossit. Solutions : ajouter des consommateurs (scale out), ou bounded queue avec rejet/attente. ◆ **Competing consumers** : plusieurs instances de `RiskService` consomment la même queue — chaque message est traité par un seul consommateur. RabbitMQ distribue les messages en round-robin. ◆ **Fan-out** : un message `TradeBooked` consommé par `RiskService` ET `AuditService` ET `BlotterService` simultanément — chacun a sa propre queue. ◆ **⚠️ Point de confusion** : dans RabbitMQ, un message est délivré à UNE SEULE queue par défaut (Direct/Topic). Pour le fan-out, utiliser un Fanout Exchange ou plusieurs bindings."
+    "question": "Async sur serveur web — ASP.NET Core, ThreadPool, scalabilité",
+    "answer": "**Serveur web synchrone (problème)** : 500 req/sec × 200ms SQL = 100 threads bloqués en permanence. Le ThreadPool s'épuise → nouvelles requêtes attendent → latence explose → crash. Historiquement, .NET avait cette réputation d'inefficacité vs Node.js. ◆ **Serveur web async (solution)** : Thread reçoit la requête HTTP → lance `await sql.QueryAsync()` → retourne AU POOL libre → thread 2 reçoit la requête HTTP 2 → lance `await sql.QueryAsync()` → retourne au pool → résultat SQL 1 arrive → n'importe quel thread libre traite et répond. Avec 2 threads, on peut gérer 100 requêtes simultanées ! ◆ **Node.js comparison** : JavaScript mono-thread, forcé d'être async depuis le début → très efficient en web. .NET multi-thread mais souvent mal utilisé (synchrone). Avec async/await, ASP.NET Core est aussi efficace que Node.js. ◆ **Docker + cloud** : scalabilité horizontale — pas besoin de plus de threads sur une machine. Ajouter plus de containers Docker. Chaque container peut avoir 1 seul cœur virtuel. ◆ **Pas besoin de Parallel** : le parallélisme web est géré AUTOMATIQUEMENT par le serveur (distribution HTTP sur les threads du pool). Le développeur doit seulement écrire async/await."
   },
   {
-    "question": "Résilience et gestion d'erreurs — Retry, Circuit Breaker, Dead-Letter Queue",
-    "answer": "**Retry** : retenter automatiquement les opérations transitoires. Avec Polly : `Policy.Handle<HttpRequestException>().WaitAndRetry(3, r => TimeSpan.FromSeconds(Math.Pow(2, r)))` — 3 tentatives avec backoff exponentiel (2s, 4s, 8s). Ne pas retenter les erreurs permanentes (401, 404). ◆ **Circuit Breaker** : après N erreurs consécutives, ouvrir le circuit 30s. Le service ne tente plus d'appeler le service down — réponse immédiate de refus. Se referme progressivement (half-open) pour tester la récupération. ◆ **Dead-Letter Queue** : message en erreur après N tentatives → redirigé vers la DLQ. L'équipe inspecte, corrige l'anomalie, rejoue. Sans DLQ : le message est perdu ou bloque la queue. ◆ **Timeout** : toujours configurer un timeout sur les `HttpClient`. Sans timeout : si le service distant ne répond jamais, le thread est bloqué indéfiniment. `client.Timeout = TimeSpan.FromSeconds(5)` ◆ **⚠️ Point de confusion** : Circuit Breaker ≠ Retry. Le retry retente sur erreur transitoire. Le circuit breaker arrête de tenter quand le service est clairement down — économise les ressources et accélère la détection de pannes."
+    "question": "ValueTask vs Task — Optimisation pour les chemins de code fréquents",
+    "answer": "**`Task`** : toujours alloué sur le heap — même si le résultat est disponible immédiatement (cache hit). Pour 1M de calls/sec, 1M d'allocations Task → pression GC. ◆ **`ValueTask<T>`** : struct (type valeur) — si le résultat est disponible synchronement (cache hit), ZÉRO allocation. `public ValueTask<string> GetFromCacheAsync(string key) { if(_cache.TryGetValue(key, out var val)) return new ValueTask<string>(val); return new ValueTask<string>(LoadFromDatabaseAsync(key)); }` ◆ **Quand utiliser `ValueTask`** : méthodes appelées très fréquemment avec un chemin de code synchrone commun (cache, hot path). ◆ **Quand garder `Task`** : la grande majorité des cas. `ValueTask` a des restrictions : ne peut être `await`-é qu'UNE SEULE FOIS, ne peut pas être mis en cache/partagé entre plusieurs awaiters. ◆ **`Task.FromResult()`** : créer une Task déjà complète avec une valeur. `return Task.FromResult(cachedValue);` — pour les implémentations synchrones d'interfaces async. ◆ **`Task.CompletedTask`** : Task déjà complète sans valeur. Pour les méthodes `async Task` qui n'ont rien à await."
   },
   {
-    "question": "Versioning d'API REST — URL, Header, négociation de contenu",
-    "answer": "**URL versioning** : `/api/v1/trades`, `/api/v2/trades` — le plus explicite. Visible dans les logs, simple à tester, simple à documenter. ◆ **Header versioning** : `Api-Version: 2` dans le header HTTP — URL propre, moins visible. `[ApiVersion(\"2.0\")][MapToApiVersion(\"2.0\")] public IActionResult GetV2()` ◆ **Query string** : `/api/trades?api-version=2` — facile à tester dans un navigateur, peu recommandé en production. ◆ **Pourquoi versionner** : un contrat JSON modifié (ajout de champ obligatoire, renommage) casse les clients qui n'ont pas encore migré. V1 doit rester stable pendant la période de migration. ◆ **Stratégie de dépréciation** : `Deprecation: true` header + `Sunset: 2025-06-01` — les clients ont un délai pour migrer. ◆ **⚠️ Point de confusion** : ajouter un champ OPTIONNEL au JSON est backward compatible (V1 clients ignorent le nouveau champ). Rendre un champ obligatoire ou le renommer est un breaking change nécessitant une nouvelle version."
+    "question": "Deadlocks async — .Result, .Wait(), et le contexte de synchronisation",
+    "answer": "**Deadlock classique** : `public string GetData() { return GetDataAsync().Result; }` dans ASP.NET Framework ou WPF. ◆ **Pourquoi ça bloque** : `GetDataAsync()` est awaité sur le contexte de synchronisation (thread UI ou thread ASP.NET). `.Result` bloque CE thread en attendant. La continuation de `GetDataAsync()` a besoin de se réexécuter sur CE MÊME thread → impasse totale. ◆ **Cas où `.Result` est 'safe'** : dans une application console (pas de contexte de sync), dans une méthode `static void Main` (avant .NET 5). ◆ **Solution correcte** : `await` jusqu'au bout de la chaîne. Jamais `.Result` ni `.Wait()` dans du code async. ◆ **`ConfigureAwait(false)`** : `await GetDataAsync().ConfigureAwait(false)` — ne capture pas le contexte de sync → la continuation peut s'exécuter sur n'importe quel thread → évite le deadlock dans les bibliothèques. À utiliser dans les libraries/NuGet packages, PAS dans le code UI ou les controllers ASP.NET Core (ASP.NET Core n'a plus de SynchronizationContext de toute façon). ◆ **Outils de diagnostic** : Visual Studio Debugger → onglet Threads → identifier les threads en attente."
   },
   {
-    "question": "Sécurité des échanges — HTTPS, JWT, Validation des inputs, Secrets",
-    "answer": "**HTTPS** : chiffre les données en transit. Obligatoire en finance. `app.UseHsts(); app.UseHttpsRedirection();` ◆ **JWT (JSON Web Token)** : token signé contenant des claims (userId, rôle, desk, expiration). Vérifié côté serveur sans accès DB — stateless. `[Authorize] [HttpPost] public IActionResult BookTrade(...)` — 401 si token absent ou invalide. ◆ **Validation des inputs** : `[Required][Range(0.01, 1_000_000)] public decimal Notional { get; set; }` — `[ApiController]` retourne 400 automatiquement si invalide. FluentValidation pour les règles métier complexes. ◆ **Secrets** : jamais de credentials dans le code source ou les fichiers appSettings versionnés. Utiliser `User Secrets` (dev), `Azure Key Vault` ou variables d'environnement (prod). ◆ **SQL Injection** : utiliser uniquement des requêtes paramétrées ou ORM. `WHERE Id = @id` (Dapper) ou `Where(t => t.Id == id)` (EF Core) — jamais concaténer des inputs utilisateur dans du SQL. ◆ **⚠️ Point de confusion** : JWT ≠ chiffrement — le payload est lisible (Base64), pas secret. JWT = signé (authentification). Utiliser HTTPS pour le chiffrement."
+    "question": "async Main, IAsyncEnumerable et les nouveautés async C#",
+    "answer": "**`async Main`** (C# 7.1+) : `static async Task Main(string[] args) { await RunAsync(); }` — le point d'entrée peut être async. Avant : obligation de `.GetAwaiter().GetResult()` dans Main → deadlock possible. ◆ **`IAsyncEnumerable<T>`** (C# 8+) : énumérable async — `await foreach(var item in GetItemsAsync()) { process(item); }`. Utile pour : lire des lignes d'un fichier volumineux une par une, streamer des résultats de BD, lire un flux réseau progressivement sans tout charger en mémoire. ◆ **`yield return` async** : `async IAsyncEnumerable<Trade> GetTradesAsync() { await foreach(var row in db.QueryAsync(sql)) { yield return MapTrade(row); } }` ◆ **`Channel<T>`** (remplace `ConcurrentQueue` + polling) : `Channel<Order>.CreateBounded(1000)` — pipeline producteur/consommateur async avec backpressure. Le producteur `await writer.WriteAsync(order)` — attend si plein. Le consommateur `await foreach(var order in reader.ReadAllAsync())` — attend s'il n'y a rien. ◆ **`SemaphoreSlim` async** : `await semaphore.WaitAsync(ct)` — limiter le nombre de tâches parallèles (throttling). Utile pour ne pas envoyer 1000 requêtes simultanées à une API externe."
   },
   {
-    "question": "Traçabilité inter-services — Correlation ID, Structured Logging, Distributed Tracing",
-    "answer": "**Correlation ID** : UUID généré à l'entrée du système, propagé dans tous les headers et logs. `X-Correlation-ID: 550e8400-e29b-41d4-a716-446655440000` — permet de retrouver tous les événements d'une requête dans tous les services. ◆ **Structured Logging** : `_logger.LogInformation(\"Trade booked {TradeId} {ISIN} {Desk} {Notional}\", trade.Id, trade.Isin, trade.Desk, trade.Notional)` — chaque propriété est indexée séparément dans Elasticsearch. Recherche `TradeId=12345` retrouve tous les logs liés. ◆ **Serilog** : `Log.ForContext(\"TradeId\", id).ForContext(\"Service\", \"BookingService\").Information(\"Processing...\")` ◆ **OpenTelemetry** : standard de tracing distribué. Chaque service crée un span. Jaeger/Zipkin reconstituent le chemin complet. ◆ **⚠️ Point de confusion** : les logs textuels (sans structured logging) ne peuvent pas être filtrés efficacement. `LogError(\"Error for trade \" + tradeId)` = texte non indexé. `LogError(\"Error for trade {TradeId}\", tradeId)` = propriété indexée."
+    "question": "Parallel LINQ (PLINQ) avancé — Partitionnement, ordre, exceptions",
+    "answer": "**Partitionnement automatique** : PLINQ divise la collection en partitions (une par thread). Par défaut : partitions de taille égale (Range partitioning). Pour des tâches de durée inégale : `Partitioner.Create(collection, EnumerablePartitionerOptions.NoBuffering)` — partitionnement dynamique (les threads 'rapides' prennent plus d'éléments). ◆ **Gestion des exceptions** : si plusieurs tâches lèvent des exceptions, PLINQ les collecte dans une `AggregateException`. `try { options.AsParallel().ForAll(o => o.ComputeGreeks()); } catch(AggregateException ae) { foreach(var ex in ae.InnerExceptions) logger.Log(ex); }` ◆ **`.WithCancellation(ct)`** : `options.AsParallel().WithCancellation(ct).Select(...)` — annuler la requête parallèle via un token. ◆ **Mesure des gains** : `Stopwatch.StartNew()` + benchmarks. PLINQ peut être PLUS LENT que LINQ normal pour : petites collections (< 1000 éléments), opérations très rapides (overhead de synchronisation > gain), collections non-indexables (LinkedList). ◆ **`AsSequential()`** : forcer une partie de la pipeline PLINQ à s'exécuter séquentiellement (ex: opérations ordonnées, effets de bord)."
   },
   {
-    "question": "Entity Framework Core + LINQ — Requêtes efficaces sur la base de données",
-    "answer": "**DbContext** : `public class MapsDbContext : DbContext { public DbSet<Trade> Trades { get; set; } public DbSet<Instrument> Instruments { get; set; } }` ◆ **Requête simple** : `var trades = await _ctx.Trades.Where(t => t.DeskId == deskId && t.TradeDate >= DateTime.Today).AsNoTracking().ToListAsync(ct);` ◆ **Include (jointure)** : `var trades = await _ctx.Trades.Include(t => t.Instrument).Where(...).ToListAsync();` — charge les instruments en même temps (évite N+1). ◆ **Projection** : `var dtos = await _ctx.Trades.Select(t => new TradeDto(t.Id, t.Instrument.Isin, t.Notional)).ToListAsync();` — SQL ne charge que les colonnes nécessaires. ◆ **AsNoTracking** : pour les lectures seules — EF Core ne surveille pas les modifications, 2× plus rapide. ◆ **⚠️ Anti-pattern N+1** : `foreach(var trade in trades) { var instr = _ctx.Instruments.Find(trade.InstrumentId); }` → 1 requête pour les trades + N requêtes pour les instruments. Correction : `Include(t => t.Instrument)` = 1 seule requête SQL avec JOIN."
+    "question": "Patterns d'architecture async — Fire-and-forget, Outbox, IHostedService",
+    "answer": "**Fire-and-forget (dangereux)** : `_ = SendNotificationAsync(trade)` — lancer sans attendre. Problème : les exceptions sont silencieusement avalées, les erreurs passent inaperçues. À éviter dans le code de production. ◆ **Fire-and-forget SAFE** : `_ = SendNotificationAsync(trade).ContinueWith(t => logger.LogError(t.Exception, \"Notification failed\"), TaskContinuationOptions.OnlyOnFaulted);` — logger les erreurs. ◆ **`IHostedService` / `BackgroundService`** : le pattern correct pour les tâches de fond en ASP.NET Core. `protected override async Task ExecuteAsync(CancellationToken ct) { while(!ct.IsCancellationRequested) { await ProcessQueueAsync(ct); await Task.Delay(1000, ct); } }` ◆ **Outbox Pattern** : au lieu de publier directement sur RabbitMQ (deux opérations non atomiques), sauvegarder le message dans la DB (même transaction que l'entité), puis un `IHostedService` publie les messages non-envoyés. Garantie de livraison sans transaction distribuée. ◆ **`Channel<T>` comme pipeline** : le controller écrit dans le channel (`await writer.WriteAsync(req, ct)`), un `IHostedService` lit et traite (`await foreach(var req in reader.ReadAllAsync(ct))`). Découplage parfait, backpressure native."
   },
   {
-    "question": "Cas pratique complet — Trade CIB de la saisie à la base de données",
-    "answer": "**Étape 1 — Saisie** : le trader POSTs `{ TradeId: 1, ISIN: \"FR0000131104\", Notional: 500000, Price: 52.3 }` sur `POST /api/v1/trades`. ◆ **Étape 2 — API REST** : `[Authorize][HttpPost] public async Task<IActionResult> Book([FromBody] BookingRequest req, CancellationToken ct)` — JWT validé, inputs validés (Notional > 0), ISIN format vérifié. ◆ **Étape 3 — Service** : `var isin = await _isinService.ResolveAsync(req.Isin, ct)` (cache Redis → Sophis). `var trade = await _tradeService.BookAsync(req, ct)`. ◆ **Étape 4 — Sérialisation JSON** : `JsonSerializer.Serialize(trade)` pour la publication sur RabbitMQ. ◆ **Étape 5 — MSMQ/RabbitMQ** : `await _bus.PublishAsync(\"trade.booked\", trade, ct)` — `RiskService`, `AuditService`, `BlotterService` consomment l'événement. ◆ **Étape 6 — async/await** : tous les appels DB, Sophis, RabbitMQ sont `await` — aucun thread bloqué. ◆ **Étape 7 — LINQ** : `_ctx.Trades.Where(t => t.DeskId == deskId).Sum(t => t.Notional)` — exposition nette du desk mise à jour. ◆ **Étape 8 — Réponse** : 201 Created + `{ tradeId: \"...\", location: \"/api/v1/trades/...\" }`."
+    "question": "Comparaison C# vs JavaScript — Async, threads, architecture web",
+    "answer": "**JavaScript** : mono-thread par conception. TOUTE l'exécution est sur un seul thread. Async est la SEULE façon de ne pas bloquer. Event loop : une queue de callbacks exécutés séquentiellement. `await fetch(url)` → callback mis en queue quand la réponse arrive. ◆ **C#** : multi-threads natif. Async est une OPTION (pas une obligation) mais une bonne pratique. ThreadPool géré par le runtime. SynchronizationContext pour les apps UI. ◆ **Node.js vs ASP.NET Core** : Node.js a longtemps été plus efficace car les devs .NET codaient en synchrone. Aujourd'hui, ASP.NET Core avec async/await est aussi efficace (ou plus) que Node.js. ◆ **Pourquoi Node.js était plus rapide** : les développeurs .NET classiques n'utilisaient pas async → threads bloqués → ThreadPool épuisé → latence. Node.js forcé d'être async → efficace par défaut. ◆ **Scalabilité cloud** : Docker containers avec 1 cœur virtuel × 100 containers = parallélisme horizontal. Chaque container avec async/await = efficace sur son cœur unique. Plus besoin de parallélisme intra-machine pour le web. ◆ **Conclusion** : C# offre async ET parallèle. JavaScript : async uniquement (Workers pour le parallèle). Les deux sont excellents en web avec async/await."
+  },
+  {
+    "question": "Récapitulatif — Choisir le bon outil : async vs Task.Run vs Parallel vs PLINQ",
+    "answer": "**I/O-bound (réseau, BD, fichiers)** → `async/await` + `Task.WhenAll` pour plusieurs I/O simultanées. NE PAS utiliser `Task.Run` ni `Parallel` pour l'I/O — gaspillage de threads CPU. ◆ **CPU-bound, itérations sur collection** → `Parallel.For` / `Parallel.ForEach` / PLINQ. ◆ **CPU-bound, méthodes différentes en parallèle** → `Parallel.Invoke`. ◆ **CPU-bound depuis contexte async** → `await Task.Run(() => HeavyCalc())` — libère le thread async et soumet le calcul au ThreadPool. ◆ **Flux de données continu** → `IAsyncEnumerable<T>` + `await foreach`. ◆ **Pipeline producteur/consommateur** → `Channel<T>`. ◆ **Tâche de fond récurrente** → `BackgroundService` / `IHostedService`. ◆ **⚠️ Anti-patterns à bannir** : `async void` (sauf event handlers), `.Result` / `.Wait()` sur du code async, `Parallel.ForEach` sur des I/O-bound, `Task.Run` inutile wrappant du code déjà async, fire-and-forget sans gestion d'erreur."
   }
 ];
 
 const questions = {
   moyen: [
     {
-      "question": "[Terme → Définition] Qu'est-ce qu'un microservice dans une architecture CIB comme MAPS ?",
+      "question": "[Confusion fondamentale] Quelle est la différence entre programmation asynchrone et programmation parallèle ?",
       "options": [
-        "Une petite classe C# qui fait une seule chose.",
-        "Un service indépendant avec sa propre base de données, sa propre logique métier et son propre déploiement, communicant avec les autres via API ou MessageQueue.",
-        "Un service qui dépend d'une base de données partagée avec tous les autres services.",
-        "Un composant interne d'une application monolithique."
+        "Ce sont deux termes synonymes — les deux font tourner des tâches simultanément.",
+        "L'asynchronisme évite de BLOQUER un thread pendant une attente (I/O). Le parallélisme exécute plusieurs calculs SIMULTANÉMENT sur plusieurs cœurs CPU. L'async ne nécessite PAS plusieurs cœurs.",
+        "Le parallélisme est pour le serveur, l'async est pour le client.",
+        "L'async utilise des threads, le parallélisme utilise des processus."
       ],
-      "answer": "Un service indépendant avec sa propre base de données, sa propre logique métier et son propre déploiement, communicant avec les autres via API ou MessageQueue.",
-      "explanation": "Le principe fondamental d'un microservice : indépendance totale. Il ne partage pas sa DB, n'appelle pas directement les objets internes des autres services. En CIB : `TradeService`, `RiskService`, `InstrumentService` sont des projets C# séparés, déployés dans leurs propres containers Docker, communiquant via REST ou RabbitMQ. La DB partagée est l'anti-pattern n°1 des microservices — elle réintroduit le couplage qu'on cherchait à éliminer."
+      "answer": "L'asynchronisme évite de BLOQUER un thread pendant une attente (I/O). Le parallélisme exécute plusieurs calculs SIMULTANÉMENT sur plusieurs cœurs CPU. L'async ne nécessite PAS plusieurs cœurs.",
+      "explanation": "C'est LA distinction fondamentale du cours. Async = libérer un thread pendant qu'il attend (réseau, BD, disque) → scalabilité. Parallèle = plusieurs cœurs calculent en même temps → vitesse de calcul. Sur un serveur avec 1 seul cœur virtuel (cloud), l'async est indispensable, le parallélisme est impossible. Exemple : await sql.QueryAsync() = async (libère le thread 200ms). Parallel.For(calcul Monte Carlo) = parallèle (utilise les 8 cœurs)."
     },
     {
-      "question": "[Confusion] En C#, `JsonSerializer.Serialize(trade)` et `JsonSerializer.Deserialize<Trade>(json)` — laquelle transforme l'objet C# en texte JSON ?",
+      "question": "[Confusion] Que fait `await` sur un thread ? Crée-t-il un nouveau thread ?",
       "options": [
-        "Deserialize — elle lit et reconstruit l'objet.",
-        "Serialize — elle transforme l'objet C# en texte JSON (vers l'extérieur).",
-        "Les deux font la même chose dans des sens différents.",
-        "Aucune des deux — JSON.Parse est la méthode correcte en C#."
+        "Oui — `await` crée un nouveau thread en arrière-plan pour exécuter l'opération.",
+        "Non — `await` LIBÈRE le thread appelant dans le pool pendant l'attente I/O. Aucun thread n'est créé. Quand l'opération termine, un thread libre (pas forcément le même) reprend l'exécution.",
+        "`await` met le thread en veille (Sleep) jusqu'à ce que la tâche soit terminée.",
+        "`await` bloque le thread appelant et attend la fin de l'opération."
       ],
-      "answer": "Serialize — elle transforme l'objet C# en texte JSON (vers l'extérieur).",
-      "explanation": "Moyen mnémotechnique : Serialize = 'mettre en série' = transformer en texte plat pour transmettre. Deserialize = 'défaire la série' = reconstruire l'objet depuis le texte. En CIB : avant d'envoyer un trade sur RabbitMQ, on `Serialize` → texte JSON. Quand `RiskService` reçoit le message de la queue, il `Deserialize` → objet Trade C# qu'il peut manipuler."
+      "answer": "Non — `await` LIBÈRE le thread appelant dans le pool pendant l'attente I/O. Aucun thread n'est créé. Quand l'opération termine, un thread libre (pas forcément le même) reprend l'exécution.",
+      "explanation": "Confusion ultra-fréquente. `await` = 'libère le thread, continue quand c'est prêt'. Pas de création de thread. Le thread devient disponible pour d'autres requêtes HTTP pendant que la BD répond. C'est pourquoi 2 threads peuvent gérer 100 requêtes simultanées avec async : les threads ne sont jamais bloqués à attendre. `Task.Run()` lui, soumet un travail à un thread du pool (n'en crée pas non plus, mais utilise un thread existant)."
     },
     {
-      "question": "[Confusion] Quelle est la différence entre `async void` et `async Task` en C# ?",
+      "question": "[Terme → Définition] Qu'est-ce qu'un Thread Pool en .NET ?",
       "options": [
-        "Aucune différence — les deux s'utilisent indifféremment.",
-        "`async Task` est awaitable et propage les exceptions. `async void` n'est pas awaitable et les exceptions crashent le process — à utiliser SEULEMENT dans les event handlers UI.",
-        "`async void` est plus rapide car il ne crée pas de Task.",
-        "`async Task` bloque le thread, `async void` le libère."
+        "Une bibliothèque de gestion de bases de données.",
+        "Un ensemble de threads pré-créés et réutilisables — évite le coût de création/destruction de nouveaux threads à chaque opération. Le runtime .NET le gère automatiquement.",
+        "Un pool de connexions SQL Server partagées entre les threads.",
+        "Un groupe de processus qui partagent la même mémoire."
       ],
-      "answer": "`async Task` est awaitable et propage les exceptions. `async void` n'est pas awaitable et les exceptions crashent le process — à utiliser SEULEMENT dans les event handlers UI.",
-      "explanation": "Piège classique en entretien CIB : `async void ProcessMessage()` dans un service RabbitMQ → si une exception est lancée → le process crash sans catchable exception → messages perdus, service redémarre silencieusement. Règle absolue : toujours `async Task` dans les services backend. `async void` = event handlers WinForms/WPF uniquement (`Button_Click`). Le compilateur accepte les deux sans avertissement — erreur silencieuse."
+      "answer": "Un ensemble de threads pré-créés et réutilisables — évite le coût de création/destruction de nouveaux threads à chaque opération. Le runtime .NET le gère automatiquement.",
+      "explanation": "Créer un thread coûte environ 1MB de RAM (stack) + temps d'initialisation OS. Avec le ThreadPool : les threads sont créés une fois au démarrage et réutilisés. `Task.Run(...)` prend un thread du pool, l'utilise, le remet. ASP.NET Core utilise le ThreadPool pour gérer les requêtes HTTP. Par défaut, le pool commence avec ~nombre_de_cœurs threads et peut grandir à la demande. C'est pour ça que l'async est crucial : éviter de monopoliser ces threads précieux en les bloquant sur des I/O."
     },
     {
-      "question": "[Confusion] `First()` vs `FirstOrDefault()` sur une collection LINQ — Que se passe-t-il si la collection est vide ?",
+      "question": "[Confusion] `await t1; await t2;` — Est-ce que les deux tâches s'exécutent en parallèle ?",
       "options": [
-        "Les deux retournent `null` si la collection est vide.",
-        "`First()` lance `InvalidOperationException`. `FirstOrDefault()` retourne `null` (ou la valeur par défaut du type).",
-        "`First()` retourne `null`, `FirstOrDefault()` retourne la valeur par défaut.",
-        "Les deux lancent une exception si la collection est vide."
+        "Oui — les deux tâches sont lancées simultanément dès que le code est atteint.",
+        "Non — `await t1` attend que t1 soit TERMINÉE avant de lancer t2. C'est séquentiel. Pour le parallélisme async, utiliser `await Task.WhenAll(t1, t2)`.",
+        "Cela dépend du nombre de cœurs CPU disponibles.",
+        "Oui, si les deux méthodes sont marquées `async`."
       ],
-      "answer": "`First()` lance `InvalidOperationException`. `FirstOrDefault()` retourne `null` (ou la valeur par défaut du type).",
-      "explanation": "En production CIB : `trades.First(t => t.Id == id)` → si l'ID n'existe pas → exception non gérée → 500 Internal Server Error pour le trader. `trades.FirstOrDefault(t => t.Id == id)` → `null` → le code peut gérer le cas avec `if (trade == null) return NotFound()`. Règle : utiliser `FirstOrDefault()` pour les recherches et vérifier le null. Utiliser `First()` uniquement quand l'absence est une erreur logique garantie (ex: après un `Any()` qui a confirmé l'existence)."
+      "answer": "Non — `await t1` attend que t1 soit TERMINÉE avant de lancer t2. C'est séquentiel. Pour le parallélisme async, utiliser `await Task.WhenAll(t1, t2)`.",
+      "explanation": "Erreur très fréquente. `await t1; await t2;` = t1 finit → t2 commence. Si t1 = 20ms et t2 = 25ms → total 45ms. `await Task.WhenAll(t1, t2)` = t1 et t2 démarrent ensemble → total 25ms (la plus longue). Important : pour le vrai parallélisme, créer les Tasks AVANT le WhenAll : `var t1 = ComputeAsync1(); var t2 = ComputeAsync2(); await Task.WhenAll(t1, t2)`. Si on écrit `await Task.WhenAll(ComputeAsync1(), ComputeAsync2())` c'est aussi correct — les deux appels sont évalués avant d'entrer dans WhenAll."
     },
     {
-      "question": "[Terme → Définition] Qu'est-ce que MSMQ et pourquoi est-il utilisé dans MAPS plutôt qu'un appel HTTP direct ?",
+      "question": "[Confusion critique] Pourquoi `async void` est-il dangereux dans un service ?",
       "options": [
-        "MSMQ est une base de données rapide pour les messages temporaires.",
-        "MSMQ est une file de messages — si le service destinataire est down, le message attend. Avec HTTP direct, si le service est down, l'appel échoue immédiatement.",
-        "MSMQ est plus rapide qu'un appel HTTP pour tous les types de requêtes.",
-        "MSMQ est utilisé uniquement pour les communications entre bases de données."
+        "Il est plus lent que `async Task`.",
+        "Les exceptions d'une `async void` ne peuvent pas être catchées avec try/catch — elles crashent le process entier. La méthode ne peut pas être await-ée ni testée.",
+        "Il bloque le thread UI.",
+        "Il n'est pas supporté dans ASP.NET Core."
       ],
-      "answer": "MSMQ est une file de messages — si le service destinataire est down, le message attend. Avec HTTP direct, si le service est down, l'appel échoue immédiatement.",
-      "explanation": "Scénario CIB : `TradeService` book un trade et doit notifier `RiskService`. Si `RiskService` est en maintenance, HTTP = erreur immédiate, trade potentiellement non risqué. MSMQ = le message `TradeBooked` attend dans la queue. Quand `RiskService` redémarre, il traite tous les messages en attente — aucun trade n'est passé sous le radar. Ce découplage temporel est la valeur principale des message queues."
+      "answer": "Les exceptions d'une `async void` ne peuvent pas être catchées avec try/catch — elles crashent le process entier. La méthode ne peut pas être await-ée ni testée.",
+      "explanation": "`async void ProcessMessage(msg)` : si une exception se lève dans cette méthode, elle est lancée directement sur le SynchronizationContext → `UnhandledExceptionHandler` → le process crash. Pas moyen de faire `try { await ProcessMessage(msg); } catch(...)` car `async void` n'est pas awaitable. En production : le service plante silencieusement, tous les messages en cours perdus. Solution toujours : `async Task ProcessMessageAsync(msg)` + l'appeler avec `await`. Exception unique : event handlers UI (`Button_Click`) où la signature est imposée par le framework."
     },
     {
-      "question": "[Confusion] Quelle est la différence entre `IQueryable<T>` et `IEnumerable<T>` dans une requête EF Core sur la table des trades ?",
+      "question": "[Terme → Définition] Qu'est-ce que `Parallel.ForEach` et pour quel type d'opération est-il fait ?",
       "options": [
-        "Ce sont des types identiques — seule la syntaxe LINQ diffère.",
-        "`IQueryable<T>` traduit le filtre en SQL (exécuté en base). `IEnumerable<T>` charge TOUT en mémoire, puis filtre côté C#.",
-        "`IEnumerable<T>` est plus rapide car il n'a pas besoin de connexion SQL.",
-        "`IQueryable<T>` ne supporte pas le `Where` et le `Select`."
+        "Une version async de `foreach` pour les opérations réseau.",
+        "Une boucle foreach qui distribue les itérations sur plusieurs threads CPU simultanément — pour les opérations CPU-bound (calcul intensif). NE PAS utiliser pour les I/O (réseau, BD).",
+        "Un foreach qui annule automatiquement si une itération échoue.",
+        "Un foreach thread-safe qui utilise un lock interne sur chaque élément."
       ],
-      "answer": "`IQueryable<T>` traduit le filtre en SQL (exécuté en base). `IEnumerable<T>` charge TOUT en mémoire, puis filtre côté C#.",
-      "explanation": "Anti-pattern fréquent en CIB : `_ctx.Trades.ToList().Where(t => t.DeskId == deskId)` → `.ToList()` force l'exécution → `SELECT * FROM Trades` → charge 500 000 trades en RAM → `Where` filtre en C# les 50 qui appartiennent au desk. Correct : `_ctx.Trades.Where(t => t.DeskId == deskId).ToList()` → EF Core génère `SELECT * FROM Trades WHERE DeskId = @id` → 50 lignes en RAM. Sur une table de millions de trades en CIB, la différence est critique."
+      "answer": "Une boucle foreach qui distribue les itérations sur plusieurs threads CPU simultanément — pour les opérations CPU-bound (calcul intensif). NE PAS utiliser pour les I/O (réseau, BD).",
+      "explanation": "`Parallel.ForEach(options, opt => opt.ComputeGreeks(marketData))` — .NET découpe automatiquement la liste entre les cœurs. Sur 8 cœurs : 8 options calculées en même temps → ~8× plus rapide. À NE PAS utiliser pour `await sql.QueryAsync()` dans la lambda — les threads CPU se bloqueraient sur des I/O, gaspillage total. Pour I/O parallèles : `await Task.WhenAll(options.Select(o => o.PriceAsync()))`. Attention : les lambdas partagent la mémoire → utiliser ConcurrentBag ou tableaux indexés pour stocker les résultats."
     },
     {
-      "question": "[Terme → Définition] Pourquoi utiliser `async/await` dans un controller ASP.NET Core qui appelle une base SQL ?",
+      "question": "[Correspondance] Associez l'outil C# à son usage correct : `async/await` → ? / `Parallel.For` → ? / `Channel<T>` → ?",
       "options": [
-        "Pour rendre la requête SQL plus rapide.",
-        "Pour libérer le thread HTTP pendant l'attente SQL — Kestrel peut traiter d'autres requêtes avec le même thread, augmentant la scalabilité de l'API.",
-        "Pour exécuter la requête SQL sur un thread séparé.",
-        "Pour permettre plusieurs connections SQL simultanées."
+        "Calcul CPU / Attente I/O / Pipeline producteur-consommateur",
+        "Attente I/O sans bloquer / Calcul CPU sur plusieurs cœurs / Pipeline producteur-consommateur avec backpressure",
+        "Attente I/O / Flux de données / Annulation",
+        "Threading / Async / Collections thread-safe"
       ],
-      "answer": "Pour libérer le thread HTTP pendant l'attente SQL — Kestrel peut traiter d'autres requêtes avec le même thread, augmentant la scalabilité de l'API.",
-      "explanation": "`async` ne rend pas UNE requête plus rapide — c'est une erreur de compréhension fréquente. Il permet à BEAUCOUP de requêtes d'être traitées simultanement avec peu de threads. Sans async : 500 req/sec × 10ms SQL = 5 threads constamment bloqués. Avec async : ces 5 threads, pendant qu'ils attendent SQL, servent 10-20 autres requêtes. En CIB à l'ouverture des marchés (pic de trafic) : la différence entre async et synchrone peut faire crasher ou non le service."
+      "answer": "Attente I/O sans bloquer / Calcul CPU sur plusieurs cœurs / Pipeline producteur-consommateur avec backpressure",
+      "explanation": "Trois outils, trois usages distincts : `async/await` = libérer le thread pendant une attente I/O (BD, réseau, fichiers). Aucun gain sur du calcul pur. `Parallel.For` = distribuer un calcul CPU intensif sur tous les cœurs — aucun sens pour de l'I/O. `Channel<T>` = pipeline producteur/consommateur avec backpressure native — le producteur attend si le channel est plein (bounded), le consommateur attend s'il est vide. Remplace avantageusement ConcurrentQueue + polling actif."
     },
     {
-      "question": "[Correspondance] Associez : `where` → ? / `select` → ? / `groupby` → ?",
+      "question": "[Terme → Définition] Qu'est-ce que la backpressure dans un `Channel<T>` borné ?",
       "options": [
-        "Trier / Projeter / Filtrer",
-        "Filtrer / Projeter / Regrouper",
-        "Projeter / Filtrer / Trier",
-        "Regrouper / Trier / Projeter"
+        "Un mécanisme qui compresse les données pour réduire l'usage mémoire.",
+        "Quand le channel est plein (capacité atteinte), le producteur est automatiquement ralenti — `await writer.WriteAsync(item)` attend qu'une place se libère. Évite la surcharge du consommateur.",
+        "Un mécanisme de retry automatique si le consommateur échoue.",
+        "La pression du cache CPU sur les threads secondaires."
       ],
-      "answer": "Filtrer / Projeter / Regrouper",
-      "explanation": "`Where` = filtre (réduit le nombre d'éléments). `Select` = projection (transforme chaque élément, ne réduit pas le nombre). `GroupBy` = regroupe les éléments par une clé. En CIB : `trades.Where(t => t.Price > 100)` → filtre. `trades.Select(t => t.Isin)` → liste des ISIN seulement. `trades.GroupBy(t => t.Desk).Select(g => new { g.Key, Total = g.Sum(t => t.Notional) })` → notionnel total par desk."
+      "answer": "Quand le channel est plein (capacité atteinte), le producteur est automatiquement ralenti — `await writer.WriteAsync(item)` attend qu'une place se libère. Évite la surcharge du consommateur.",
+      "explanation": "Sans backpressure (unbounded queue) : le producteur inonde le consommateur → mémoire saturée → OutOfMemoryException. Avec `Channel.CreateBounded(1000)` : si la queue a 1000 éléments, `await writer.WriteAsync(item, ct)` attend qu'un slot se libère — naturellement. C'est plus propre que de gérer manuellement une `ConcurrentQueue` + vérifier la taille + `Thread.Sleep`. Exemple : en CIB, les requêtes de pricing arrivent en rafale à l'ouverture des marchés — le channel absorbe les bursts sans exploser."
     },
     {
-      "question": "[Confusion] Quelle est la différence entre HTTP synchrone et message queue asynchrone dans l'architecture MAPS ?",
+      "question": "[Confusion] Quelle est la différence entre `Process` et `Thread` en .NET ?",
       "options": [
-        "HTTP est toujours meilleur car plus rapide.",
-        "HTTP (sync) : A attend la réponse de B, erreur si B est down. Queue (async) : A envoie le message et continue, B traite quand disponible, message conservé si B est down.",
-        "Message Queue est toujours meilleur car plus résilient.",
-        "HTTP et Message Queue servent exactement les mêmes cas d'usage."
+        "Un process est plus léger qu'un thread.",
+        "Un process a une mémoire ISOLÉE — deux processes ne peuvent pas accéder à la mémoire l'un de l'autre. Des threads dans le même process PARTAGENT la même mémoire.",
+        "Un process peut avoir plusieurs threads, mais un thread ne peut appartenir qu'à un seul process. La différence principale est l'isolation mémoire.",
+        "Les réponses B et C sont toutes les deux correctes."
       ],
-      "answer": "HTTP (sync) : A attend la réponse de B, erreur si B est down. Queue (async) : A envoie le message et continue, B traite quand disponible, message conservé si B est down.",
-      "explanation": "Choix du bon outil selon le cas d'usage : `POST /api/v1/trades` (HTTP) retourne le `TradeId` — le client a besoin de la réponse immédiatement pour confirmer le booking → HTTP obligatoire. `TradeBooked` → calcul des Greeks (RabbitMQ) — le trader n'attend pas que le risk soit calculé pour confirmer le booking → queue. Les deux coexistent dans MAPS. L'erreur est de vouloir tout mettre dans une queue ou tout en HTTP."
+      "answer": "Les réponses B et C sont toutes les deux correctes.",
+      "explanation": "Les deux réponses B et C décrivent des caractéristiques réelles et complémentaires. Process = isolation mémoire (sécurité, stabilité — un crash ne contamine pas l'autre). Thread = mémoire partagée dans le même process (efficace pour partager des données, mais risque de race conditions). Un process peut avoir N threads. Un thread appartient à UN seul process. La mémoire partagée entre threads est le principal avantage ET le principal danger du multithreading."
     },
     {
-      "question": "[Terme → Définition] Qu'est-ce qu'un contrat JSON dans une architecture microservices ?",
+      "question": "[Terme → Définition] Qu'est-ce qu'un `CancellationToken` et pourquoi le propager dans la chaîne async ?",
       "options": [
-        "Un fichier de configuration JSON pour les microservices.",
-        "La structure JSON partagée entre le producteur et le consommateur — changer un champ requis sans versioning casse les consommateurs qui attendaient l'ancien format.",
-        "Un document légal définissant les SLAs entre services.",
-        "Un schéma SQL stocké en JSON."
+        "Un token de sécurité pour authentifier les appels async.",
+        "Un signal coopératif d'annulation — si le client HTTP déconnecte, le token est annulé et propagé à tous les appels en aval (SQL, réseau) pour arrêter proprement le travail inutile.",
+        "Un timeout automatique sur les méthodes async.",
+        "Un identifiant unique pour suivre une opération async dans les logs."
       ],
-      "answer": "La structure JSON partagée entre le producteur et le consommateur — changer un champ requis sans versioning casse les consommateurs qui attendaient l'ancien format.",
-      "explanation": "En CIB : `TradeService` publie `{ TradeId: 1, ISIN: \"FR...\", Notional: 500000 }` sur RabbitMQ. `RiskService` désérialise en supposant que `Notional` existe. Si `TradeService` renomme `Notional` en `Amount`, `RiskService` reçoit `Amount: 500000` et `Notional: null` → calcul de risque à 0 → trades non risqués → incident majeur. Le contrat JSON doit être versionné ou modifier uniquement de façon backward-compatible (ajouter des champs optionnels)."
+      "answer": "Un signal coopératif d'annulation — si le client HTTP déconnecte, le token est annulé et propagé à tous les appels en aval (SQL, réseau) pour arrêter proprement le travail inutile.",
+      "explanation": "Sans CancellationToken : le client ferme son navigateur pendant un calcul de 30s → le serveur continue de calculer → gaspillage de CPU, threads et connexions BD. Avec CancellationToken propagé : `await _ctx.Trades.Where(...).ToListAsync(ct)` → si ct est annulé, la requête SQL est interrompue, le thread libéré immédiatement. Dans ASP.NET Core : `HttpContext.RequestAborted` est déjà un CancellationToken prêt à l'emploi. Règle : toujours accepter et propager `CancellationToken ct` dans toutes les méthodes async d'un service."
     },
     {
-      "question": "[Confusion] `Task.Run()` vs `await` — est-ce que `await` crée un nouveau thread ?",
+      "question": "[Terme → Définition] Qu'est-ce que PLINQ et quand l'utiliser ?",
       "options": [
-        "Oui — `await` crée toujours un nouveau thread pour l'opération.",
-        "Non — `await` LIBÈRE le thread actuel pendant l'attente I/O. Il ne crée pas de thread. `Task.Run()` soumet un travail au ThreadPool.",
-        "`await` et `Task.Run()` créent tous les deux des threads.",
-        "`await` est uniquement pour les opérations SQL, `Task.Run()` pour le reste."
+        "PLINQ est une version async de LINQ pour les requêtes de base de données.",
+        "PLINQ (Parallel LINQ) ajoute `.AsParallel()` à une requête LINQ pour distribuer le traitement sur plusieurs cœurs CPU. À utiliser pour des calculs intensifs sur de grandes collections en mémoire.",
+        "PLINQ est uniquement disponible dans .NET 6 et supérieur.",
+        "PLINQ est automatiquement activé sur toutes les requêtes LINQ en mode Release."
       ],
-      "answer": "Non — `await` LIBÈRE le thread actuel pendant l'attente I/O. Il ne crée pas de thread. `Task.Run()` soumet un travail au ThreadPool.",
-      "explanation": "Confusion très fréquente en entretien. `await GetDataAsync()` : quand le thread atteint le `await`, il est libéré dans le pool. Quand les données SQL arrivent, un thread (souvent différent) reprend l'exécution. Aucun thread créé. `Task.Run(() => HeavyCalc())` : soumet `HeavyCalc` à un thread du ThreadPool — là, un thread de pool est utilisé. `await Task.Run(...)` = utilise un thread du pool + libère le thread appelant. En CIB : `await _ctx.SaveChangesAsync()` → zéro thread créé, un thread libéré."
+      "answer": "PLINQ (Parallel LINQ) ajoute `.AsParallel()` à une requête LINQ pour distribuer le traitement sur plusieurs cœurs CPU. À utiliser pour des calculs intensifs sur de grandes collections en mémoire.",
+      "explanation": "PLINQ = `.AsParallel()` sur n'importe quelle collection. `options.AsParallel().Select(o => o.ComputeGreeks(md)).ToList()` — .NET partitionne la collection, distribue sur les cœurs, réassemble. Gain réel sur : grandes collections (>1000 éléments), opérations coûteuses par élément (calcul Black-Scholes, Monte Carlo partiel). PAS utile pour : petites collections (overhead > gain), opérations très rapides, accès BD (I/O-bound → utiliser async/await). `.AsOrdered()` pour préserver l'ordre des éléments (avec coût de synchronisation)."
     },
     {
-      "question": "[Terme → Définition] Qu'est-ce que l'exécution différée en LINQ et pourquoi est-ce un piège fréquent ?",
+      "question": "[Confusion] `Task.Run(() => calc())` vs `await calcAsync()` — quelle différence fondamentale ?",
       "options": [
-        "LINQ s'exécute toujours au moment de la définition de la requête.",
-        "La requête LINQ n'est PAS exécutée à la ligne du `Where` — elle est exécutée au moment de l'itération (`foreach`, `.ToList()`). Si la source change entre les deux, le résultat reflète l'état au moment de l'itération.",
-        "L'exécution différée signifie que LINQ attend 100ms avant de s'exécuter.",
-        "L'exécution différée ne s'applique qu'aux requêtes EF Core, pas aux collections en mémoire."
+        "Aucune différence — les deux libèrent le thread appelant.",
+        "`Task.Run(() => calc())` soumet un travail CPU-bound sur un thread du pool (parallélisme). `await calcAsync()` libère le thread pendant une attente I/O. Le premier UTILISE un thread, le second en LIBÈRE un.",
+        "`Task.Run` est déprécié depuis .NET 5 — utiliser uniquement `await`.",
+        "`Task.Run` est pour les méthodes synchrones, `await` pour les méthodes async uniquement."
       ],
-      "answer": "La requête LINQ n'est PAS exécutée à la ligne du `Where` — elle est exécutée au moment de l'itération (`foreach`, `.ToList()`). Si la source change entre les deux, le résultat reflète l'état au moment de l'itération.",
-      "explanation": "Piège en CIB : `var activeTradesQuery = trades.Where(t => t.Status == \"Active\");` — requête construite. Si entre cette ligne et `activeTradesQuery.ToList()`, un autre thread modifie la liste `trades` (trade cancelled), le résultat contiendra l'état modifié — surprise ! Pour les IQueryable EF Core : le SQL est envoyé à la base seulement au `.ToListAsync()`. Si le DbContext a été modifié entre les deux, la requête peut retourner des données différentes de ce qu'on attendait."
+      "answer": "`Task.Run(() => calc())` soumet un travail CPU-bound sur un thread du pool (parallélisme). `await calcAsync()` libère le thread pendant une attente I/O. Le premier UTILISE un thread, le second en LIBÈRE un.",
+      "explanation": "Distinction critique. `Task.Run(() => HeavyCalc())` = prend un thread du pool et l'utilise pour exécuter le calcul — le thread est OCCUPÉ pendant le calcul. Utile pour libérer le thread UI ou le thread HTTP principal d'un calcul long. `await sql.QueryAsync()` = lance la requête SQL puis LIBÈRE totalement le thread — aucun thread utilisé pendant l'attente. La confusion vient du fait que les deux permettent de 'ne pas bloquer le thread appelant' mais pour des raisons totalement différentes."
     },
     {
-      "question": "[Confusion] Producteur vs Consommateur dans RabbitMQ — qui crée le message et qui le traite ?",
+      "question": "[Terme → Définition] Pourquoi le serveur web gère-t-il automatiquement le parallélisme sans que le développeur ait besoin de programmer des threads ?",
       "options": [
-        "Le consommateur crée le message, le producteur le traite.",
-        "Le producteur crée et envoie le message dans la queue. Le consommateur lit et traite le message depuis la queue.",
-        "Les deux peuvent être producteur et consommateur simultanément dans la même opération.",
-        "Dans RabbitMQ, le broker est aussi le producteur."
+        "Parce que ASP.NET Core utilise JavaScript en interne.",
+        "Le serveur web assigne chaque requête HTTP à un thread disponible du pool — la distribution sur les cœurs CPU est gérée automatiquement par l'OS et le runtime. Le développeur doit seulement veiller à ne pas bloquer ces threads (async/await).",
+        "Parce que les requêtes HTTP sont traitées dans un seul thread en file d'attente.",
+        "Le parallélisme web est géré par Docker, pas par le code C#."
       ],
-      "answer": "Le producteur crée et envoie le message dans la queue. Le consommateur lit et traite le message depuis la queue.",
-      "explanation": "`TradeService` (producteur) : `channel.BasicPublish(exchange, routingKey, body: Serialize(trade))` — envoie et oublie. `RiskService` (consommateur) : `channel.BasicConsume(queue, autoAck: false, consumer)` — lit et traite. En CIB, un service peut être les deux : `TradeService` consomme `MarketDataUpdated` pour enrichir les trades ET produit `TradeBooked` pour le risk. La séparation producteur/consommateur est logique, pas physique — un même service peut avoir les deux rôles."
+      "answer": "Le serveur web assigne chaque requête HTTP à un thread disponible du pool — la distribution sur les cœurs CPU est gérée automatiquement par l'OS et le runtime. Le développeur doit seulement veiller à ne pas bloquer ces threads (async/await).",
+      "explanation": "Kestrel (serveur ASP.NET Core) : chaque requête HTTP entrante est assignée à un thread libre du ThreadPool. Le scheduler OS distribue ces threads sur les cœurs disponibles. Si un cœur est libre et un thread est prêt → le thread s'exécute dessus. Le développeur n'a pas besoin de faire `new Thread()` ou `Parallel.For` pour gérer plusieurs requêtes simultanées. Son seul travail : rendre ces threads le plus disponibles possible → async/await partout → thread libéré pendant les I/O → plus de requêtes traitées avec les mêmes threads."
     },
     {
-      "question": "[Terme → Définition] Pourquoi ne jamais concaténer une entrée utilisateur dans une requête SQL en C# ?",
+      "question": "[Confusion] `.Result` sur une Task dans ASP.NET Core — quel risque ?",
       "options": [
-        "Pour des raisons de performance uniquement.",
-        "Pour éviter l'injection SQL — un input malveillant peut modifier la requête pour lire, modifier ou supprimer des données non autorisées. Les requêtes paramétrées ou ORM séparent code SQL et données.",
-        "Les entrées utilisateur contiennent toujours des caractères invalides pour SQL.",
-        "La concaténation SQL est interdite par le standard C# depuis .NET 5."
+        "Aucun risque — `.Result` est équivalent à `await`.",
+        "Deadlock potentiel : `.Result` bloque le thread en attendant la Task. Si la continuation de la Task a besoin du même thread (SynchronizationContext), impasse totale. De plus, si la Task lève une exception, elle est enveloppée dans AggregateException.",
+        "`.Result` n'est pas supporté dans ASP.NET Core.",
+        "`.Result` force une exécution synchrone plus lente mais sûre."
       ],
-      "answer": "Pour éviter l'injection SQL — un input malveillant peut modifier la requête pour lire, modifier ou supprimer des données non autorisées. Les requêtes paramétrées ou ORM séparent code SQL et données.",
-      "explanation": "Exemple d'injection : `\"SELECT * FROM Trades WHERE Isin = '\" + userInput + \"'\"`. Si `userInput = \"'; DROP TABLE Trades; --\"` → `SELECT * FROM Trades WHERE Isin = ''; DROP TABLE Trades; --'` → destruction de la table Trades. En CIB, une telle attaque sur la table des positions serait catastrophique. Correction : Dapper `WHERE Isin = @isin` + `new { isin = userInput }` ou EF Core `.Where(t => t.Isin == userInput)` — le driver paramétrise automatiquement."
+      "answer": "Deadlock potentiel : `.Result` bloque le thread en attendant la Task. Si la continuation de la Task a besoin du même thread (SynchronizationContext), impasse totale. De plus, si la Task lève une exception, elle est enveloppée dans AggregateException.",
+      "explanation": "Scénario de deadlock classique : `public string Get() { return GetAsync().Result; }`. Le thread HTTP appelle `.Result` → bloqué. La continuation de `GetAsync()` essaie de reprendre sur ce même thread (ASP.NET Framework, WPF) → impossible → impasse. La requête ne répond jamais (timeout). Solution : `await GetAsync()` jusqu'au bout. Note : dans ASP.NET Core (pas Framework), il n'y a plus de SynchronizationContext → `.Result` peut ne pas deadlocker. Mais c'est quand même une mauvaise pratique (gaspille un thread, AggregateException au lieu de l'exception directe)."
     },
     {
-      "question": "[Confusion] La difference entre `Single()` et `First()` dans LINQ — dans quel cas `Single()` est-il préférable ?",
+      "question": "[Terme → Définition] Quelle est la différence entre `Parallel.Invoke` et `Task.WhenAll` ?",
       "options": [
-        "`Single()` est toujours préférable à `First()` car plus strict.",
-        "`Single()` vérifie qu'il n'y a exactement qu'un résultat — utile pour chercher par clé primaire où plusieurs résultats seraient une erreur de données. `First()` prend le premier même si plusieurs existent.",
-        "`Single()` retourne `null` si la collection est vide, `First()` lance une exception.",
-        "`Single()` et `First()` sont identiques sauf pour les performances."
+        "Ce sont des synonymes — deux syntaxes pour la même opération.",
+        "`Parallel.Invoke` est synchrone (bloque le thread appelant). `Task.WhenAll` est async (libère le thread appelant). Parallel.Invoke pour CPU-bound. Task.WhenAll pour I/O-bound async.",
+        "`Parallel.Invoke` peut prendre des valeurs de retour, `Task.WhenAll` non.",
+        "`Task.WhenAll` exécute les tâches séquentiellement, `Parallel.Invoke` en parallèle."
       ],
-      "answer": "`Single()` vérifie qu'il n'y a exactement qu'un résultat — utile pour chercher par clé primaire où plusieurs résultats seraient une erreur de données. `First()` prend le premier même si plusieurs existent.",
-      "explanation": "En CIB : `_ctx.Trades.Single(t => t.Id == tradeId)` — si deux trades ont le même ID (corruption de données), `Single()` lance une exception immédiatement — bug détecté. `First()` retournerait silencieusement le premier sans signaler le doublon. Règle : `Single()` pour les clés uniques (GUID, clé primaire) → sécurité de données. `First()` / `FirstOrDefault()` pour les cas où plusieurs résultats sont acceptables (tri par date, prendre le plus récent)."
+      "answer": "`Parallel.Invoke` est synchrone (bloque le thread appelant). `Task.WhenAll` est async (libère le thread appelant). Parallel.Invoke pour CPU-bound. Task.WhenAll pour I/O-bound async.",
+      "explanation": "`Parallel.Invoke(() => LoadA(), () => LoadB())` — le thread appelant est bloqué jusqu'à ce que LoadA et LoadB finissent. Utilise le ThreadPool pour les deux actions. Synchrone. `await Task.WhenAll(LoadAAsync(), LoadBAsync())` — le thread est libéré pendant l'attente. Les deux tâches async s'exécutent 'en parallèle' (attente I/O simultanée). Règle : actions CPU-bound → `Parallel.Invoke` ou `Task.Run` + `WhenAll`. Actions I/O-bound async → `Task.WhenAll` directement."
     },
     {
-      "question": "[Confusion] `SelectMany()` vs `Select()` en LINQ — quelle est la différence clé ?",
+      "question": "[Confusion] Peut-on utiliser `async/await` sur un ordinateur avec un seul cœur CPU ?",
       "options": [
-        "`SelectMany()` sélectionne plusieurs colonnes, `Select()` en sélectionne une.",
-        "`Select()` retourne une collection de collections. `SelectMany()` aplatit — retourne tous les éléments imbriqués dans une seule collection.",
-        "`SelectMany()` filtre en plus de projeter.",
-        "`Select()` est pour les types simples, `SelectMany()` pour les objets complexes."
+        "Non — async/await nécessite plusieurs cœurs pour libérer des threads.",
+        "Oui — async/await fonctionne parfaitement sur un seul cœur. Il libère le thread pendant l'attente I/O, et un seul thread peut gérer plusieurs requêtes simultanées en attendant les I/O.",
+        "Oui mais avec des performances réduites — un seul cœur ne peut pas vraiment libérer de threads.",
+        "Seulement si le code utilise ConfigureAwait(false)."
       ],
-      "answer": "`Select()` retourne une collection de collections. `SelectMany()` aplatit — retourne tous les éléments imbriqués dans une seule collection.",
-      "explanation": "En CIB : `desks.Select(d => d.Trades)` retourne `IEnumerable<IEnumerable<Trade>>` — une liste de listes. `desks.SelectMany(d => d.Trades)` retourne `IEnumerable<Trade>` — toutes les trades de tous les desks en une seule liste plate. Utile pour : calculer le notionnel total cross-desks `desks.SelectMany(d => d.Trades).Sum(t => t.Notional)`, ou pour obtenir tous les ISIN uniques de tous les portefeuilles `funds.SelectMany(f => f.Positions).Select(p => p.Isin).Distinct()`."
+      "answer": "Oui — async/await fonctionne parfaitement sur un seul cœur. Il libère le thread pendant l'attente I/O, et un seul thread peut gérer plusieurs requêtes simultanées en attendant les I/O.",
+      "explanation": "Exemple du cours : serveur web dans le cloud avec 1 seul cœur virtuel. Thread 1 reçoit Requête 1 → lance `await db.QueryAsync()` → libère Thread 1. Thread 1 reçoit Requête 2 → lance `await db.QueryAsync()` → libère Thread 1. Résultat BD 1 arrive → Thread 1 traite et répond. Résultat BD 2 arrive → Thread 1 traite et répond. Avec 1 seul thread sur 1 seul cœur, 2 requêtes simultanées gérées efficacement. C'est exactement ce que fait Node.js en JavaScript (mono-thread). Le parallélisme (plusieurs calculs CPU simultanés) lui nécessite plusieurs cœurs — mais c'est une autre chose."
     },
     {
-      "question": "[Terme → Définition] Qu'est-ce qu'un acknowledgement (ACK) dans RabbitMQ et pourquoi est-il critique ?",
+      "question": "[Confusion] Quel est l'usage CORRECT de `async void` en C# ?",
       "options": [
-        "Un message de confirmation envoyé par le producteur après publication.",
-        "Une confirmation envoyée par le consommateur après traitement réussi — sans ACK, RabbitMQ considère le message non traité et le redélivre. Permet d'éviter la perte de messages si le consommateur crash pendant le traitement.",
-        "Un token d'authentification pour accéder à RabbitMQ.",
-        "Un header JSON confirmant que le message a bien été désérialisé."
+        "Toujours — `async void` est plus simple à écrire que `async Task`.",
+        "Jamais — `async void` est toujours dangereux et doit être évité.",
+        "UNIQUEMENT pour les event handlers UI dont la signature est imposée par le framework : `private async void Button_Click(object sender, EventArgs e)`. Dans TOUS les autres cas : `async Task`.",
+        "Pour les méthodes qui ne retournent pas de valeur et ne nécessitent pas d'être attendues."
       ],
-      "answer": "Une confirmation envoyée par le consommateur après traitement réussi — sans ACK, RabbitMQ considère le message non traité et le redélivre. Permet d'éviter la perte de messages si le consommateur crash pendant le traitement.",
-      "explanation": "Scénario CIB sans ACK : `RiskService` reçoit un message `TradeBooked`, commence à calculer les Greeks, crash à mi-chemin. Sans ACK, RabbitMQ pense que le message a été traité — trade non risqué, position incorrecte. Avec ACK manuel (`autoAck: false`) : le message est redelivré à une autre instance de `RiskService`. `BasicAck(deliveryTag)` = traitement réussi, RabbitMQ supprime le message. `BasicNack(deliveryTag, requeue: false)` = échec, envoyer vers la DLQ. `autoAck: true` = dangereux en CIB (trade perdu si crash)."
+      "answer": "UNIQUEMENT pour les event handlers UI dont la signature est imposée par le framework : `private async void Button_Click(object sender, EventArgs e)`. Dans TOUS les autres cas : `async Task`.",
+      "explanation": "La signature `void Button_Click(object sender, EventArgs e)` est définie par le framework WPF/WinForms/Blazor — on ne peut pas la changer en `Task`. D'où l'exception `async void`. Dans TOUS les autres cas : `async Task` obligatoire. Cas piège : `Timer.Elapsed += async (s,e) => { await DoWorkAsync(); }` — c'est un event handler, donc `async void` acceptable ici. Mais : tout service, toute méthode métier, tout repository, tout controller → `async Task` ou `async Task<T>`."
     },
     {
-      "question": "[Confusion] JWT — pourquoi le payload du token est-il visible en Base64 mais pas sécurisé comme un mot de passe ?",
+      "question": "[Terme → Définition] Qu'est-ce que `IAsyncEnumerable<T>` et `await foreach` ?",
       "options": [
-        "Le payload JWT est chiffré — il est illisible sans la clé secrète.",
-        "Le payload JWT est encodé en Base64 (lisible) mais SIGNÉ — quiconque peut le lire, mais personne ne peut le modifier sans invalider la signature. Les données sensibles (mot de passe) ne doivent jamais être dans le JWT.",
-        "JWT chiffre automatiquement les données sensibles dans le payload.",
-        "Le payload JWT est illisible — seul le serveur peut le déchiffrer."
+        "Une collection async qui charge tous les éléments en mémoire avant d'itérer.",
+        "Un énumérable async qui produit les éléments UN PAR UN de façon asynchrone. `await foreach(var item in GetItemsAsync())` attend chaque élément individuellement — idéal pour streamer de grandes quantités de données sans tout charger en RAM.",
+        "Un remplacement async de `List<T>` pour les collections thread-safe.",
+        "Une interface uniquement disponible dans .NET 8 et supérieur."
       ],
-      "answer": "Le payload JWT est encodé en Base64 (lisible) mais SIGNÉ — quiconque peut le lire, mais personne ne peut le modifier sans invalider la signature. Les données sensibles (mot de passe) ne doivent jamais être dans le JWT.",
-      "explanation": "JWT = 3 parties séparées par `.` : Header.Payload.Signature. Le payload `{ userId: 123, role: TRADER, desk: equity }` est décodable par n'importe qui avec Base64. La signature (HMAC-SHA256 avec la clé secrète serveur) garantit l'intégrité — si quelqu'un modifie `role: ADMIN`, la signature ne correspond plus → rejet. HTTPS chiffre le token en transit. Ne jamais mettre un mot de passe, numéro de carte ou donnée confidentielle dans le JWT payload — visible."
+      "answer": "Un énumérable async qui produit les éléments UN PAR UN de façon asynchrone. `await foreach(var item in GetItemsAsync())` attend chaque élément individuellement — idéal pour streamer de grandes quantités de données sans tout charger en RAM.",
+      "explanation": "Cas d'usage concret : lire 1 million de trades depuis la BD. `ToListAsync()` charge 1M d'objets en RAM → OutOfMemoryException potentiel. Avec `IAsyncEnumerable` : `async IAsyncEnumerable<Trade> StreamTradesAsync() { await foreach(var row in db.QueryUnbufferedAsync(sql)) { yield return MapTrade(row); } }`. Le consommateur traite chaque trade un par un, la mémoire utilisée reste constante. Utile aussi : SignalR (streamer des prix de marché en temps réel), lire un fichier CSV ligne par ligne, paginer une API externe."
     },
     {
-      "question": "[Terme → Définition] Quelle est l'utilité d'un Correlation ID dans une architecture microservices ?",
+      "question": "[Confusion] `Parallel.For` avec `async` dans la lambda — est-ce correct ?",
       "options": [
-        "Un identifiant de corrélation entre une table SQL et une entité C#.",
-        "Un UUID généré à l'entrée du système et propagé dans tous les logs et headers de tous les services — permet de retrouver tous les événements d'une requête en filtrant sur cet ID dans les logs centralisés.",
-        "Un token de sécurité alternatif au JWT pour les appels inter-services.",
-        "Un identifiant de version pour les contrats JSON."
+        "Oui — `Parallel.For(0, N, async i => { await ProcessAsync(i); })` exécute correctement N tâches async en parallèle.",
+        "Non — `Parallel.For` n'attend PAS les lambdas async. `async void` implicite → exceptions silencieuses → le `Parallel.For` retourne avant la fin de toutes les tâches. Pour des I/O parallèles, utiliser `Task.WhenAll`.",
+        "Oui, mais seulement si `MaxDegreeOfParallelism` est spécifié.",
+        "Non — `Parallel.For` ne supporte pas du tout les lambdas."
       ],
-      "answer": "Un UUID généré à l'entrée du système et propagé dans tous les logs et headers de tous les services — permet de retrouver tous les événements d'une requête en filtrant sur cet ID dans les logs centralisés.",
-      "explanation": "Sans Correlation ID en CIB : un trade échoue, le trader appelle le support. Le support regarde les logs de `BookingService` → trouve l'erreur, mais ne sait pas quel appel `RiskService` a été fait, ni quel message `RabbitMQ` a été publié. Avec Correlation ID : `X-Correlation-ID: 550e8400-...` propagé dans tous les headers → dans Elasticsearch, filtrer `correlationId=\"550e8400\"` → voir tous les logs de tous les services pour ce trade spécifique. Débogage en secondes au lieu d'heures."
+      "answer": "Non — `Parallel.For` n'attend PAS les lambdas async. `async void` implicite → exceptions silencieuses → le `Parallel.For` retourne avant la fin de toutes les tâches. Pour des I/O parallèles, utiliser `Task.WhenAll`.",
+      "explanation": "Piège subtil : `Parallel.For(0, N, async i => { await SaveAsync(i); })` — la lambda est `async void` implicitement (Parallel.For prend une Action, pas une Func<Task>). Résultat : Parallel.For lance N tâches et RETOURNE IMMÉDIATEMENT sans attendre. Les saves async continuent en arrière-plan → race conditions, exceptions perdues. Solution pour N I/O parallèles : `await Task.WhenAll(Enumerable.Range(0, N).Select(i => SaveAsync(i)))`. Limiter à MaxConcurrency avec SemaphoreSlim si besoin."
     },
     {
-      "question": "[Confusion] `AsNoTracking()` dans EF Core — dans quel cas NE PAS l'utiliser ?",
+      "question": "[Terme → Définition] Qu'est-ce que `ConfigureAwait(false)` et dans quel contexte l'utiliser ?",
       "options": [
-        "Ne jamais utiliser `AsNoTracking()` — il est dangereux.",
-        "Ne pas utiliser `AsNoTracking()` quand on veut MODIFIER les entités chargées — le change tracking détecte les modifications et les sauvegarde avec `SaveChanges()`. Pour les lectures seules, `AsNoTracking()` est recommandé.",
-        "`AsNoTracking()` ne fonctionne pas avec `Include()` pour les jointures.",
-        "`AsNoTracking()` doit être utilisé uniquement pour les tables de plus de 1000 lignes."
+        "Une option pour désactiver la vérification de thread-safety dans les méthodes async.",
+        "Indique à `await` de ne pas capturer le contexte de synchronisation actuel — la continuation peut reprendre sur n'importe quel thread. À utiliser dans les bibliothèques/packages NuGet pour éviter les deadlocks. PAS dans le code UI ou controllers ASP.NET Core.",
+        "Active le mode de configuration automatique pour les paramètres async.",
+        "Permet à une méthode async de s'exécuter sans CancellationToken."
       ],
-      "answer": "Ne pas utiliser `AsNoTracking()` quand on veut MODIFIER les entités chargées — le change tracking détecte les modifications et les sauvegarde avec `SaveChanges()`. Pour les lectures seules, `AsNoTracking()` est recommandé.",
-      "explanation": "Avec change tracking (sans `AsNoTracking`) : `var trade = _ctx.Trades.First(t => t.Id == id); trade.Status = \"Cancelled\"; await _ctx.SaveChangesAsync();` → EF Core détecte la modification et génère `UPDATE Trades SET Status='Cancelled' WHERE Id=@id`. Avec `AsNoTracking()` : `trade.Status = \"Cancelled\"` → pas de suivi → `SaveChanges()` ne sauvegarde rien. En CIB : les endpoints GET (liste des positions, référentiel ISIN) → `AsNoTracking()`. Les endpoints POST/PATCH (booking, modification) → sans `AsNoTracking()`."
-    },
-    {
-      "question": "[Confusion] `.Result` et `.Wait()` sur une Task async en C# — pourquoi sont-ils dangereux dans ASP.NET Core ?",
-      "options": [
-        "Ils sont identiques à `await` — simple préférence de syntaxe.",
-        "Ils bloquent le thread appelant de façon synchrone, et dans ASP.NET Core provoquent un deadlock : le thread HTTP attend la Task, mais la continuation de la Task attend d'être schedulée sur ce même thread — impasse totale.",
-        "Ils sont dangereux uniquement dans les applications console, pas dans ASP.NET Core.",
-        "Ils causent uniquement une légère dégradation de performance."
-      ],
-      "answer": "Ils bloquent le thread appelant de façon synchrone, et dans ASP.NET Core provoquent un deadlock : le thread HTTP attend la Task, mais la continuation de la Task attend d'être schedulée sur ce même thread — impasse totale.",
-      "explanation": "Deadlock classique en CIB : `public IActionResult BookTrade() { var result = _service.BookAsync().Result; return Ok(result); }`. Le thread HTTP appelle `.Result` → se bloque en attendant. La continuation de `BookAsync()` essaie de reprendre sur le contexte de synchronisation ASP.NET (le même thread) → impasse. La requête ne revient jamais. Correction : `await _service.BookAsync()` jusqu'au bout de la chaîne. Si du code synchrone doit appeler du code async : `Task.Run(() => _service.BookAsync()).Result` (thread pool séparé) — mais mieux vaut refactoriser toute la chaîne en async."
-    },
-    {
-      "question": "[Terme → Définition] Quelle est la différence entre `Any()` et `Count() > 0` en LINQ pour vérifier si une collection contient des éléments ?",
-      "options": [
-        "Ce sont des équivalents stricts — le compilateur les optimise de la même façon.",
-        "`Any()` s'arrête dès qu'il trouve un premier élément (court-circuit). `Count() > 0` parcourt TOUTE la collection pour compter. Sur 1M d'éléments, `Any()` peut s'arrêter au premier, `Count()` parcourt tout.",
-        "`Count()` est recommandé car il retourne un entier réutilisable.",
-        "`Any()` ne fonctionne pas avec les `IQueryable` EF Core."
-      ],
-      "answer": "`Any()` s'arrête dès qu'il trouve un premier élément (court-circuit). `Count() > 0` parcourt TOUTE la collection pour compter. Sur 1M d'éléments, `Any()` peut s'arrêter au premier, `Count()` parcourt tout.",
-      "explanation": "En CIB sur `IQueryable` : `_ctx.Trades.Where(t => t.DeskId == id).Any()` génère `SELECT TOP 1 1 FROM Trades WHERE DeskId=@id` — SQL s'arrête dès le premier résultat. `_ctx.Trades.Where(t => t.DeskId == id).Count() > 0` génère `SELECT COUNT(*) FROM Trades WHERE DeskId=@id` — SQL compte tous les enregistrements. Sur une table de 10M trades, `Any()` retourne en microsecondes, `Count()` en secondes. Règle : pour une vérification d'existence → toujours `Any()`. Pour connaître le nombre exact → `Count()`."
-    },
-    {
-      "question": "[Confusion] Dans RabbitMQ, quelle est la différence entre une queue `durable` et `autoDelete` ?",
-      "options": [
-        "Ce sont des options contradictoires qui ne peuvent pas coexister.",
-        "`durable: true` = la queue survit au redémarrage du broker (persistée sur disque). `autoDelete: true` = la queue est supprimée quand le dernier consommateur se déconnecte. En CIB, les queues de booking doivent être `durable: true, autoDelete: false`.",
-        "`durable` concerne les messages, `autoDelete` concerne les exchanges.",
-        "`autoDelete` supprime les messages non consommés après un TTL."
-      ],
-      "answer": "`durable: true` = la queue survit au redémarrage du broker (persistée sur disque). `autoDelete: true` = la queue est supprimée quand le dernier consommateur se déconnecte. En CIB, les queues de booking doivent être `durable: true, autoDelete: false`.",
-      "explanation": "Scénario CIB sans `durable` : RabbitMQ redémarre (maintenance), la queue `trade.booked` est supprimée → tous les messages non consommés sont perdus → trades non risqués. Avec `durable: true` : la queue et ses messages survivent au redémarrage. Note : les messages eux-mêmes doivent aussi être persistants (`deliveryMode: 2`) pour survivre au redémarrage. `autoDelete: true` est utile pour les queues temporaires de réponse (pattern RPC), jamais pour les queues métier critiques en CIB."
-    },
-    {
-      "question": "[Terme → Définition] Qu'est-ce que le principe DRY (Don't Repeat Yourself) appliqué aux contrats JSON entre microservices ?",
-      "options": [
-        "Ne jamais définir deux endpoints REST qui retournent le même type de données.",
-        "Partager les DTOs et contrats JSON dans un package NuGet commun entre les services — évite de dupliquer les définitions `TradeBookedEvent` dans `TradeService` et `RiskService`, source d'incohérence si l'un est mis à jour et pas l'autre.",
-        "DRY s'applique uniquement au code C#, pas aux structures JSON.",
-        "Utiliser un seul endpoint qui retourne tous les types de données possibles."
-      ],
-      "answer": "Partager les DTOs et contrats JSON dans un package NuGet commun entre les services — évite de dupliquer les définitions `TradeBookedEvent` dans `TradeService` et `RiskService`, source d'incohérence si l'un est mis à jour et pas l'autre.",
-      "explanation": "Anti-pattern en CIB : `TradeService` définit `class TradeBookedEvent { string TradeId; decimal Notional; }` et `RiskService` définit sa propre copie `class TradeBookedEvent { string TradeId; decimal Amount; }`. Quand `TradeService` publie `Notional: 500000`, `RiskService` désérialise `Amount: null` → calcul de risque incorrect. Solution : package NuGet `Maps.Contracts` avec les classes partagées, référencé par les deux services. Inconvénient : couplage de build — toute modification du contrat nécessite de republier le package et mettre à jour tous les consommateurs."
+      "answer": "Indique à `await` de ne pas capturer le contexte de synchronisation actuel — la continuation peut reprendre sur n'importe quel thread. À utiliser dans les bibliothèques/packages NuGet pour éviter les deadlocks. PAS dans le code UI ou controllers ASP.NET Core.",
+      "explanation": "Contexte de synchronisation : dans WPF/WinForms, `await` capture le contexte du thread UI → la continuation s'exécute sur le thread UI (pour mettre à jour les contrôles). Si quelqu'un appelle `.Result` sur une Task qui utilise le thread UI pour sa continuation → deadlock. Dans une bibliothèque NuGet : utiliser `await someOperation.ConfigureAwait(false)` → la continuation se passe sur un thread pool quelconque, pas forcément le thread UI → pas de deadlock possible. Dans ASP.NET Core : pas de SynchronizationContext → `ConfigureAwait(false)` n'a pas d'impact mais reste une bonne pratique pour la portabilité des libs."
     }
   ],
   avance: [
     {
-      "question": "[Architecture] Pourquoi le pattern 'Base de données partagée' est-il l'anti-pattern n°1 des microservices en CIB ?",
+      "question": "[Architecture] Un serveur ASP.NET Core reçoit 500 requêtes/sec, chacune faisant une requête SQL de 100ms. Combien de threads sont nécessaires avec et sans async/await ?",
       "options": [
-        "C'est uniquement un problème de performance.",
-        "La DB partagée réintroduit le couplage que les microservices cherchent à éliminer : une migration SQL affecte tous les services simultanément, les services ne peuvent pas être déployés indépendamment, et les transactions cross-services créent des dépendances cachées.",
-        "Deux services peuvent partager la même DB s'ils lisent les mêmes tables.",
-        "La DB partagée est acceptable si les services sont dans le même datacenter."
+        "Avec ou sans async : 500 threads nécessaires.",
+        "Sans async : 50 threads bloqués en permanence (500 req/s × 100ms = 50 threads). Avec async : ~2-4 threads suffisent (libérés pendant l'attente SQL, disponibles pour de nouvelles requêtes).",
+        "Sans async : 500 threads. Avec async : 500 threads mais non-bloquants.",
+        "Sans async : 1 thread (file d'attente séquentielle). Avec async : 500 threads (un par requête)."
       ],
-      "answer": "La DB partagée réintroduit le couplage que les microservices cherchent à éliminer : une migration SQL affecte tous les services simultanément, les services ne peuvent pas être déployés indépendamment, et les transactions cross-services créent des dépendances cachées.",
-      "explanation": "Anti-pattern 'Distributed Monolith' : `TradeService` et `RiskService` partagent `TradesDB`. `TradeService` ajoute une colonne NOT NULL → `RiskService` plante immédiatement (colonne inconnue). Les deux doivent être déployés ensemble. `ALTER TABLE` nécessite de tester et déployer les deux services. Correct : chaque service a sa propre DB. La communication se fait via API REST ou événements RabbitMQ. Le `RiskService` maintient sa propre copie des données de trade (eventual consistency) mise à jour via l'événement `TradeBooked`."
+      "answer": "Sans async : 50 threads bloqués en permanence (500 req/s × 100ms = 50 threads). Avec async : ~2-4 threads suffisent (libérés pendant l'attente SQL, disponibles pour de nouvelles requêtes).",
+      "explanation": "Calcul : 500 req/s × 100ms d'attente = en moyenne, 50 requêtes en cours simultanément = 50 threads bloqués en permanence sans async. Avec async : Thread 1 lance `await db.QueryAsync()` → libéré immédiatement → traite une autre requête → résultat revient → thread libre traite la réponse. En pratique avec 2-4 threads et async, on peut gérer 50 requêtes simultanées en I/O car les threads ne sont bloqués que pour le CPU processing (quelques µs), pas pour l'attente BD (100ms)."
     },
     {
-      "question": "[Anti-pattern] Un développeur écrit `var risks = await Task.Run(() => trades.Where(t => t.Price > 100).Select(t => CalculateRisk(t)).ToList());` pour un calcul de risque. Quel problème architectural ?",
+      "question": "[Anti-pattern] Un développeur écrit `Parallel.ForEach(trades, async trade => { await _db.SaveAsync(trade); });`. Quel est le problème et la correction ?",
       "options": [
-        "Le code est correct et optimal.",
-        "`Task.Run` avec du LINQ sur une `IEnumerable` charge en mémoire + calcul sur le ThreadPool = deux problèmes : LINQ non optimisé (pas IQueryable) ET `Task.Run` sur du CPU-bound sans `Parallel.For` = séquentiel sur un thread de pool. Correction : `Parallel.ForEach(trades, t => results.Add(CalculateRisk(t)))` pour CPU-bound.",
-        "Le seul problème est l'absence de `CancellationToken`.",
-        "`Task.Run` ne peut pas être awaitable dans ASP.NET Core."
+        "Le code est correct — Parallel.ForEach gère bien les lambdas async.",
+        "Lambda async dans Parallel.ForEach = `async void` implicite. Parallel.ForEach retourne immédiatement sans attendre les saves. Exceptions perdues. Correction : `await Task.WhenAll(trades.Select(t => _db.SaveAsync(t)))` avec un SemaphoreSlim si besoin de limiter la concurrence.",
+        "Parallel.ForEach ne supporte pas EF Core — utiliser une boucle for classique.",
+        "Il manque `MaxDegreeOfParallelism = 1` pour éviter les conflits."
       ],
-      "answer": "`Task.Run` avec du LINQ sur une `IEnumerable` charge en mémoire + calcul sur le ThreadPool = deux problèmes : LINQ non optimisé (pas IQueryable) ET `Task.Run` sur du CPU-bound sans `Parallel.For` = séquentiel sur un thread de pool. Correction : `Parallel.ForEach(trades, t => results.Add(CalculateRisk(t)))` pour CPU-bound.",
-      "explanation": "Double anti-pattern CIB : (1) `Task.Run` sur une opération CPU-bound (calcul de risque) ne parallélise pas — le calcul reste séquentiel sur un thread du pool. Pour le parallélisme CPU : `var results = new ConcurrentBag<Risk>(); Parallel.ForEach(trades, t => results.Add(CalculateRisk(t)));`. (2) `Task.Run` dans ASP.NET Core sur des opérations qui sont déjà async = ThreadPool thread starvation (prend un thread pour libérer un autre). Règle : async/await pour I/O-bound (DB, réseau). `Parallel.For/ForEach` pour CPU-bound (calculs numériques)."
+      "answer": "Lambda async dans Parallel.ForEach = `async void` implicite. Parallel.ForEach retourne immédiatement sans attendre les saves. Exceptions perdues. Correction : `await Task.WhenAll(trades.Select(t => _db.SaveAsync(t)))` avec un SemaphoreSlim si besoin de limiter la concurrence.",
+      "explanation": "Parallel.ForEach accepte `Action` (pas `Func<Task>`). Une lambda `async trade => { await ... }` devient `async void` → Parallel.ForEach lance les tâches et retourne sans attendre. Les saves continuent en arrière-plan → le code appelant croit que tout est sauvegardé alors que rien ne l'est. Exceptions silencieusement perdues. Correction avec throttling : `var semaphore = new SemaphoreSlim(10); await Task.WhenAll(trades.Select(async t => { await semaphore.WaitAsync(); try { await _db.SaveAsync(t); } finally { semaphore.Release(); } }))` — max 10 saves simultanés."
     },
     {
-      "question": "[Code → Identification] `var notionnel = await _ctx.Trades.Where(t => t.DeskId == deskId && t.Status == \"Active\").AsNoTracking().SumAsync(t => t.Notional, ct);`. Identifiez tous les patterns utilisés.",
+      "question": "[Code → Analyse] `var t1 = ComputeGreeksAsync(opt1); var t2 = ComputeGreeksAsync(opt2); var results = await Task.WhenAll(t1, t2);`. Combien de threads sont créés ? Sont-ils exécutés en parallèle ?",
       "options": [
-        "Seul async/await est utilisé.",
-        "IQueryable (SQL côté serveur) + async/await (libération thread) + AsNoTracking (lecture seule, 2× plus rapide) + CancellationToken (annulation propre) + projection directe SumAsync (SQL `SUM()` côté DB).",
-        "EF Core + LINQ + Repository Pattern.",
-        "Unit of Work + IQueryable + Circuit Breaker."
+        "2 threads créés, exécution parallèle garantie sur 2 cœurs.",
+        "Aucun thread créé. Si `ComputeGreeksAsync` est purement async/await I/O-bound, les deux tâches partagent les threads du pool. Si elle contient `Task.Run(calc)`, chaque Task.Run utilise un thread du pool. L'exécution 'parallèle' dépend des ressources disponibles.",
+        "1 thread créé partagé entre les deux tâches.",
+        "Le nombre de threads créés dépend du nombre de cœurs CPU."
       ],
-      "answer": "IQueryable (SQL côté serveur) + async/await (libération thread) + AsNoTracking (lecture seule, 2× plus rapide) + CancellationToken (annulation propre) + projection directe SumAsync (SQL `SUM()` côté DB).",
-      "explanation": "Analyse ligne par ligne : `_ctx.Trades` = `IQueryable<Trade>` (pas encore exécuté). `.Where(...)` = filtre traduit en `WHERE` SQL. `.AsNoTracking()` = pas de change tracking (lecture seule). `.SumAsync(t => t.Notional, ct)` = traduit en `SELECT SUM(Notional) FROM Trades WHERE DeskId=@d AND Status=@s` — UNE seule ligne retournée par SQL (pas 50k lignes en RAM). `await` = libère le thread pendant l'I/O SQL. `ct` = si le client ferme la connexion → SQL annulé. SQL généré très efficace pour une table de millions de trades."
+      "answer": "Aucun thread créé. Si `ComputeGreeksAsync` est purement async/await I/O-bound, les deux tâches partagent les threads du pool. Si elle contient `Task.Run(calc)`, chaque Task.Run utilise un thread du pool. L'exécution 'parallèle' dépend des ressources disponibles.",
+      "explanation": "Nuance importante : `await Task.WhenAll(t1, t2)` ne crée PAS de threads. Il dit juste 'attends que les deux soient finies'. Si t1 et t2 sont des I/O (await http.GetAsync), elles peuvent s'exécuter 'simultanément' sur un seul thread (thread libéré puis reprend). Si t1 et t2 contiennent `Task.Run(cpuCalc)`, deux threads du pool sont utilisés simultanément (si disponibles). La 'parallélisme' dans Task.WhenAll vient soit du scheduling I/O (OS), soit de Task.Run (ThreadPool). WhenAll lui-même ne crée rien."
     },
     {
-      "question": "[Refactoring] Un service MAPS publie un message RabbitMQ avec `channel.BasicPublish(...)` directement dans le controller. Comment refactoriser pour la testabilité et la résilience ?",
+      "question": "[Situation → Architecture] Un service de pricing doit calculer les Greeks de 10 000 options au démarrage. `ComputeGreeks` est CPU-bound (10ms par option). Quelle approche optimale sur un serveur 8 cœurs ?",
       "options": [
-        "Déplacer le `BasicPublish` dans une méthode privée du controller.",
-        "Extraire `IMessageBus { Task PublishAsync<T>(string routingKey, T message, CancellationToken ct); }` + implémenter `RabbitMqMessageBus` + injecter dans le controller. En test : mocker `IMessageBus`. En prod : ajouter Polly retry sur `RabbitMqMessageBus`.",
-        "Utiliser un static helper `MessageBusHelper.Publish(...)` accessible partout.",
-        "Publisher directement depuis `DbContext.SaveChanges()` via un hook EF Core."
+        "10 000 `await Task.Run(() => option.ComputeGreeks())` avec Task.WhenAll.",
+        "`Parallel.ForEach(options, new ParallelOptions { MaxDegreeOfParallelism = 8 }, opt => results[i] = opt.ComputeGreeks())` ou PLINQ — distribue les calculs sur les 8 cœurs. Temps : ~10 000 × 10ms / 8 = ~12.5 secondes au lieu de 100 secondes.",
+        "Une boucle `foreach` classique — plus lisible et assez rapide.",
+        "Async/await sur chaque option — libère les threads pendant le calcul."
       ],
-      "answer": "Extraire `IMessageBus { Task PublishAsync<T>(string routingKey, T message, CancellationToken ct); }` + implémenter `RabbitMqMessageBus` + injecter dans le controller. En test : mocker `IMessageBus`. En prod : ajouter Polly retry sur `RabbitMqMessageBus`.",
-      "explanation": "SRP + DIP + Testabilité : le controller ne doit pas connaître RabbitMQ directement. Avec `IMessageBus` injectée : test unitaire → `new Mock<IMessageBus>().Verify(m => m.PublishAsync(\"trade.booked\", trade, ct), Times.Once)`. `RabbitMqMessageBus` = implémentation concrète avec retry Polly (`Policy.Handle<BrokerUnreachableException>().WaitAndRetry(3, ...)`). Migration MSMQ→RabbitMQ : créer `RabbitMqMessageBus : IMessageBus` → le controller change zéro ligne. La mission mentionne explicitement MSMQ et RabbitMQ coexistants — cette abstraction est la clé."
+      "answer": "`Parallel.ForEach(options, new ParallelOptions { MaxDegreeOfParallelism = 8 }, opt => results[i] = opt.ComputeGreeks())` ou PLINQ — distribue les calculs sur les 8 cœurs. Temps : ~10 000 × 10ms / 8 = ~12.5 secondes au lieu de 100 secondes.",
+      "explanation": "CPU-bound pur → Parallel. `ComputeGreeks` utilise 100% du CPU pendant 10ms → `await` ne servirait à rien (pas d'I/O à attendre). Avec `Parallel.ForEach` sur 8 cœurs : 8 options calculées simultanément → gain théorique ×8. `results = new Greeks[10000]; Parallel.For(0, options.Count, i => results[i] = options[i].ComputeGreeks())` — utiliser un tableau indexé (thread-safe par index unique). Ou PLINQ : `var results = options.AsParallel().WithDegreeOfParallelism(8).Select(o => o.ComputeGreeks()).ToArray()`. `Task.WhenAll` avec 10 000 Task.Run serait trop lourd (overhead de création de tasks)."
     },
     {
-      "question": "[Situation → Architecture] `RiskService` crash pendant le traitement d'un message `TradeBooked`. Le message avait `autoAck: true`. Conséquences et correction.",
+      "question": "[Anti-pattern] Identifier tous les problèmes dans `public string GetTrades() { return GetTradesAsync().Result; }` dans un contrôleur ASP.NET Framework.",
       "options": [
-        "Aucune conséquence — RabbitMQ redélivre le message automatiquement.",
-        "Avec `autoAck: true`, RabbitMQ supprime le message dès sa réception — si le service crash pendant le calcul, le message est perdu. Le trade n'est jamais risqué. Correction : `autoAck: false` + `BasicAck()` après traitement réussi + DLQ pour les rejets.",
-        "Le message est conservé dans la mémoire du serveur jusqu'au redémarrage.",
-        "RabbitMQ envoie automatiquement un NACK si le consommateur crash."
+        "Aucun problème — `.Result` est un moyen valide d'appeler du code async depuis du code synchrone.",
+        "Deadlock : le thread HTTP appelle `.Result` et bloque. La continuation de `GetTradesAsync()` tente de reprendre sur ce même thread (SynchronizationContext ASP.NET Framework) → impasse. AggregateException au lieu de l'exception directe. Gaspillage de thread. Correction : `async Task<string> GetTrades()` + `await GetTradesAsync()`.",
+        "Seul problème : la méthode devrait être `async void GetTrades()`.",
+        "Problème de performance uniquement — pas de deadlock possible."
       ],
-      "answer": "Avec `autoAck: true`, RabbitMQ supprime le message dès sa réception — si le service crash pendant le calcul, le message est perdu. Le trade n'est jamais risqué. Correction : `autoAck: false` + `BasicAck()` après traitement réussi + DLQ pour les rejets.",
-      "explanation": "Scenario CIB : 100 trades sont bookés pendant un pic d'activité. `RiskService` reçoit les messages mais crash (OOM) à mi-traitement. Avec `autoAck: true` : les 50 premiers messages déjà reçus = perdus → 50 trades sans calcul de risque → exposition inconnue → incident majeur (MiFID II). Avec `autoAck: false` : les messages non ACKés sont redelivrés à une autre instance de `RiskService`. DLQ : si un message échoue 3× (donnée corrompue), il va en dead-letter pour inspection manuelle — pas de loop infinie."
+      "answer": "Deadlock : le thread HTTP appelle `.Result` et bloque. La continuation de `GetTradesAsync()` tente de reprendre sur ce même thread (SynchronizationContext ASP.NET Framework) → impasse. AggregateException au lieu de l'exception directe. Gaspillage de thread. Correction : `async Task<string> GetTrades()` + `await GetTradesAsync()`.",
+      "explanation": "3 problèmes : (1) Deadlock dans ASP.NET Framework (pas Core) : SynchronizationContext capture le thread HTTP, la continuation en a besoin, `.Result` le bloque → impasse. La requête ne répond JAMAIS. (2) AggregateException : `.Result` enveloppe les exceptions dans AggregateException → besoin de `.InnerException` pour l'exception réelle. `await` donne l'exception directement. (3) Thread gaspillé : un thread du pool précieux est monopolisé pendant toute l'attente, sans servir d'autres requêtes. Note : en ASP.NET Core (pas Framework), le deadlock n'arrive pas (pas de SynchronizationContext), mais les problèmes 2 et 3 persistent."
     },
     {
-      "question": "[Anti-pattern] Un développeur définit `[JsonIgnore]` sur la propriété `Notional` d'un DTO de réponse de booking. Quel impact sur les clients RabbitMQ ?",
+      "question": "[Architecture] Comment implémenter un pipeline de traitement de messages avec backpressure en C# ?",
       "options": [
-        "Aucun impact — `JsonIgnore` n'affecte pas la désérialisation.",
-        "`[JsonIgnore]` exclut le champ lors de la sérialisation ET désérialisation — le JSON publié sur RabbitMQ ne contient pas `Notional`. `RiskService` qui lit ce champ reçoit `0` ou `null` → calcul de risque incorrect sur tous les trades.",
-        "`[JsonIgnore]` masque uniquement l'affichage, pas la valeur réelle.",
-        "`[JsonIgnore]` génère une erreur de compilation si le champ est requis."
+        "Une `ConcurrentQueue<T>` avec un `while(true)` qui poll toutes les 10ms.",
+        "`Channel<T>.CreateBounded(capacity)` : producteur `await writer.WriteAsync(msg, ct)` — attend si plein (backpressure). Consommateur `await foreach(var msg in reader.ReadAllAsync(ct))` — attend si vide. Zéro polling, backpressure native.",
+        "Une `BlockingCollection<T>` avec `Take()` synchrone dans un thread dédié.",
+        "`Task.WhenAll` avec une liste de Task en attente d'éléments."
       ],
-      "answer": "`[JsonIgnore]` exclut le champ lors de la sérialisation ET désérialisation — le JSON publié sur RabbitMQ ne contient pas `Notional`. `RiskService` qui lit ce champ reçoit `0` ou `null` → calcul de risque incorrect sur tous les trades.",
-      "explanation": "Contrat JSON brisé silencieusement : `TradeService` sérialise `BookedTradeEvent` avec `[JsonIgnore]` sur `Notional`. JSON publié : `{ TradeId: 1, ISIN: 'FR...' }` — sans Notional. `RiskService` désérialise → `trade.Notional = 0`. Calcul VaR à 0. Trades passent toutes les limites. Bug silencieux car aucune exception n'est lancée. Correction : utiliser `[JsonIgnore]` uniquement pour les données qui ne doivent JAMAIS être partagées (ex: hash de mot de passe dans un DTO utilisateur). Si `Notional` doit être dans le message interne mais pas dans la réponse HTTP, créer deux DTOs séparés."
+      "answer": "`Channel<T>.CreateBounded(capacity)` : producteur `await writer.WriteAsync(msg, ct)` — attend si plein (backpressure). Consommateur `await foreach(var msg in reader.ReadAllAsync(ct))` — attend si vide. Zéro polling, backpressure native.",
+      "explanation": "Comparaison : ConcurrentQueue + while(true)/polling → consomme du CPU inutilement quand la queue est vide. BlockingCollection.Take() → bloque un thread dédié (synchrone, gaspillage). Channel<T> async : le consommateur `await foreach(var msg in reader.ReadAllAsync(ct))` est VRAIMENT async — le thread est libéré pendant l'attente, pas de polling, pas de thread bloqué. Backpressure : `Channel.CreateBounded(1000)` → si 1000 messages en queue, `await writer.WriteAsync()` attend qu'une place se libère — naturellement ralentit le producteur. Pour les pics de trafic en CIB (ouverture des marchés), c'est exactement ce qu'il faut."
     },
     {
-      "question": "[Multi-concepts] Comment implémenter un pipeline de traitement de trade en C# qui : (1) valide asynchonement, (2) calcule les Greeks en parallèle, (3) publie sur RabbitMQ, (4) persiste en SQL — en moins de 200ms ?",
+      "question": "[Refactoring] Un service calcule VaR pour 100 portefeuilles (CPU-bound, 50ms chacun) puis envoie une notification HTTP pour chacun (I/O-bound, 200ms). Comment optimiser les deux phases séquentiellement ?",
       "options": [
-        "Exécuter chaque étape séquentiellement avec `await` pour chaque appel.",
-        "`await ValidateAsync(trade, ct)` → `await Task.WhenAll(ComputeDeltaAsync(), ComputeVegaAsync(), CheckLimitsAsync())` → `await Task.WhenAll(_bus.PublishAsync(), _ctx.SaveChangesAsync(ct))` — validation séquentielle (nécessite le résultat) + Greeks en parallèle + publish+save en parallèle.",
-        "Utiliser `Parallel.ForEach` pour toutes les étapes.",
-        "Créer 4 threads séparés avec `new Thread()`."
+        "Tout en séquentiel — le plus simple.",
+        "Phase 1 CPU-bound : `var vars = options.AsParallel().WithDegreeOfParallelism(Environment.ProcessorCount).Select(p => ComputeVaR(p)).ToArray()` (Parallel LINQ). Phase 2 I/O-bound : `await Task.WhenAll(vars.Select((v, i) => SendNotificationAsync(portfolios[i], v)))`. Les 100 notifications partent simultanément.",
+        "Tout en `Task.WhenAll` avec `Task.Run` pour les calculs.",
+        "Utiliser `Parallel.ForEach` pour les deux phases avec des lambdas async."
       ],
-      "answer": "`await ValidateAsync(trade, ct)` → `await Task.WhenAll(ComputeDeltaAsync(), ComputeVegaAsync(), CheckLimitsAsync())` → `await Task.WhenAll(_bus.PublishAsync(), _ctx.SaveChangesAsync(ct))` — validation séquentielle (nécessaire car les étapes suivantes en dépendent) + Greeks en parallèle + publish+save en parallèle.",
-      "explanation": "Optimisation du pipeline : validation d'abord (séquentielle — pas la peine de calculer les Greeks si le trade est invalide). Greeks calculés en parallèle (`Task.WhenAll`) — si Delta=20ms, Vega=25ms, limites=15ms → total=25ms au lieu de 60ms. Publication RabbitMQ + save SQL en parallèle (indépendants l'un de l'autre) — si publish=5ms, save=10ms → total=10ms au lieu de 15ms. Résultat : ~50ms au lieu de ~100ms séquentiel. `CancellationToken` propagé partout — si annulation, toutes les Tasks sont annulées proprement."
+      "answer": "Phase 1 CPU-bound : `var vars = options.AsParallel().WithDegreeOfParallelism(Environment.ProcessorCount).Select(p => ComputeVaR(p)).ToArray()` (Parallel LINQ). Phase 2 I/O-bound : `await Task.WhenAll(vars.Select((v, i) => SendNotificationAsync(portfolios[i], v)))`. Les 100 notifications partent simultanément.",
+      "explanation": "Deux phases, deux outils différents : Phase calcul (CPU-bound, 50ms × 100 = 5s séquentiel) → PLINQ sur tous les cœurs → ~5s/n_cores. Phase notification (I/O-bound, 200ms × 100 = 20s séquentiel) → Task.WhenAll lance les 100 requêtes HTTP simultanément → ~200ms (la plus longue). Total optimisé : ~625ms + 200ms vs 5000ms + 20000ms. `Parallel.ForEach` avec lambda async (option D) ne fonctionne pas correctement (async void piège). `Task.Run` pour le calcul (option C) aurait trop d'overhead pour 100 tasks."
     },
     {
-      "question": "[Thème ↔ Concept] Comment le pattern Outbox Pattern résout-il le problème de cohérence entre `SaveChangesAsync()` (SQL) et `PublishAsync()` (RabbitMQ) ?",
+      "question": "[Thème ↔ Concept] En quoi l'architecture horizontale Docker (plusieurs containers) remplace-t-elle le besoin de parallélisme sur un seul serveur en développement web ?",
       "options": [
-        "En utilisant une transaction distribuée XA entre SQL et RabbitMQ.",
-        "Écrire le message dans une table `OutboxMessages` SQL dans la même transaction que le trade. Un background service lit et publie les messages non envoyés sur RabbitMQ. Si RabbitMQ est down, les messages attendent en SQL — aucune incohérence.",
-        "Utiliser `Task.WhenAll(save, publish)` garantit l'atomicité.",
-        "Le problème n'existe pas — SQL et RabbitMQ peuvent être traités indépendamment."
+        "Elle ne remplace pas le parallélisme — Docker et le parallélisme sont complémentaires obligatoires.",
+        "Chaque container Docker peut avoir 1 seul cœur virtuel et utilise async pour gérer plusieurs requêtes. Ajouter des containers = ajouter des cœurs 'logiques'. Kubernetes scale automatiquement selon la charge. Le parallélisme intra-machine devient secondaire.",
+        "Docker élimine le besoin d'async/await car les containers isolent les requêtes.",
+        "Docker containers utilisent automatiquement Parallel.For pour les requêtes HTTP."
       ],
-      "answer": "Écrire le message dans une table `OutboxMessages` SQL dans la même transaction que le trade. Un background service lit et publie les messages non envoyés sur RabbitMQ. Si RabbitMQ est down, les messages attendent en SQL — aucune incohérence.",
-      "explanation": "Problème CIB : `await _ctx.SaveChangesAsync()` réussit (trade en base) puis RabbitMQ est down → `await _bus.PublishAsync()` échoue → `RiskService` ne reçoit jamais `TradeBooked` → trade non risqué. `Task.WhenAll` ne garantit pas l'atomicité — si publish échoue, le save est déjà committé. Outbox Pattern : transaction SQL atomique `{ INSERT INTO Trades, INSERT INTO OutboxMessages }`. `IHostedService` lit l'Outbox toutes les secondes, publie sur RabbitMQ, marque les messages comme envoyés. Guaranteed delivery sans transaction distribuée."
+      "answer": "Chaque container Docker peut avoir 1 seul cœur virtuel et utilise async pour gérer plusieurs requêtes. Ajouter des containers = ajouter des cœurs 'logiques'. Kubernetes scale automatiquement selon la charge. Le parallélisme intra-machine devient secondaire.",
+      "explanation": "Philosophie cloud moderne : au lieu d'un serveur avec 32 cœurs utilisant Parallel.For pour tout, déployer 32 containers avec 1 cœur chacun. Chaque container est simple, async, scale horizontalement. Kubernetes HPA : si CPU > 70%, ajouter des containers → élasticité totale. Si trafic chute, retirer des containers. Le parallélisme CPU (Parallel.For) reste utile pour les calculs intensifs internes (Monte Carlo, calcul de surface de vol), mais le parallélisme web est géré par l'orchestration. C'est exactement pourquoi Node.js (mono-thread) était populaire en cloud — architecture naturellement compatible avec les containers unitaires."
     },
     {
-      "question": "[Confusion + Performance] `GroupBy` suivi de `Count()` en LINQ sur IQueryable vs IEnumerable — quelle est la différence de SQL généré ?",
+      "question": "[Multi-concepts] Quelle est la différence entre `lock`, `ConcurrentDictionary` et `Interlocked` pour la thread-safety ?",
       "options": [
-        "Les deux génèrent le même SQL.",
-        "Sur `IQueryable` : `SELECT DeskId, COUNT(*) FROM Trades GROUP BY DeskId` — SQL côté serveur. Sur `IEnumerable` (après `.ToList()`) : charge TOUTES les trades en mémoire, groupe en C#. Sur 1M de trades, la différence est de secondes vs millisecondes.",
-        "`GroupBy` n'est pas supporté sur `IQueryable` — uniquement `IEnumerable`.",
-        "`GroupBy` sur `IQueryable` génère N+1 requêtes SQL."
+        "Ce sont trois syntaxes différentes pour la même opération — utiliser la plus lisible.",
+        "`lock` : exclusion mutuelle bloquante (un seul thread à la fois). `ConcurrentDictionary` : structure lock-free pour les dictionnaires (opérations atomiques). `Interlocked` : opérations atomiques sur des valeurs simples (inc, dec, exchange). Choisir selon la granularité.",
+        "`lock` est déprécié depuis .NET 5 — utiliser uniquement `ConcurrentDictionary`.",
+        "`Interlocked` est uniquement pour les entiers, `ConcurrentDictionary` uniquement pour les strings."
       ],
-      "answer": "Sur `IQueryable` : `SELECT DeskId, COUNT(*) FROM Trades GROUP BY DeskId` — SQL côté serveur. Sur `IEnumerable` (après `.ToList()`) : charge TOUTES les trades en mémoire, groupe en C#. Sur 1M de trades, la différence est de secondes vs millisecondes.",
-      "explanation": "Démonstration : `_ctx.Trades.GroupBy(t => t.DeskId).Select(g => new { Desk = g.Key, Count = g.Count() })` → SQL : `SELECT DeskId, COUNT(*) FROM Trades GROUP BY DeskId` → retourne N lignes (une par desk). `_ctx.Trades.ToList().GroupBy(...)` → SQL : `SELECT * FROM Trades` → 1M lignes en RAM → groupe en C# → 1M objets Trade créés pour obtenir le même N-lignes résultat. En CIB avec une table de positions historiques (10M lignes), la version `ToList()` avant `GroupBy` peut provoquer un OutOfMemoryException."
+      "answer": "`lock` : exclusion mutuelle bloquante (un seul thread à la fois). `ConcurrentDictionary` : structure lock-free pour les dictionnaires (opérations atomiques). `Interlocked` : opérations atomiques sur des valeurs simples (inc, dec, exchange). Choisir selon la granularité.",
+      "explanation": "Trois niveaux de granularité : `lock(obj) { bloc de code }` — gros grain, flexible, bloquant (les autres threads attendent). Utiliser pour les blocs de logique complexe avec plusieurs opérations interdépendantes. `ConcurrentDictionary.GetOrAdd(key, factory)` — thread-safe atomiquement pour les opérations dictionnaire. Pas besoin de `lock` manuel. `Interlocked.Increment(ref counter)` — ultra-fin, atomique, non-bloquant. Pour un simple compteur partagé. Règle : préférer le plus fin possible. `Interlocked` > `ConcurrentDictionary` > `lock`. Éviter `lock` sur hot paths (contention → performance dégradée)."
     },
     {
-      "question": "[Anti-pattern] Un service publie `{ TradeId: 1, EmployeeSalary: 85000, JwtSecret: \"abc123\" }` dans un message RabbitMQ. Quels problèmes ?",
+      "question": "[Confusion + Architecture] Un développeur wrappe du code async dans `Task.Run` dans un controller ASP.NET Core : `return await Task.Run(() => await GetDataAsync())`. Quel est le problème ?",
       "options": [
-        "Aucun problème — les messages RabbitMQ sont chiffrés.",
-        "Surcharge du contrat JSON (données non nécessaires pour les consommateurs) + fuite d'informations sensibles (salaire, secret JWT) lisibles par tous les services consommateurs et dans les logs de monitoring RabbitMQ.",
-        "Le seul problème est la taille excessive du message.",
-        "Le problème est uniquement de sécurité — chiffrer le message suffit."
+        "Ce code est correct et optimal.",
+        "Double overhead inutile : `Task.Run` utilise un thread du pool pour exécuter du code qui va immédiatement libérer ce thread avec `await`. On prend un thread pour... le libérer. En ASP.NET Core, il n'y a pas de SynchronizationContext — `await GetDataAsync()` directement est parfait.",
+        "Le problème est que `Task.Run` ne peut pas contenir de code async.",
+        "Ce code provoque un deadlock systématique."
       ],
-      "answer": "Surcharge du contrat JSON (données non nécessaires pour les consommateurs) + fuite d'informations sensibles (salaire, secret JWT) lisibles par tous les services consommateurs et dans les logs de monitoring RabbitMQ.",
-      "explanation": "Principe de minimisation (RGPD + sécurité) : les messages doivent contenir uniquement ce dont les consommateurs ont besoin. `RiskService` a besoin de `TradeId`, `ISIN`, `Notional`, pas du salaire. `JwtSecret` dans un message = catastrophe sécurité — visible dans les logs RabbitMQ management, dans les logs des consommateurs (Serilog), potentiellement stocké en DLQ. Règle : créer un DTO spécifique au message `TradeBookedEvent { TradeId, ISIN, Notional, Desk, Timestamp }` — seuls les champs nécessaires aux consommateurs."
+      "answer": "Double overhead inutile : `Task.Run` utilise un thread du pool pour exécuter du code qui va immédiatement libérer ce thread avec `await`. On prend un thread pour... le libérer. En ASP.NET Core, il n'y a pas de SynchronizationContext — `await GetDataAsync()` directement est parfait.",
+      "explanation": "`Task.Run(() => await GetDataAsync())` dans un controller ASP.NET Core : (1) Thread du pool A exécute le controller. (2) Task.Run prend Thread B du pool pour exécuter la lambda. (3) Thread B execute `await GetDataAsync()` → se libère. (4) Thread A attend la Task.Run → bloqué inutilement. (5) Un thread du pool est gaspillé juste pour lancer un await. Solution : `return await GetDataAsync()` directement. `Task.Run` dans un controller est utile UNIQUEMENT si GetDataAsync contient un calcul CPU synchrone long qui bloquerait le thread HTTP (cas rare, mieux vaut que la méthode soit nativement async)."
     },
     {
-      "question": "[Situation → Pattern] Le `RiskService` a besoin des données d'un trade pour calculer le risque, mais il ne partage pas la DB avec `TradeService`. Comment maintenir sa copie locale des trades ?",
+      "question": "[Thème ↔ Pattern] Comment utiliser `SemaphoreSlim` pour limiter la concurrence à 10 opérations async simultanées parmi 1000 ?",
       "options": [
-        "Appeler `GET /api/v1/trades/{id}` à chaque calcul de risque.",
-        "Pattern CQRS + Event Sourcing : consommer l'événement `TradeBooked` depuis RabbitMQ → stocker une copie locale dans la DB du `RiskService` (sa propre table `Trades_Risk`) → lire localement pour les calculs. Eventual consistency acceptable.",
-        "Accéder directement à la DB de `TradeService` en lecture seule.",
-        "Utiliser une transaction distribuée XA pour synchroniser les deux DBs."
+        "Utiliser `Parallel.ForEach` avec `MaxDegreeOfParallelism = 10`.",
+        "`var sem = new SemaphoreSlim(10); await Task.WhenAll(items.Select(async item => { await sem.WaitAsync(ct); try { await ProcessAsync(item); } finally { sem.Release(); } }));` — max 10 tâches concurrentes à tout moment.",
+        "Diviser la liste en chunks de 10 et `await Task.WhenAll` sur chaque chunk séquentiellement.",
+        "Utiliser `Channel<T>.CreateBounded(10)` avec 10 consommateurs."
       ],
-      "answer": "Pattern CQRS + Event Sourcing : consommer l'événement `TradeBooked` depuis RabbitMQ → stocker une copie locale dans la DB du `RiskService` (sa propre table `Trades_Risk`) → lire localement pour les calculs. Eventual consistency acceptable.",
-      "explanation": "DB per service + eventual consistency : `RiskService` a sa propre table `TradesForRisk { TradeId, ISIN, Notional, DeskId }` (uniquement les champs nécessaires au calcul de risque). `IHostedService` consomme `TradeBooked` depuis RabbitMQ → `INSERT OR UPDATE TradesForRisk`. Avantages : lecture locale ultra-rapide (pas d'appel HTTP vers `TradeService`), pas de couplage runtime, résilience (`TradeService` peut être down pendant le calcul de risque). Eventual consistency : le `RiskService` peut avoir quelques secondes de délai — acceptable en finance post-trade."
+      "answer": "`var sem = new SemaphoreSlim(10); await Task.WhenAll(items.Select(async item => { await sem.WaitAsync(ct); try { await ProcessAsync(item); } finally { sem.Release(); } }));` — max 10 tâches concurrentes à tout moment.",
+      "explanation": "Throttling async avec SemaphoreSlim : `SemaphoreSlim(10)` = au plus 10 `WaitAsync()` peuvent continuer simultanément. Les 990 autres await sur `WaitAsync()` libèrent leurs threads (aucun bloqué) et reprennent quand une Release() arrive. Comparaison : Chunking (option C) = attendre que les 10 soient finis pour lancer les 10 suivants — certains pourraient finir rapidement, thread inutilisé. SemaphoreSlim = dès qu'une tâche finit, la suivante démarre → saturation optimale. `Parallel.ForEach` (option A) = synchrone, pas de vrai async."
     },
     {
-      "question": "[Refactoring] Un `BookingController` de 400 lignes gère : désérialisation JSON, validation métier, appel Sophis, save SQL, publish RabbitMQ, logging, gestion d'erreurs. Refactorisez en SOLID.",
+      "question": "[Code → Debug] Une application WPF avec un `Button_Click` qui appelle `.Result` sur une Task async ne répond plus après le clic. Diagnostiquez et corrigez.",
       "options": [
-        "Diviser en méthodes privées dans le même controller.",
-        "SRP : `IBookingValidator` (validation), `IIsinService` (Sophis), `ITradeRepository` (SQL), `IEventPublisher` (RabbitMQ). `BookingController` = orchestrateur 20 lignes qui appelle chaque service injecté. DIP : interfaces injectées par constructeur. Tests : mocker chaque interface indépendamment.",
-        "Créer un service `BookingHelper` statique avec toutes les méthodes.",
-        "Utiliser des middlewares ASP.NET Core pour chaque responsabilité."
+        "Problème de performance — utiliser `Task.Run` pour déplacer le calcul.",
+        "Deadlock classique UI : le thread UI appelle `.Result` → bloqué. La continuation de la Task tente de reprendre sur le thread UI (SynchronizationContext WPF) → impasse. Correction : `private async void Button_Click(object sender, EventArgs e) { var result = await GetDataAsync(); label.Text = result; }`",
+        "Le problème est que `async void` n'est pas supporté sur les event handlers WPF.",
+        "Augmenter le timeout de la Task avec `CancellationTokenSource(TimeSpan.FromSeconds(30))`."
       ],
-      "answer": "SRP : `IBookingValidator` (validation), `IIsinService` (Sophis), `ITradeRepository` (SQL), `IEventPublisher` (RabbitMQ). `BookingController` = orchestrateur 20 lignes qui appelle chaque service injecté. DIP : interfaces injectées par constructeur. Tests : mocker chaque interface indépendamment.",
-      "explanation": "SRP sur le controller : un controller 400 lignes = 5 raisons de changer = fragile. Après refactoring : `BookingController` → `await _validator.ValidateAsync(req)` → `var isin = await _isinService.ResolveAsync(req.Isin)` → `var trade = await _tradeRepo.CreateAsync(trade)` → `await _eventPublisher.PublishAsync(\"trade.booked\", trade)`. Chaque service testable isolément avec `Mock<IIsinService>`. Si Sophis change d'API : modifier uniquement `SophisIsinService`, zéro modification du controller. DIP : le controller dépend d'abstractions, pas des implémentations concrètes."
+      "answer": "Deadlock classique UI : le thread UI appelle `.Result` → bloqué. La continuation de la Task tente de reprendre sur le thread UI (SynchronizationContext WPF) → impasse. Correction : `private async void Button_Click(object sender, EventArgs e) { var result = await GetDataAsync(); label.Text = result; }`",
+      "explanation": "Deadlock WPF en 4 étapes : (1) Thread UI exécute Button_Click. (2) `task.Result` bloque le thread UI en attendant. (3) GetDataAsync() finit, sa continuation tente de s'exécuter sur le thread UI (pour mettre à jour les contrôles de façon thread-safe). (4) Thread UI est bloqué sur `.Result` → ne peut pas exécuter la continuation → impasse. Solution : `async void Button_Click` (seul usage légitime d'async void !). `await GetDataAsync()` libère le thread UI → peut exécuter d'autres messages (fenêtre reste réactive). La continuation reprend sur le thread UI après l'await → mise à jour de `label.Text` thread-safe."
     },
     {
-      "question": "[Architecture] Comment versionner un contrat JSON publié sur RabbitMQ sans casser les consommateurs existants ?",
+      "question": "[Situation → Outil] 500 000 trades en mémoire, calcul de P&L (CPU-bound, 1ms chacun) sur 16 cœurs. PLINQ vs Parallel.ForEach vs Task.WhenAll — quel est le plus adapté ?",
       "options": [
-        "Modifier directement le JSON — les consommateurs s'adapteront automatiquement.",
-        "Ajouter les nouveaux champs en optionnel (backward compatible). Pour les breaking changes : créer un nouveau routingKey `trade.booked.v2`, les anciens consommateurs gardent leur abonnement `trade.booked.v1`, les nouveaux s'abonnent à `v2`. Dual-publish pendant la transition.",
-        "Utiliser une transaction distribuée pour migrer tous les consommateurs simultanément.",
-        "Supprimer la queue et recréer — les messages en attente sont perdus."
+        "Task.WhenAll — le plus simple à écrire.",
+        "PLINQ (`trades.AsParallel().WithDegreeOfParallelism(16).Select(t => ComputePnL(t)).ToArray()`) ou Parallel.ForEach avec tableau indexé. Temps : 500 000 × 1ms / 16 = ~31 secondes au lieu de 500 secondes. Task.WhenAll inadapté (CPU-bound, pas I/O).",
+        "Une boucle foreach classique — évite la complexité du parallélisme.",
+        "Parallel.ForEach avec `async trade => await Task.Run(() => ComputePnL(trade))`."
       ],
-      "answer": "Ajouter les nouveaux champs en optionnel (backward compatible). Pour les breaking changes : créer un nouveau routingKey `trade.booked.v2`, les anciens consommateurs gardent leur abonnement `trade.booked.v1`, les nouveaux s'abonnent à `v2`. Dual-publish pendant la transition.",
-      "explanation": "Versioning de contrat de message en CIB : Backward compatible (ajouter champ optionnel `CurrencyCode?`) — tous les consommateurs l'ignorent ou l'utilisent s'ils en ont besoin. Breaking change (renommer `Notional` → `Amount`) → dual-publish : `TradeService` publie sur `trade.booked` (format v1 pour les anciens) ET `trade.booked.v2` (format v2 pour les nouveaux). Quand tous les consommateurs ont migré, retirer le dual-publish. Timeline : 2-4 semaines de transition. Documenter le changelog avec la date de dépréciation de v1."
-    },
-    {
-      "question": "[Confusion + Architecture] Quelle est la différence entre `Competing Consumers` et `Publish-Subscribe` dans RabbitMQ ?",
-      "options": [
-        "Ce sont deux noms pour le même pattern.",
-        "Competing Consumers : plusieurs instances du même service partagent une queue — chaque message traité par UN seul consommateur (load balancing). Publish-Subscribe : chaque service a SA propre queue (Fanout Exchange) — chaque message reçu par TOUS les abonnés.",
-        "Competing Consumers utilise Topic Exchange, Publish-Subscribe utilise Direct Exchange.",
-        "Publish-Subscribe est uniquement pour les messages prioritaires."
-      ],
-      "answer": "Competing Consumers : plusieurs instances du même service partagent une queue — chaque message traité par UN seul consommateur (load balancing). Publish-Subscribe : chaque service a SA propre queue (Fanout Exchange) — chaque message reçu par TOUS les abonnés.",
-      "explanation": "Cas d'usage CIB : Competing Consumers → `RiskService` a 3 instances qui consomment toutes `risk.trade.booked` (une seule queue). Un message `TradeBooked` est traité par une seule des 3 instances — scale out horizontal, chaque trade risqué une seule fois. Publish-Subscribe → `TradeBooked` doit être reçu par `RiskService` ET `AuditService` ET `BlotterService` — Fanout Exchange copie le message dans 3 queues dédiées. Mélange des deux : `risk.trade.booked` (unique, 3 instances en competing consumers) + `audit.trade.booked` (unique) + `blotter.trade.booked` (unique)."
-    },
-    {
-      "question": "[Code → Analyse] `services.AddScoped<ITradeRepository, EfTradeRepository>()`. Que signifie `Scoped` et pourquoi est-ce le bon choix pour un `DbContext` EF Core ?",
-      "options": [
-        "Scoped = une seule instance pour toute la durée de vie de l'application (même chose que Singleton).",
-        "Scoped = une instance créée par requête HTTP et partagée dans cette requête. Le `DbContext` EF Core est conçu pour une seule unité de travail (une requête) — réutiliser le même DbContext entre plusieurs requêtes causerait des incohérences de change tracking.",
-        "Scoped = une nouvelle instance créée à chaque injection (même chose que Transient).",
-        "Scoped s'applique uniquement aux services qui accèdent au cache Redis."
-      ],
-      "answer": "Scoped = une instance créée par requête HTTP et partagée dans cette requête. Le `DbContext` EF Core est conçu pour une seule unité de travail (une requête) — réutiliser le même DbContext entre plusieurs requêtes causerait des incohérences de change tracking.",
-      "explanation": "Cycles de vie DI en ASP.NET Core : Singleton = une instance pour toute l'app (pour les services stateless : `IMessageBus`, `IHttpClientFactory`). Scoped = une instance par requête HTTP (pour `DbContext` EF Core, `ITradeRepository`). Transient = nouvelle instance à chaque injection (pour les services légers sans état). Piège : injecter un service Scoped dans un Singleton → exception à l'exécution (`IServiceScopeFactory` obligatoire). En CIB : `DbContext` Scoped garantit que le change tracking d'une requête de booking n'interfère pas avec la requête suivante."
-    },
-    {
-      "question": "[Situation → Architecture] Un `RiskService` appelle `TradeService` via HTTP pour chaque calcul de risque (100 appels/seconde). `TradeService` est down 5 minutes. Comment concevoir la résilience ?",
-      "options": [
-        "Augmenter le timeout HTTP à 5 minutes pour attendre le retour de `TradeService`.",
-        "Circuit Breaker Polly : après 5 erreurs consécutives, ouvrir le circuit 30s (réponse immédiate de refus). Fallback : utiliser les données de trade en cache local. Retry avec backoff exponentiel pour les erreurs transitoires. Alert monitoring quand le circuit s'ouvre.",
-        "Supprimer l'appel HTTP et accéder directement à la DB de `TradeService`.",
-        "Retry infini toutes les 100ms — `TradeService` finira par répondre."
-      ],
-      "answer": "Circuit Breaker Polly : après 5 erreurs consécutives, ouvrir le circuit 30s (réponse immédiate de refus). Fallback : utiliser les données de trade en cache local. Retry avec backoff exponentiel pour les erreurs transitoires. Alert monitoring quand le circuit s'ouvre.",
-      "explanation": "Sans circuit breaker : 100 appels/s × 5 minutes = 30 000 requêtes bloquées pendant le timeout (ex: 10s chacune) → 100 threads bloqués en permanence → `RiskService` crash également. Cascade de pannes. Circuit Breaker Polly : `services.AddHttpClient<ITradeServiceClient>().AddResilienceHandler(\"trade\", b => b.AddCircuitBreaker(new CircuitBreakerStrategyOptions { FailureRatio = 0.5, SamplingDuration = TimeSpan.FromSeconds(10), MinimumThroughput = 5, BreakDuration = TimeSpan.FromSeconds(30) }))`. Circuit ouvert → `RiskService` répond immédiatement avec données cache → reste disponible. Retry exponentiel (2s, 4s, 8s) pour les erreurs réseau transitoires seulement."
-    },
-    {
-      "question": "[Anti-pattern + LINQ] Un développeur filtre une liste de 50k trades avec `trades.Where(t => t.Desk == \"Equity\").Count()` dans une boucle appelée 1000 fois. Quel problème et quelle correction ?",
-      "options": [
-        "Aucun problème — LINQ est optimisé par le compilateur.",
-        "Exécution différée mal exploitée : `Count()` exécute le `Where` à chaque appel → O(n) × 1000 = 50M itérations. Correction : `var equityCount = trades.Where(t => t.Desk == \"Equity\").Count()` UNE FOIS hors de la boucle, ou `trades.GroupBy(t => t.Desk).ToDictionary(g => g.Key, g => g.Count())` pour tous les desks en une passe.",
-        "Le seul problème est que `Count()` devrait être remplacé par `Any()`.",
-        "Utiliser `Parallel.ForEach` sur la boucle résout le problème."
-      ],
-      "answer": "Exécution différée mal exploitée : `Count()` exécute le `Where` à chaque appel → O(n) × 1000 = 50M itérations. Correction : `var equityCount = trades.Where(t => t.Desk == \"Equity\").Count()` UNE FOIS hors de la boucle, ou `trades.GroupBy(t => t.Desk).ToDictionary(g => g.Key, g => g.Count())` pour tous les desks en une passe.",
-      "explanation": "Exécution différée + boucle = piège de performance classique. En CIB pour un rapport de positions : calculer le nombre de trades par desk dans une boucle de 1000 itérations sur 50k trades = 50M comparaisons. Optimisation : matérialiser le résultat une fois (`var counts = trades.GroupBy(t => t.Desk).ToDictionary(g => g.Key, g => g.Count())`) → une seule passe sur 50k trades. Puis dans la boucle : `counts.GetValueOrDefault(\"Equity\", 0)` → O(1). Gain : 50M itérations → 50k + 1000 lookups O(1)."
+      "answer": "PLINQ (`trades.AsParallel().WithDegreeOfParallelism(16).Select(t => ComputePnL(t)).ToArray()`) ou Parallel.ForEach avec tableau indexé. Temps : 500 000 × 1ms / 16 = ~31 secondes au lieu de 500 secondes. Task.WhenAll inadapté (CPU-bound, pas I/O).",
+      "explanation": "500k × 1ms = 500s séquentiel → inacceptable. Calcul P&L = pur CPU → Parallel ou PLINQ. PLINQ : syntaxe élégante, partitionnement automatique. `WithDegreeOfParallelism(16)` limite aux 16 cœurs. `.ToArray()` force l'exécution et réassemble dans l'ordre. Alternative : `decimal[] results = new decimal[500000]; Parallel.For(0, trades.Count, i => results[i] = ComputePnL(trades[i]))` — tableau pré-alloué, accès indexé thread-safe. Task.WhenAll avec Task.Run overhead = 500k Tasks créées → GC pressure massive. Option D = Parallel.ForEach avec async void dans lambda → anti-pattern (voir question précédente)."
     }
   ],
   expert: [
     {
-      "question": "[Architecture + Multi-concepts] Concevez un système garantissant qu'un trade booké dans MAPS est toujours risqué, même si RabbitMQ est temporairement indisponible. Nommez tous les patterns utilisés.",
+      "question": "[Architecture complète] Concevez un pipeline de pricing haute performance : 10 000 options, calcul Black-Scholes (CPU, 5ms), puis sauvegarde BD (I/O, 20ms), puis notification SignalR (I/O, 5ms).",
       "options": [
-        "Retry infini sur la publication RabbitMQ.",
-        "Outbox Pattern (message stocké en SQL dans la même transaction que le trade) + IHostedService (polling Outbox → publish RabbitMQ quand disponible) + Idempotency Key (RiskService ne recalcule pas deux fois le même trade) + Circuit Breaker sur RabbitMQ (ne pas bloquer le booking si RabbitMQ est down).",
-        "Transaction distribuée XA entre SQL Server et RabbitMQ.",
-        "Synchroniser directement les DBs de TradeService et RiskService."
+        "Une boucle foreach avec await sur chaque étape.",
+        "Phase 1 (CPU) : `var greeks = options.AsParallel().WithDegreeOfParallelism(cores).Select(o => ComputeBS(o)).ToArray()` → 5ms × 10000 / cores. Phase 2 (I/O BD) : `await Task.WhenAll(greeks.Chunk(100).Select(batch => _db.BulkSaveAsync(batch, ct)))` → batches de 100 en parallèle. Phase 3 (I/O SignalR) : `await Task.WhenAll(greeks.Select(g => _hub.SendAsync(\"greeks\", g, ct)))` → toutes les notifications simultanées.",
+        "Tout en Parallel.ForEach avec lambdas async.",
+        "Un seul `await Task.WhenAll` sur les 10 000 opérations complètes."
       ],
-      "answer": "Outbox Pattern (message stocké en SQL dans la même transaction que le trade) + IHostedService (polling Outbox → publish RabbitMQ quand disponible) + Idempotency Key (RiskService ne recalcule pas deux fois le même trade) + Circuit Breaker sur RabbitMQ (ne pas bloquer le booking si RabbitMQ est down).",
-      "explanation": "Architecture garantie de livraison : (1) Outbox : `BEGIN TRANSACTION; INSERT INTO Trades; INSERT INTO OutboxMessages (tradeId, payload, sentAt=null); COMMIT;` — atomique. (2) `IHostedService` : toutes les 5s, `SELECT TOP 100 FROM OutboxMessages WHERE sentAt IS NULL` → publie → `UPDATE sentAt=NOW`. (3) Si RabbitMQ est down : le trade est en DB, l'OutboxMessage attend. Quand RabbitMQ revient : publication automatique. (4) Idempotency Key sur `RiskService` : si l'Outbox publie deux fois (retry) → `RiskService` vérifie `ProcessedTradeIds` → ignore le doublon. (5) Circuit Breaker Polly : si RabbitMQ down → circuit ouvert → publish échoue vite → Outbox conserve en SQL."
+      "answer": "Phase 1 (CPU) : `var greeks = options.AsParallel().WithDegreeOfParallelism(cores).Select(o => ComputeBS(o)).ToArray()` → 5ms × 10000 / cores. Phase 2 (I/O BD) : `await Task.WhenAll(greeks.Chunk(100).Select(batch => _db.BulkSaveAsync(batch, ct)))` → batches de 100 en parallèle. Phase 3 (I/O SignalR) : `await Task.WhenAll(greeks.Select(g => _hub.SendAsync(\"greeks\", g, ct)))` → toutes les notifications simultanées.",
+      "explanation": "Architecture 3 phases distinctes : PLINQ pour le CPU (utilise tous les cœurs, simple, composable). Bulk + WhenAll pour la BD (10k saves individuels = 10k connexions BD → trop. Batches de 100 = 100 batch saves en parallèle → 100 connexions, efficace). WhenAll pour SignalR (10k notifications I/O légères → toutes simultanées, chacune 5ms → total ~5ms). Alternative Phase 2 : `var sem = new SemaphoreSlim(50); await Task.WhenAll(greeks.Select(async g => { await sem.WaitAsync(); try { await _db.SaveAsync(g); } finally { sem.Release(); } }))` — throttling à 50 connexions max."
     },
     {
-      "question": "[Nommage inversé] Un mécanisme garantit que si `SaveChangesAsync()` (SQL) réussit mais que `PublishAsync()` (RabbitMQ) échoue, le message sera quand même publié — éventuellement, sans transaction distribuée. Quel est ce mécanisme ?",
+      "question": "[Nommage inversé] Un pattern garantit que les opérations async I/O-bound de plusieurs Tasks 'partagent' effectivement un seul thread sur un serveur avec 1 cœur, permettant à 100 requêtes HTTP d'être en cours simultanément. Comment s'appelle ce mécanisme ?",
       "options": [
-        "Two-Phase Commit (2PC) distribué",
-        "Outbox Pattern — le message est persisté dans la même transaction SQL que l'entité métier. Il est publié asynchronement par un background service. La cohérence est éventuelle mais garantie.",
-        "Saga Pattern avec compensation",
-        "Dead-Letter Queue avec retry automatique"
+        "Thread pooling — les threads sont réutilisés du pool.",
+        "I/O Completion Ports (IOCP) + async/await State Machine — le kernel OS notifie quand l'I/O est prête (IOCP), la state machine générée par le compilateur reprend l'exécution au bon endroit sans thread dédié pendant l'attente.",
+        "Context switching — l'OS bascule très vite entre les threads.",
+        "Cooperative multitasking — chaque thread cède volontairement le CPU."
       ],
-      "answer": "Outbox Pattern — le message est persisté dans la même transaction SQL que l'entité métier. Il est publié asynchronement par un background service. La cohérence est éventuelle mais garantie.",
-      "explanation": "Outbox Pattern résout le problème 'dual write' : deux systèmes (SQL + RabbitMQ) qui doivent être mis à jour de façon cohérente sans transaction distribuée. La table `OutboxMessages { Id, Payload, RoutingKey, CreatedAt, PublishedAt? }` est dans la même DB que les trades. Transaction SQL atomique : trade + outbox message ensemble. Le background service (`IHostedService`) assure la publication avec retry. Idempotency Key côté consommateur gère les éventuels doublons. 2PC distribué (option A) = trop lourd, verrouille les deux systèmes."
+      "answer": "I/O Completion Ports (IOCP) + async/await State Machine — le kernel OS notifie quand l'I/O est prête (IOCP), la state machine générée par le compilateur reprend l'exécution au bon endroit sans thread dédié pendant l'attente.",
+      "explanation": "Mécanisme sous async/await sur Windows : (1) `await db.QueryAsync()` → .NET envoie la requête BD via IOCP (mécanisme kernel Windows d'I/O non-bloquant). (2) Thread libéré dans le pool — AUCUN thread ne 'surveille' la BD. (3) Quand la BD répond, le kernel notifie l'IOCP. (4) Un thread du pool récupère la notification, retrouve la continuation grâce à la state machine générée par le compilateur, et reprend l'exécution exactement après le `await`. Sur Linux : epoll/io_uring jouent le même rôle. C'est pour ça que 1 thread peut gérer 100 I/O simultanées : aucun thread n'attend activement, c'est le kernel qui notifie."
     },
     {
-      "question": "[Situation → Multi-concepts] 10 services consomment l'événement `TradeBooked`. Chacun doit le recevoir indépendamment. Décrivez l'architecture RabbitMQ complète.",
+      "question": "[Multi-concepts + Architecture] Comparez Node.js et ASP.NET Core en termes de modèle de threading, de scalabilité et de cas d'usage optimal, en mentionnant l'impact de Docker.",
       "options": [
-        "Une seule queue `trade.booked` partagée entre les 10 services — round-robin.",
-        "Fanout Exchange `trades.events` → 10 queues dédiées (`risk.trade.booked`, `audit.trade.booked`, `blotter.trade.booked`, etc.) via bindings. Chaque service a sa propre queue — indépendance totale, chaque service reçoit tous les messages.",
-        "Direct Exchange avec 10 routingKeys différents — le producteur publie 10 fois.",
-        "Un seul message copié manuellement vers 10 services via HTTP."
+        "Node.js est toujours supérieur pour le web, ASP.NET Core pour les APIs.",
+        "Node.js : event loop mono-thread, async forcé, excellente scalabilité I/O-bound, limité pour CPU-bound (Workers). ASP.NET Core : multi-thread pool, async optionnel mais crucial, aussi scalable avec async/await, puissant pour CPU-bound (Parallel). Docker efface la différence : chaque container = 1 cœur → les deux architectures se comportent de façon similaire.",
+        "ASP.NET Core est toujours supérieur car multi-thread.",
+        "Les deux utilisent le même modèle interne — différence uniquement syntaxique."
       ],
-      "answer": "Fanout Exchange `trades.events` → 10 queues dédiées (`risk.trade.booked`, `audit.trade.booked`, `blotter.trade.booked`, etc.) via bindings. Chaque service a sa propre queue — indépendance totale, chaque service reçoit tous les messages.",
-      "explanation": "Fan-out architecture CIB : `TradeService` publie UNE fois sur `trades.events` (Fanout Exchange). RabbitMQ copie le message dans les 10 queues liées. Chaque service consomme SA propre queue à son propre rythme. Si `AuditService` est lent, sa queue grossit — les autres services ne sont pas affectés. Si `BlotterService` est down 1h, ses messages attendent dans `blotter.trade.booked` — retrouvés au redémarrage. Une queue partagée (Competing Consumers) = chaque message traité par UN SEUL consommateur (load balancing). Fanout = chaque message traité par TOUS les consommateurs."
+      "answer": "Node.js : event loop mono-thread, async forcé, excellente scalabilité I/O-bound, limité pour CPU-bound (Workers). ASP.NET Core : multi-thread pool, async optionnel mais crucial, aussi scalable avec async/await, puissant pour CPU-bound (Parallel). Docker efface la différence : chaque container = 1 cœur → les deux architectures se comportent de façon similaire.",
+      "explanation": "Histoire : Node.js a dominé le web temps car les devs .NET codaient synchrone → ThreadPool épuisé. Avec ASP.NET Core + async/await : même efficacité que Node.js pour l'I/O. Avantage .NET : calculs intensifs (Parallel.For, PLINQ) là où Node.js utilise des Worker Threads plus lourds. Docker : dans Kubernetes avec 1 cœur par container × 1000 containers → parallélisme horizontal pur. Chaque container Node.js OU ASP.NET Core gère ses requêtes avec async → comportement quasi-identique. Le choix devient surtout ecosystem/team/tooling, pas scalabilité."
     },
     {
-      "question": "[Anti-pattern + Sécurité] Un développeur expose `GET /api/v1/trades?linq=trades.Where(t => t.Desk == {userInput}).ToList()` et évalue l'expression LINQ dynamiquement. Diagnostiquez.",
+      "question": "[Architecture + Confusion] Expliquez pourquoi `async/await` améliore la scalabilité mais PAS la latence d'une requête individuelle.",
       "options": [
-        "Acceptable si l'endpoint est protégé par JWT.",
-        "Code Injection identique au RCE — l'expression LINQ est compilée et exécutée avec tous les droits du process. Un attaquant peut accéder à `_ctx.Users`, `_ctx.AuditLogs`, exécuter des méthodes système. Correction : paramètres typés (`deskId`, `status`, `dateFrom`) + LINQ hardcodé + validation whitelist.",
-        "Le seul risque est que l'expression LINQ soit incorrecte.",
-        "L'expression LINQ est sécurisée car elle n'accède pas au SQL directement."
+        "async/await améliore les deux — une requête individuelle sera plus rapide.",
+        "Async libère le thread pendant l'attente I/O — la LATENCE d'une requête reste identique (le temps SQL ne change pas). Ce qui change : pendant ces 100ms d'attente SQL, le thread sert d'autres requêtes → plus de requêtes simultanées avec le même nombre de threads → THROUGHPUT et SCALABILITÉ améliorés.",
+        "async améliore la latence mais pas le throughput.",
+        "async améliore uniquement la mémoire utilisée, pas les performances."
       ],
-      "answer": "Code Injection identique au RCE — l'expression LINQ est compilée et exécutée avec tous les droits du process. Un attaquant peut accéder à `_ctx.Users`, `_ctx.AuditLogs`, exécuter des méthodes système. Correction : paramètres typés (`deskId`, `status`, `dateFrom`) + LINQ hardcodé + validation whitelist.",
-      "explanation": "LINQ dynamique évalué avec Roslyn/ExpressionBuilder = vecteur d'injection critique. Expression malveillante : `trades.Where(t => t.Desk == \"equity\"); _ctx.Users.ToList()` — double expression, accès à la table Users. Ou plus grave : utilisation des méthodes de réflexion pour accéder aux objets non exposés. En CIB : données de position, trades confidentiels, noms des traders, limites de risque. Architecture correcte : `GET /api/v1/trades?deskId=equity&status=Active&dateFrom=2024-01-01` → validation enum pour `deskId`, validation date pour `dateFrom` → LINQ hardcodé `.Where(t => t.DeskId == deskId && t.Status == status)` → pas d'injection possible."
+      "answer": "Async libère le thread pendant l'attente I/O — la LATENCE d'une requête reste identique (le temps SQL ne change pas). Ce qui change : pendant ces 100ms d'attente SQL, le thread sert d'autres requêtes → plus de requêtes simultanées avec le même nombre de threads → THROUGHPUT et SCALABILITÉ améliorés.",
+      "explanation": "Distinction latence vs throughput : `await db.QueryAsync()` → la requête SQL prend toujours 100ms. Async ne rend pas le SQL plus rapide. MAIS : pendant ces 100ms, le thread est libre pour d'autres requêtes. Sans async avec 10 threads : 10 requêtes en cours max. Avec async avec 10 threads : potentiellement 100+ requêtes en cours (chaque thread traite le CPU processing, l'I/O attend en arrière-plan). Throughput ×10 avec le même hardware. Pour réduire la LATENCE d'une requête individuelle : optimiser la requête SQL, ajouter un index, mettre en cache le résultat — pas async."
     },
     {
-      "question": "[Multi-concepts] Décrivez comment implémenter un système de traçabilité end-to-end (de la saisie du trader jusqu'aux logs de compliance) pour un trade CIB, en nommant chaque composant.",
+      "question": "[Nommage inversé] Quel mécanisme C# permet à une méthode de 'suspendre' son exécution, retourner le contrôle à l'appelant avec une valeur intermédiaire, puis reprendre là où elle s'était arrêtée lors du prochain appel ?",
       "options": [
-        "Console.WriteLine dans chaque méthode.",
-        "1. Middleware génère `X-Correlation-ID` (UUID). 2. JWT claims propagent `userId + desk`. 3. Serilog enrichit chaque log avec `{CorrelationId, UserId, TradeId, ISIN, Service}`. 4. `X-Correlation-ID` propagé dans tous les headers RabbitMQ + HTTP. 5. OpenTelemetry spans sur chaque appel. 6. Elasticsearch indexe les logs. 7. Grafana/Kibana filtre par `correlationId`. 8. Immutable SQL audit table (INSERT-only).",
-        "Logs en fichiers texte sur chaque serveur, agrégés manuellement.",
-        "Utiliser `Debug.WriteLine` avec le mode verbose activé en production."
+        "async/await — suspension et reprise des méthodes async.",
+        "`yield return` dans un itérateur (`IEnumerable`) / `yield return` async dans `IAsyncEnumerable` — la méthode produit des éléments un par un sans créer de collection intermédiaire. Le compilateur génère une state machine similaire à async.",
+        "Coroutines — le mécanisme Unity pour les opérations longues.",
+        "Callbacks — la méthode appelle une fonction quand elle a un résultat."
       ],
-      "answer": "1. Middleware génère `X-Correlation-ID` (UUID). 2. JWT claims propagent `userId + desk`. 3. Serilog enrichit chaque log avec `{CorrelationId, UserId, TradeId, ISIN, Service}`. 4. `X-Correlation-ID` propagé dans tous les headers RabbitMQ + HTTP. 5. OpenTelemetry spans sur chaque appel. 6. Elasticsearch indexe les logs. 7. Grafana/Kibana filtre par `correlationId`. 8. Immutable SQL audit table (INSERT-only).",
-      "explanation": "Traçabilité CIB complète (MiFID II) : (1) Chaque requête HTTP reçoit un UUID `X-Correlation-ID` en entrée. (2) Le JWT porte `userId`, `desk`, `role`. (3) Serilog avec `LogContext.PushProperty` enrichit automatiquement tous les logs du contexte avec `CorrelationId + UserId`. (4) Les messages RabbitMQ portent le `CorrelationId` dans les headers AMQP. (5) OpenTelemetry crée un span par service traversé — `BookingService (50ms) → IsinService (5ms) → SophisAdapter (30ms) → RabbitMQ.Publish (1ms)`. (6) Table `AuditLogs { Id, TradeId, UserId, Action, Timestamp, OldValues, NewValues }` append-only — conforme MiFID II (5 ans de rétention)."
+      "answer": "`yield return` dans un itérateur (`IEnumerable`) / `yield return` async dans `IAsyncEnumerable` — la méthode produit des éléments un par un sans créer de collection intermédiaire. Le compilateur génère une state machine similaire à async.",
+      "explanation": "`yield return` : `IEnumerable<Trade> GetTrades() { foreach(var row in db.Query(sql)) { yield return MapTrade(row); } }` — la méthode s'arrête après chaque `yield return` et reprend au `foreach` suivant. Pas de `List<Trade>` créée en mémoire. Version async : `async IAsyncEnumerable<Trade> GetTradesAsync(CancellationToken ct) { await foreach(var row in db.QueryAsync(sql, ct)) { yield return MapTrade(row); } }`. Le compilateur transforme les deux en state machines. Lien avec async : `await` et `yield return` utilisent le même mécanisme de state machine généré par le compilateur — c'est pour ça que `IAsyncEnumerable` combine les deux avec `await yield return`."
     },
     {
-      "question": "[Ordre de dépendance] Pour construire le système MAPS complet (API REST + MSMQ/RabbitMQ + SQL + async + LINQ), dans quel ordre les fondations doivent-elles être maîtrisées ?",
+      "question": "[Ordre de dépendance] Dans quel ordre faut-il maîtriser les concepts pour comprendre Entity Framework avec async ?",
       "options": [
-        "Docker → Kubernetes → CI/CD → Code",
-        "1. C# OOP (classes, interfaces, async/await) → 2. LINQ (requêtes sur collections) → 3. SQL Server + EF Core (persistance) → 4. API REST ASP.NET Core (exposition) → 5. MSMQ/RabbitMQ (messaging async) → 6. Microservices patterns (DIP, SRP, Outbox) → 7. Docker + CI/CD (infrastructure).",
-        "Microservices → APIs → Bases de données → C# de base",
-        "Docker → API REST → SQL → C# OOP"
+        "Entity Framework → async → LINQ → threads.",
+        "Threads/ThreadPool (comprendre la ressource) → I/O blocking problem (pourquoi c'est grave) → async/await (la solution) → Task/WhenAll (parallélisme async) → CancellationToken → LINQ → EF Core avec async (ToListAsync, SaveChangesAsync, IAsyncEnumerable).",
+        "LINQ → EF Core → async → threads.",
+        "Docker → microservices → async → EF Core."
       ],
-      "answer": "1. C# OOP (classes, interfaces, async/await) → 2. LINQ (requêtes sur collections) → 3. SQL Server + EF Core (persistance) → 4. API REST ASP.NET Core (exposition) → 5. MSMQ/RabbitMQ (messaging async) → 6. Microservices patterns (DIP, SRP, Outbox) → 7. Docker + CI/CD (infrastructure).",
-      "explanation": "Ordre de dépendance des fondations : Sans C# OOP solide (classes, interfaces, async/await), aucune autre compétence ne tient. LINQ est utilisé dans EF Core — doit être maîtrisé avant. EF Core (SQL) est la persistance de toutes les API — avant les controllers. L'API REST utilise les services (DIP) qui utilisent EF Core et async. RabbitMQ s'appuie sur async/await et la sérialisation JSON. Les patterns microservices (Outbox, CQRS) nécessitent de maîtriser les briques de base. Docker = empaqueter ce qui fonctionne déjà. Tentative inverse fréquente : apprendre Docker sans maîtriser async/await = impossible de diagnostiquer les problèmes."
+      "answer": "Threads/ThreadPool (comprendre la ressource) → I/O blocking problem (pourquoi c'est grave) → async/await (la solution) → Task/WhenAll (parallélisme async) → CancellationToken → LINQ → EF Core avec async (ToListAsync, SaveChangesAsync, IAsyncEnumerable).",
+      "explanation": "Ordre de dépendance pédagogique (exactement celui du formateur dans la vidéo) : sans comprendre qu'un thread est une ressource précieuse (~1MB, pool limité), on ne comprend pas POURQUOI async est important. Sans le problème I/O blocking, async semble inutile. Avec le problème compris, async/await devient la solution évidente. WhenAll et CancellationToken enrichissent l'usage. LINQ est nécessaire pour lire les requêtes EF Core. EF Core est la destination finale qui utilise TOUT : `_ctx.Trades.Where(linq).OrderBy(linq).ToListAsync(cancellationToken)`. Sauter des étapes = confusion (c'est exactement le problème décrit dans la transcription)."
     },
     {
-      "question": "[Confusion profonde] Quelle est la différence entre `await Task.WhenAll(t1, t2)` et `await t1; await t2;` pour deux appels simultanés dans un service de pricing ?",
+      "question": "[Architecture + Performance] Comment implémenter un calcul de VaR sur 1M de simulations Monte Carlo avec un pipeline async/parallel complet en C# ?",
       "options": [
-        "Aucune différence — les deux exécutent les tâches en parallèle.",
-        "`await t1; await t2` exécute les tâches SÉQUENTIELLEMENT (attend t1 entièrement, puis lance t2). `await Task.WhenAll(t1, t2)` lance les DEUX simultanément et attend que la plus lente finisse — gain de temps = durée de la plus longue, pas la somme.",
-        "`Task.WhenAll` est plus lent car il crée plus de threads.",
-        "`await t1; await t2` est recommandé pour éviter les race conditions."
+        "1M de `await Task.Run(() => simulate())` avec Task.WhenAll.",
+        "Phase 1 Génération (CPU) : `Parallel.For(0, 1_000_000, new ParallelOptions { MaxDegreeOfParallelism = cores }, i => { payoffs[i] = Simulate(option, rng); })` avec `ArrayPool<double>`. Phase 2 Agrégation (CPU léger) : `var var95 = payoffs.AsParallel().OrderBy(x => x).ElementAt((int)(0.05 * N))`. Phase 3 Sauvegarde (I/O) : `await _db.SaveVaRAsync(portfolioId, var95, ct)`.",
+        "Un seul thread avec `while(i < 1M)` et await sur chaque simulation.",
+        "PLINQ uniquement sur toutes les phases."
       ],
-      "answer": "`await t1; await t2` exécute les tâches SÉQUENTIELLEMENT (attend t1 entièrement, puis lance t2). `await Task.WhenAll(t1, t2)` lance les DEUX simultanément et attend que la plus lente finisse — gain de temps = durée de la plus longue, pas la somme.",
-      "explanation": "Confusion critique en CIB : `var delta = await ComputeDeltaAsync(); var vega = await ComputeVegaAsync();` → 20ms + 25ms = 45ms séquentiel. `await Task.WhenAll(ComputeDeltaAsync(), ComputeVegaAsync())` → 25ms (la plus longue), les deux partent simultanément. Important : les Tasks doivent être créées AVANT le `WhenAll` pour vraiment démarrer simultanément. `await Task.WhenAll(ComputeDeltaAsync(), ComputeVegaAsync())` = correct. `var t1 = ComputeDeltaAsync(); var t2 = ComputeVegaAsync(); await Task.WhenAll(t1, t2)` = idem. Si une Task lève une exception, `WhenAll` propage la première exception — les autres continuent quand même."
-    },
-    {
-      "question": "[Architecture complète] Un trade est créé en 3 étapes : validation (10ms), booking Sophis (150ms), publication RabbitMQ (5ms). Comment architecturer pour répondre au client le plus vite possible tout en garantissant la persistance et la notification ?",
-      "options": [
-        "Exécuter les 3 étapes de façon séquentielle et bloquer le client 165ms.",
-        "Validation (await, 10ms) → Booking Sophis (await, 150ms) → répondre 201 Created avec TradeId → publication RabbitMQ en fire-and-forget avec Outbox Pattern (si RabbitMQ down, le message est en SQL) → total ressenti client : 160ms, publication garantie.",
-        "Répondre immédiatement au client sans validation ni booking.",
-        "Tout exécuter en `Task.WhenAll` — validation, booking et publication simultanément."
-      ],
-      "answer": "Validation (await, 10ms) → Booking Sophis (await, 150ms) → répondre 201 Created avec TradeId → publication RabbitMQ en fire-and-forget avec Outbox Pattern (si RabbitMQ down, le message est en SQL) → total ressenti client : 160ms, publication garantie.",
-      "explanation": "Architecture optimale : certaines étapes sont bloquantes par nature (validation doit précéder le booking ; Sophis doit retourner un TradeId). La publication RabbitMQ peut être découplée de la réponse HTTP avec l'Outbox Pattern — le message est inséré dans la même transaction SQL que le trade (atomique), puis publié par un `IHostedService`. Le client reçoit 201 en 160ms. Si RabbitMQ est down : le trade est en DB, le message attend dans `OutboxMessages`. Quand RabbitMQ revient : publication automatique. Le `RiskService` reçoit le message 5-10 secondes plus tard — eventual consistency acceptable pour le calcul de risque post-trade. On NE peut PAS mettre validation et booking en `Task.WhenAll` car la logique est séquentielle (booking nécessite validation préalable)."
-    },
-    {
-      "question": "[Nommage inversé + Confusion] Un mécanisme C# permet à un service de s'enregistrer comme dépendance et d'être injecté automatiquement dans les constructeurs sans que le consommateur sache quelle implémentation concrète est utilisée. Comment s'appelle ce mécanisme et quel en est l'avantage clé en tests ?",
-      "options": [
-        "Le pattern Singleton — une seule instance partagée entre tous les services.",
-        "L'Injection de Dépendances (DI) via `IServiceCollection` — `services.AddScoped<ITradeRepository, EfTradeRepository>()`. En tests : remplacer `EfTradeRepository` par `MockTradeRepository` sans modifier le code du service testé.",
-        "La réflexion .NET — `Activator.CreateInstance(typeof(TradeRepository))`.",
-        "Le pattern Service Locator — `ServiceLocator.GetService<ITradeRepository>()`."
-      ],
-      "answer": "L'Injection de Dépendances (DI) via `IServiceCollection` — `services.AddScoped<ITradeRepository, EfTradeRepository>()`. En tests : remplacer `EfTradeRepository` par `MockTradeRepository` sans modifier le code du service testé.",
-      "explanation": "DI + testabilité en CIB : `BookingService(ITradeRepository repo, IMessageBus bus, IIsinService isin)` — le service dépend d'abstractions, pas d'implémentations. En production : DI injecte `EfTradeRepository`, `RabbitMqMessageBus`, `SophisIsinService`. En test unitaire : `new BookingService(new Mock<ITradeRepository>().Object, new Mock<IMessageBus>().Object, new Mock<IIsinService>().Object)` — aucun SQL, aucun RabbitMQ, aucun Sophis instancié. Test rapide, isolé, reproductible. Service Locator (anti-pattern) = le service appelle lui-même `ServiceLocator.Get<ITradeRepository>()` → couplage caché, impossible à mocker sans modifier le service. La DI par constructeur est le pattern recommandé en ASP.NET Core."
+      "answer": "Phase 1 Génération (CPU) : `Parallel.For(0, 1_000_000, new ParallelOptions { MaxDegreeOfParallelism = cores }, i => { payoffs[i] = Simulate(option, rng); })` avec `ArrayPool<double>`. Phase 2 Agrégation (CPU léger) : `var var95 = payoffs.AsParallel().OrderBy(x => x).ElementAt((int)(0.05 * N))`. Phase 3 Sauvegarde (I/O) : `await _db.SaveVaRAsync(portfolioId, var95, ct)`.",
+      "explanation": "Trois phases, trois outils : Parallel.For (CPU-bound pur, distribue 1M simulations sur tous les cœurs). `ArrayPool<double>.Shared.Rent(1_000_000)` → évite 8MB d'allocation heap + GC. `var rng = new Random(seed + i)` (ou ThreadLocal<Random>) → chaque thread a son RNG indépendant (thread-safety). PLINQ pour le tri parallèle (OrderBy sur 1M éléments en parallèle). `await _db.SaveVaRAsync(ct)` → I/O-bound, libère le thread pendant la sauvegarde. 1M Task.Run (option A) = overhead massif (création de 1M Tasks, GC pressure, scheduler overhead) → anti-pattern."
     }
   ]
 };
@@ -649,31 +543,28 @@ const renderInlineTokens = (text, keyPrefix) => {
   const regex = /(\*\*.*?\*\*|`.*?`|\*.*?\*)/g;
   const parts = text.split(regex);
   return parts.map((part, idx) => {
-    if (part.startsWith("**") && part.endsWith("**")) return <strong key={`${keyPrefix}-${idx}`} style={{ display: 'inline', fontWeight: 'bold' }}>{part.slice(2, -2)}</strong>;
-    if (part.startsWith("`") && part.endsWith("`")) return (
-      <code key={`${keyPrefix}-${idx}`} style={{ display: 'inline', backgroundColor: '#eef2f7', padding: '1px 5px', borderRadius: '3px', fontFamily: 'monospace', color: '#e01e5a', fontWeight: 'bold', fontSize: '13px' }}>
-        {part.slice(1, -1)}
-      </code>
-    );
-    if (part.startsWith("*") && part.endsWith("*")) return <em key={`${keyPrefix}-${idx}`} style={{ display: 'inline' }}>{part.slice(1, -1)}</em>;
+    if (part.startsWith("**") && part.endsWith("**"))
+      return <strong key={`${keyPrefix}-${idx}`} style={{ display: "inline", fontWeight: "bold" }}>{part.slice(2, -2)}</strong>;
+    if (part.startsWith("`") && part.endsWith("`"))
+      return <code key={`${keyPrefix}-${idx}`} style={{ display: "inline", backgroundColor: "#eef2f7", padding: "1px 5px", borderRadius: "3px", fontFamily: "monospace", color: "#e01e5a", fontWeight: "bold", fontSize: "13px" }}>{part.slice(1, -1)}</code>;
+    if (part.startsWith("*") && part.endsWith("*"))
+      return <em key={`${keyPrefix}-${idx}`} style={{ display: "inline" }}>{part.slice(1, -1)}</em>;
     return part;
   });
 };
 
 const renderFormattedText = (text) => {
   if (!text) return null;
-  let cleanText = text
-    .replace(/\r?\n- /g, " ◆ ").replace(/\r?\n• /g, " ◆ ").replace(/\r?\n/g, " ")
-    .replace(/\.-\s*\*\*/g, " ◆ **").replace(/-\s*\*\*/g, " ◆ **");
-  if (cleanText.startsWith(" ◆ ")) cleanText = cleanText.substring(3);
-  if (cleanText.startsWith("- ")) cleanText = cleanText.substring(2);
-  const segments = cleanText.split(" ◆ ");
+  let clean = text.replace(/\r?\n- /g, " ◆ ").replace(/\r?\n• /g, " ◆ ").replace(/\r?\n/g, " ").replace(/\.-\s*\*\*/g, " ◆ **").replace(/-\s*\*\*/g, " ◆ **");
+  if (clean.startsWith(" ◆ ")) clean = clean.substring(3);
+  if (clean.startsWith("- ")) clean = clean.substring(2);
+  const segs = clean.split(" ◆ ");
   return (
-    <span style={{ display: 'block', lineHeight: '1.7' }}>
-      {segments.map((segment, segIdx) => (
-        <span key={segIdx} style={{ display: 'block', marginBottom: segIdx < segments.length - 1 ? '6px' : '0' }}>
-          {segIdx > 0 && <span style={{ color: '#1a73e8', fontWeight: 'bold', marginRight: '5px' }}>◆</span>}
-          {renderInlineTokens(segment, `seg-${segIdx}`)}
+    <span style={{ display: "block", lineHeight: "1.7" }}>
+      {segs.map((seg, i) => (
+        <span key={i} style={{ display: "block", marginBottom: i < segs.length - 1 ? "6px" : "0" }}>
+          {i > 0 && <span style={{ color: "#1a73e8", fontWeight: "bold", marginRight: "5px" }}>◆</span>}
+          {renderInlineTokens(seg, `s${i}`)}
         </span>
       ))}
     </span>
@@ -687,9 +578,9 @@ const QuestionCard = ({ question, options, onAnswerClick, timeLeft }) => (
     <h4>💡 {question}</h4>
     <Timer timeLeft={timeLeft} />
     <div className="options-container">
-      {options.map((option, index) => (
-        <button key={index} onClick={() => onAnswerClick(option)} className="option-button">
-          {String.fromCharCode(65 + index)}. {option}
+      {options.map((opt, i) => (
+        <button key={i} onClick={() => onAnswerClick(opt)} className="option-button">
+          {String.fromCharCode(65 + i)}. {opt}
         </button>
       ))}
     </div>
@@ -697,29 +588,29 @@ const QuestionCard = ({ question, options, onAnswerClick, timeLeft }) => (
 );
 
 const Flashcard = ({ slide }) => (
-  <div className="question-card" style={{ fontSize: '14px', margin: '0' }}>
-    <p style={{ fontWeight: 'bold', fontSize: '15px', color: '#1a73e8', margin: '0 0 10px 0' }}>{slide.question}</p>
-    <div style={{ padding: '12px 15px', background: '#f8f9fa', borderRadius: '8px', borderLeft: '4px solid #1a73e8', textAlign: 'left' }}>
+  <div className="question-card" style={{ fontSize: "14px", margin: "0" }}>
+    <p style={{ fontWeight: "bold", fontSize: "15px", color: "#1a73e8", margin: "0 0 10px 0" }}>{slide.question}</p>
+    <div style={{ padding: "12px 15px", background: "#f8f9fa", borderRadius: "8px", borderLeft: "4px solid #1a73e8", textAlign: "left" }}>
       {renderFormattedText(slide.answer)}
     </div>
   </div>
 );
 
 const Results = ({ scores }) => {
-  const totalScore = scores.moyen + scores.avance + scores.expert;
-  const totalQuestions = questions.moyen.length + questions.avance.length + questions.expert.length;
+  const total = scores.moyen + scores.avance + scores.expert;
+  const max = questions.moyen.length + questions.avance.length + questions.expert.length;
   return (
     <div className="results">
-      <h3>🎯 Score : {totalScore} / {totalQuestions}</h3>
+      <h3>🎯 Score : {total} / {max}</h3>
       <p>✅ Moyen : {scores.moyen}/{questions.moyen.length} | ✅ Avancé : {scores.avance}/{questions.avance.length} | ✅ Expert : {scores.expert}/{questions.expert.length}</p>
-      {totalScore >= Math.floor(totalQuestions * 0.6)
-        ? <h3 className="success">🚀 Fondations Microservices / JSON / async / LINQ maîtrisées !</h3>
-        : <p className="fail">📚 Révisez les slides — focus sur les points de confusion marqués ⚠️.</p>}
+      {total >= Math.floor(max * 0.6)
+        ? <h3 className="success">🚀 Async · Parallel · Threading C# maîtrisés !</h3>
+        : <p className="fail">📚 Révisez les slides — particulièrement les distinctions async vs parallel.</p>}
     </div>
   );
 };
 
-const MicroservicesFoundationsQCM = () => {
+const AsyncProgrammingQCM = () => {
   const [level, setLevel] = useState("basic");
   const [currentSlide, setCurrentSlide] = useState(0);
   const [currentQuestion, setCurrentQuestion] = useState(0);
@@ -728,7 +619,7 @@ const MicroservicesFoundationsQCM = () => {
   const [showResult, setShowResult] = useState(false);
   const [message, setMessage] = useState("");
 
-  const handleNextQuestion = () => {
+  const handleNext = () => {
     const qs = questions[level];
     if (currentQuestion + 1 < qs.length) { setCurrentQuestion(q => q + 1); setTimeLeft(25); setMessage(""); }
     else {
@@ -741,47 +632,48 @@ const MicroservicesFoundationsQCM = () => {
 
   useEffect(() => {
     if (level !== "basic" && !showResult) {
-      if (timeLeft > 0) { const t = setTimeout(() => setTimeLeft(t2 => t2 - 1), 1000); return () => clearTimeout(t); }
-      else handleNextQuestion();
+      if (timeLeft > 0) { const t = setTimeout(() => setTimeLeft(p => p - 1), 1000); return () => clearTimeout(t); }
+      else handleNext();
     }
   }, [timeLeft, level, showResult]);
 
   useEffect(() => {
     if (level === "basic" && !showResult) {
-      const i = setInterval(() => {
-        setCurrentSlide(prev => {
-          if (prev + 1 < basicSlides.length) return prev + 1;
+      const iv = setInterval(() => {
+        setCurrentSlide(p => {
+          if (p + 1 < basicSlides.length) return p + 1;
           setLevel("moyen"); setCurrentQuestion(0); setTimeLeft(25); return 0;
         });
       }, 20000);
-      return () => clearInterval(i);
+      return () => clearInterval(iv);
     }
   }, [level, showResult]);
 
-  const handleAnswerClick = (option) => {
-    const current = questions[level][currentQuestion];
-    if (option === current.answer) { setScores(p => ({ ...p, [level]: p[level] + 1 })); setMessage("✅ Correct !"); }
-    else { setMessage(`❌ ${current.answer}\n\nℹ️ ${current.explanation}`); }
-    setTimeout(handleNextQuestion, 4000);
+  const handleAnswer = (opt) => {
+    const cur = questions[level][currentQuestion];
+    if (opt === cur.answer) { setScores(p => ({ ...p, [level]: p[level] + 1 })); setMessage("✅ Correct !"); }
+    else { setMessage(`❌ ${cur.answer}\n\nℹ️ ${cur.explanation}`); }
+    setTimeout(handleNext, 4000);
   };
 
   return (
     <div className="qcm-container">
       {showResult ? <Results scores={scores} /> : (
         <div>
-          <h4 className="subtitle" style={{ fontSize: '10px', margin: '0 0 6px 0' }}>
-            Microservices · JSON · MSMQ · async · LINQ 🔹 {level === "basic"
+          <h4 className="subtitle" style={{ fontSize: "10px", margin: "0 0 6px 0" }}>
+            Async · Parallel · Threading C# 🔹{" "}
+            {level === "basic"
               ? `Slide ${currentSlide + 1}/${basicSlides.length}`
               : `QCM ${level.toUpperCase()} — Q${currentQuestion + 1}/${questions[level].length}`}
           </h4>
           {level === "basic"
             ? <Flashcard slide={basicSlides[currentSlide]} />
-            : <QuestionCard question={questions[level][currentQuestion].question} options={questions[level][currentQuestion].options} onAnswerClick={handleAnswerClick} timeLeft={timeLeft} />}
-          {message && <p className="message" style={{ whiteSpace: 'pre-wrap', marginTop: '8px' }}>{message}</p>}
+            : <QuestionCard question={questions[level][currentQuestion].question} options={questions[level][currentQuestion].options} onAnswerClick={handleAnswer} timeLeft={timeLeft} />}
+          {message && <p className="message" style={{ whiteSpace: "pre-wrap", marginTop: "8px" }}>{message}</p>}
         </div>
       )}
     </div>
   );
 };
 
-export default MicroservicesFoundationsQCM;
+export default AsyncProgrammingQCM;

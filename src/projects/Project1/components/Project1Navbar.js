@@ -1,4 +1,4 @@
-// src/projects/Project1/components/Project1Navbar.js
+// src/projects/project1/components/project1Navbar.js
 import React from 'react';
 import { Link } from 'react-router-dom';
 import "./Project1Navbar.css";
@@ -7,10 +7,17 @@ const Project1Navbar = () => {
   return (
     <nav style={{ backgroundColor: '#f0f0f0', padding: '10px' }}>
       <Link to="/" style={{ margin: '0 10px' }}>Main</Link>
-      <Link to="/project1" style={{ margin: '0 10px' }}>BA-Eqty</Link>
-      <Link to="/project1/page2" style={{ margin: '0 10px' }}>Dsin Patern</Link>
+      <Link to="/project1/page0" style={{ margin: '0 10px' }}>Options</Link>
+      <Link to="/project1/page1" style={{ margin: '0 10px' }}>Opt-Vol</Link>
+      <Link to="/project1/page2" style={{ margin: '0 10px' }}>Swap</Link>
+      <Link to="/project1/page3" style={{ margin: '0 10px' }}>Futur/Foward</Link>
+      <Link to="/project1/page4" style={{ margin: '0 10px' }}>PS</Link>
+      <Link to="/project1/page6" style={{ margin: '0 10px' }}>Eqty/Action</Link>
+      <Link to="/project1/page7" style={{ margin: '0 10px' }}>Eqty-FxInc</Link>
+      
     </nav>
   );
 };
 
 export default Project1Navbar;
+
