@@ -1,7 +1,7 @@
-// src/projects/CIBPricing/MLEnsembleRL.js
-
+// src/projects/ml/Page_ML_B.js
 import React, { useState, useEffect } from "react";
 import "./Page.css";
+
 const basicSlides = [
   {
     question: "Vue d'ensemble — Ensemble Learning + Reinforcement Learning",
@@ -398,14 +398,9 @@ const renderInlineTokens = (text, keyPrefix) => {
     if (part.startsWith("`") && part.endsWith("`")) {
       return (
         <code key={`${keyPrefix}-${idx}`} style={{
-          display: 'inline',
-          backgroundColor: '#eef2f7',
-          padding: '1px 5px',
-          borderRadius: '3px',
-          fontFamily: 'monospace',
-          color: '#e01e5a',
-          fontWeight: 'bold',
-          fontSize: '13px'
+          display: 'inline', backgroundColor: '#eef2f7', padding: '1px 5px',
+          borderRadius: '3px', fontFamily: 'monospace', color: '#e01e5a',
+          fontWeight: 'bold', fontSize: '13px'
         }}>
           {part.slice(1, -1)}
         </code>
@@ -421,24 +416,16 @@ const renderInlineTokens = (text, keyPrefix) => {
 const renderFormattedText = (text) => {
   if (!text) return null;
   let cleanText = text
-    .replace(/\r?\n- /g, " ◆ ")
-    .replace(/\r?\n• /g, " ◆ ")
-    .replace(/\r?\n/g, " ")
-    .replace(/\.-\s*\*\*/g, " ◆ **")
-    .replace(/-\s*\*\*/g, " ◆ **");
-
+    .replace(/\r?\n- /g, " ◆ ").replace(/\r?\n• /g, " ◆ ")
+    .replace(/\r?\n/g, " ").replace(/\.-\s*\*\*/g, " ◆ **").replace(/-\s*\*\*/g, " ◆ **");
   if (cleanText.startsWith(" ◆ ")) cleanText = cleanText.substring(3);
   if (cleanText.startsWith("- ")) cleanText = cleanText.substring(2);
-
   const segments = cleanText.split(" ◆ ");
-
   return (
     <span style={{ display: 'block', lineHeight: '1.7' }}>
       {segments.map((segment, segIdx) => (
         <span key={segIdx} style={{ display: 'block', marginBottom: segIdx < segments.length - 1 ? '6px' : '0' }}>
-          {segIdx > 0 && (
-            <span style={{ color: '#1a73e8', fontWeight: 'bold', marginRight: '5px' }}>◆</span>
-          )}
+          {segIdx > 0 && <span style={{ color: '#1a73e8', fontWeight: 'bold', marginRight: '5px' }}>◆</span>}
           {renderInlineTokens(segment, `seg-${segIdx}`)}
         </span>
       ))}
@@ -479,8 +466,8 @@ const Results = ({ scores }) => {
       <h3>🎯 Score : {totalScore} / {totalQuestions}</h3>
       <p>✅ Moyen : {scores.moyen}/{questions.moyen.length} | ✅ Avancé : {scores.avance}/{questions.avance.length} | ✅ Expert : {scores.expert}/{questions.expert.length}</p>
       {totalScore >= Math.floor(totalQuestions * 0.6)
-        ? <h3 className="success">🚀 Mission CIB Pricing Pre-Trade maîtrisée !</h3>
-        : <p className="fail">📚 Révisez C#, dérivés actions et architecture CIB.</p>
+        ? <h3 className="success">🚀 Excellent ! Ensemble Learning & RL maîtrisés.</h3>
+        : <p className="fail">📚 Révisez XGBoost, les mécanismes de RL et la diversité des ensembles.</p>
       }
     </div>
   );
@@ -498,16 +485,12 @@ const MLEnsembleRL = () => {
   const handleNextQuestion = () => {
     const qs = questions[level];
     if (currentQuestion + 1 < qs.length) {
-      setCurrentQuestion(q => q + 1);
-      setTimeLeft(25);
-      setMessage("");
+      setCurrentQuestion(q => q + 1); setTimeLeft(25); setMessage("");
     } else {
       if (level === "moyen") { setLevel("avance"); }
       else if (level === "avance") { setLevel("expert"); }
       else { setShowResult(true); }
-      setCurrentQuestion(0);
-      setTimeLeft(25);
-      setMessage("");
+      setCurrentQuestion(0); setTimeLeft(25); setMessage("");
     }
   };
 
@@ -525,10 +508,7 @@ const MLEnsembleRL = () => {
       const i = setInterval(() => {
         setCurrentSlide(prev => {
           if (prev + 1 < basicSlides.length) return prev + 1;
-          setLevel("moyen");
-          setCurrentQuestion(0);
-          setTimeLeft(25);
-          return 0;
+          setLevel("moyen"); setCurrentQuestion(0); setTimeLeft(25); return 0;
         });
       }, 20000);
       return () => clearInterval(i);
@@ -551,21 +531,20 @@ const MLEnsembleRL = () => {
       {showResult ? <Results scores={scores} /> : (
         <div>
           <h4 className="subtitle" style={{ fontSize: '10px', margin: '0 0 6px 0' }}>
-            CIB Pricing Pre-Trade 🔹 {level === "basic"
+            ML Interview 🔹 {level === "basic"
               ? `Slide ${currentSlide + 1}/${basicSlides.length}`
               : `QCM ${level.toUpperCase()} — Q${currentQuestion + 1}/${questions[level].length}`
             }
           </h4>
-          {level === "basic" ? (
-            <Flashcard slide={basicSlides[currentSlide]} />
-          ) : (
-            <QuestionCard
+          {level === "basic"
+            ? <Flashcard slide={basicSlides[currentSlide]} />
+            : <QuestionCard
               question={questions[level][currentQuestion].question}
               options={questions[level][currentQuestion].options}
               onAnswerClick={handleAnswerClick}
               timeLeft={timeLeft}
             />
-          )}
+          }
           {message && <p className="message" style={{ whiteSpace: 'pre-wrap', marginTop: '8px' }}>{message}</p>}
         </div>
       )}

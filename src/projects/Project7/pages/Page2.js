@@ -121,6 +121,201 @@ const questions = {
         "Le Security Group définit des règles Inbound (entrant) et Outbound (sortant) par port/protocole/source. Par défaut tout est bloqué. Pour un serveur web : ouvrir 80/443 depuis 0.0.0.0/0, 22 depuis ton IP uniquement.",
     },
     {
+      question:
+        "[Positionnement] Où doit être placée la clause WHERE dans une requête SQL ?",
+      options: [
+        "Après GROUP BY",
+        "Après HAVING",
+        "Après FROM et avant GROUP BY",
+        "Après ORDER BY",
+      ],
+      answer: "Après FROM et avant GROUP BY",
+      explanation:
+        "L'ordre logique d'une requête SQL est : FROM → WHERE → GROUP BY → HAVING → ORDER BY. WHERE filtre les lignes avant toute agrégation. Une mauvaise position provoque une erreur de syntaxe ou un résultat incorrect.",
+    },
+    {
+      question:
+        "[Contexte] Dans quel cas utiliser WHERE plutôt que HAVING ?",
+      options: [
+        "Pour filtrer une moyenne calculée",
+        "Pour filtrer un COUNT(*)",
+        "Pour filtrer des lignes individuelles avant regroupement",
+        "Pour filtrer le résultat d'une fonction AVG()",
+      ],
+      answer:
+        "Pour filtrer des lignes individuelles avant regroupement",
+      explanation:
+        "WHERE agit sur chaque ligne avant le GROUP BY. Exemple : `WHERE note > 10`. Dès qu'un calcul d'agrégation est impliqué (AVG, COUNT, SUM...), il faut généralement utiliser HAVING.",
+    },
+    {
+      question:
+        "[Code → Analyse] Quelle requête affiche uniquement les étudiants de niveau Master ?",
+      options: [
+        "SELECT * FROM etudiants HAVING niveau = 'Master'",
+        "SELECT * FROM etudiants WHERE niveau = 'Master'",
+        "SELECT * FROM etudiants GROUP BY niveau = 'Master'",
+        "SELECT * FROM etudiants ORDER BY niveau = 'Master'",
+      ],
+      answer:
+        "SELECT * FROM etudiants WHERE niveau = 'Master'",
+      explanation:
+        "Le filtre porte sur une colonne simple de la table. Aucun regroupement n'est nécessaire. WHERE est donc la clause adaptée.",
+    },
+    {
+      question:
+        "[Positionnement] Où doit être placée la clause GROUP BY ?",
+      options: [
+        "Après HAVING",
+        "Après ORDER BY",
+        "Après WHERE et avant HAVING",
+        "Avant FROM",
+      ],
+      answer:
+        "Après WHERE et avant HAVING",
+      explanation:
+        "L'ordre classique est : FROM → WHERE → GROUP BY → HAVING → ORDER BY. GROUP BY crée les groupes sur lesquels les fonctions d'agrégation vont travailler.",
+    },
+    {
+      question:
+        "[Contexte] Quand utiliser GROUP BY ?",
+      options: [
+        "Pour trier les résultats",
+        "Pour filtrer les lignes",
+        "Pour calculer des agrégats par catégorie",
+        "Pour créer une table",
+      ],
+      answer:
+        "Pour calculer des agrégats par catégorie",
+      explanation:
+        "GROUP BY permet de regrouper les lignes avant d'appliquer AVG(), COUNT(), SUM(), MIN() ou MAX(). Exemple : moyenne par matière ou nombre d'étudiants par niveau.",
+    },
+    {
+      question:
+        "[Code → Analyse] Quelle requête calcule le nombre d'étudiants par niveau ?",
+      options: [
+        "SELECT niveau, COUNT(*) FROM etudiants GROUP BY niveau",
+        "SELECT niveau, COUNT(*) FROM etudiants HAVING niveau",
+        "SELECT niveau, COUNT(*) FROM etudiants ORDER BY niveau",
+        "SELECT niveau, COUNT(*) FROM etudiants WHERE niveau",
+      ],
+      answer:
+        "SELECT niveau, COUNT(*) FROM etudiants GROUP BY niveau",
+      explanation:
+        "GROUP BY niveau crée un groupe pour chaque niveau (Licence, Master...). COUNT(*) est ensuite calculé pour chaque groupe.",
+    },
+    {
+      question:
+        "[Positionnement] Où doit être placée la clause HAVING ?",
+      options: [
+        "Avant GROUP BY",
+        "Après GROUP BY",
+        "Avant WHERE",
+        "Avant FROM",
+      ],
+      answer:
+        "Après GROUP BY",
+      explanation:
+        "HAVING intervient après la création des groupes. Elle sert à filtrer les résultats agrégés produits par GROUP BY.",
+    },
+    {
+      question:
+        "[Contexte] Quand utiliser HAVING ?",
+      options: [
+        "Pour filtrer une ligne individuelle",
+        "Pour filtrer un résultat d'agrégation",
+        "Pour effectuer une jointure",
+        "Pour créer un index",
+      ],
+      answer:
+        "Pour filtrer un résultat d'agrégation",
+      explanation:
+        "HAVING est conçu pour travailler avec AVG(), COUNT(), SUM(), MIN() ou MAX(). Exemple : `HAVING AVG(note) > 12`.",
+    },
+    {
+      question:
+        "[Confusion] Quelle requête est correcte pour afficher les matières dont la moyenne dépasse 12 ?",
+      options: [
+        "SELECT matiere, AVG(note) FROM notes WHERE AVG(note) > 12 GROUP BY matiere",
+        "SELECT matiere, AVG(note) FROM notes GROUP BY matiere HAVING AVG(note) > 12",
+        "SELECT matiere, AVG(note) FROM notes HAVING AVG(note) > 12",
+        "SELECT matiere, AVG(note) FROM notes ORDER BY AVG(note) > 12",
+      ],
+      answer:
+        "SELECT matiere, AVG(note) FROM notes GROUP BY matiere HAVING AVG(note) > 12",
+      explanation:
+        "AVG(note) n'existe qu'après le regroupement. Il faut donc d'abord faire GROUP BY puis utiliser HAVING pour filtrer les moyennes calculées.",
+    },
+    {
+      question:
+        "[Ordre logique] Quelle est la bonne séquence d'exécution SQL ?",
+      options: [
+        "SELECT → FROM → WHERE → GROUP BY → HAVING",
+        "FROM → WHERE → GROUP BY → HAVING → SELECT",
+        "WHERE → FROM → GROUP BY → SELECT → HAVING",
+        "FROM → GROUP BY → SELECT → WHERE → HAVING",
+      ],
+      answer:
+        "FROM → WHERE → GROUP BY → HAVING → SELECT",
+      explanation:
+        "Même si on écrit SELECT en premier, le moteur SQL commence par FROM, applique WHERE, crée les groupes avec GROUP BY, filtre avec HAVING puis construit le résultat SELECT.",
+    },
+    {
+      question:
+        "[Cas pratique] Vous voulez calculer la moyenne des notes des étudiants de Master uniquement. Quelle clause doit être utilisée pour filtrer les Masters ?",
+      options: [
+        "HAVING niveau = 'Master'",
+        "GROUP BY niveau = 'Master'",
+        "WHERE niveau = 'Master'",
+        "ORDER BY niveau = 'Master'",
+      ],
+      answer:
+        "WHERE niveau = 'Master'",
+      explanation:
+        "Le filtre porte sur les lignes avant le calcul de la moyenne. WHERE doit être utilisé avant GROUP BY et AVG.",
+    },
+    {
+      question:
+        "[Cas pratique] Vous souhaitez afficher uniquement les niveaux contenant plus de 100 étudiants. Quelle clause doit être utilisée ?",
+      options: [
+        "WHERE COUNT(*) > 100",
+        "GROUP BY COUNT(*) > 100",
+        "HAVING COUNT(*) > 100",
+        "ORDER BY COUNT(*) > 100",
+      ],
+      answer:
+        "HAVING COUNT(*) > 100",
+      explanation:
+        "COUNT(*) est un agrégat. Il faut d'abord calculer le nombre d'étudiants par niveau puis utiliser HAVING pour filtrer les groupes obtenus.",
+    },
+    {
+      question:
+        "[Erreur fréquente] Pourquoi la requête `WHERE AVG(note) > 12` est-elle incorrecte ?",
+      options: [
+        "AVG ne fonctionne qu'avec SUM",
+        "AVG ne peut être utilisé qu'après GROUP BY et doit être filtré avec HAVING",
+        "AVG ne fonctionne pas sur les nombres",
+        "AVG ne peut être utilisé qu'avec ORDER BY",
+      ],
+      answer:
+        "AVG ne peut être utilisé qu'après GROUP BY et doit être filtré avec HAVING",
+      explanation:
+        "Au moment où WHERE est exécuté, AVG(note) n'a pas encore été calculé. HAVING intervient après le calcul des agrégats.",
+    },
+    {
+      question:
+        "[Situation réelle] Vous devez afficher les matières ayant plus de 50 notes enregistrées. Quelle requête est correcte ?",
+      options: [
+        "SELECT matiere, COUNT(*) FROM notes GROUP BY matiere HAVING COUNT(*) > 50",
+        "SELECT matiere, COUNT(*) FROM notes WHERE COUNT(*) > 50",
+        "SELECT matiere, COUNT(*) FROM notes ORDER BY COUNT(*) > 50",
+        "SELECT matiere, COUNT(*) FROM notes HAVING matiere > 50",
+      ],
+      answer:
+        "SELECT matiere, COUNT(*) FROM notes GROUP BY matiere HAVING COUNT(*) > 50",
+      explanation:
+        "COUNT(*) est calculé pour chaque matière grâce à GROUP BY. HAVING filtre ensuite les groupes dont le nombre de lignes dépasse 50.",
+    },
+    {
       question: "[Confusion] Quelle est la différence entre une Région et une AZ ?",
       options: [
         "Région = zone géographique (Paris, Dublin), AZ = datacenter physique au sein de cette région",
