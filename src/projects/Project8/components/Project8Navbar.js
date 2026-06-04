@@ -10,6 +10,7 @@ const Project8Navbar = () => {
       <Link to="/project8/page2">2. Bagg/Boost/Stacking</Link>
       <Link to="/project8/page3">3. MLClassicalEval</Link>
       <Link to="/project8/page4">4. PMLEnsembleRL</Link>
+      <Link to="/project8/page5">5. Evaluation</Link>
     </nav>
   );
 };

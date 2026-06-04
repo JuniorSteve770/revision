@@ -439,17 +439,28 @@ const questions = {
   ],
 };
 
+
 const renderInlineTokens = (text, keyPrefix) => {
   const regex = /(\*\*.*?\*\*|`.*?`|\*.*?\*)/g;
   const parts = text.split(regex);
   return parts.map((part, idx) => {
-    if (part.startsWith("**") && part.endsWith("**")) return <strong key={`${keyPrefix}-${idx}`} style={{ display: 'inline', fontWeight: 'bold' }}>{part.slice(2, -2)}</strong>;
-    if (part.startsWith("`") && part.endsWith("`")) return (
-      <code key={`${keyPrefix}-${idx}`} style={{ display: 'inline', backgroundColor: '#eef2f7', padding: '1px 5px', borderRadius: '3px', fontFamily: 'monospace', color: '#e01e5a', fontWeight: 'bold', fontSize: '13px' }}>
-        {part.slice(1, -1)}
-      </code>
-    );
-    if (part.startsWith("*") && part.endsWith("*")) return <em key={`${keyPrefix}-${idx}`} style={{ display: 'inline' }}>{part.slice(1, -1)}</em>;
+    if (part.startsWith("**") && part.endsWith("**")) {
+      return <strong key={`${keyPrefix}-${idx}`} style={{ display: 'inline', fontWeight: 'bold' }}>{part.slice(2, -2)}</strong>;
+    }
+    if (part.startsWith("`") && part.endsWith("`")) {
+      return (
+        <code key={`${keyPrefix}-${idx}`} style={{
+          display: 'inline', backgroundColor: '#eef2f7', padding: '1px 5px',
+          borderRadius: '3px', fontFamily: 'monospace', color: '#e01e5a',
+          fontWeight: 'bold', fontSize: '13px'
+        }}>
+          {part.slice(1, -1)}
+        </code>
+      );
+    }
+    if (part.startsWith("*") && part.endsWith("*")) {
+      return <em key={`${keyPrefix}-${idx}`} style={{ display: 'inline' }}>{part.slice(1, -1)}</em>;
+    }
     return part;
   });
 };
@@ -457,8 +468,8 @@ const renderInlineTokens = (text, keyPrefix) => {
 const renderFormattedText = (text) => {
   if (!text) return null;
   let cleanText = text
-    .replace(/\r?\n- /g, " ◆ ").replace(/\r?\n• /g, " ◆ ").replace(/\r?\n/g, " ")
-    .replace(/\.-\s*\*\*/g, " ◆ **").replace(/-\s*\*\*/g, " ◆ **");
+    .replace(/\r?\n- /g, " ◆ ").replace(/\r?\n• /g, " ◆ ")
+    .replace(/\r?\n/g, " ").replace(/\.-\s*\*\*/g, " ◆ **").replace(/-\s*\*\*/g, " ◆ **");
   if (cleanText.startsWith(" ◆ ")) cleanText = cleanText.substring(3);
   if (cleanText.startsWith("- ")) cleanText = cleanText.substring(2);
   const segments = cleanText.split(" ◆ ");
@@ -507,8 +518,9 @@ const Results = ({ scores }) => {
       <h3>🎯 Score : {totalScore} / {totalQuestions}</h3>
       <p>✅ Moyen : {scores.moyen}/{questions.moyen.length} | ✅ Avancé : {scores.avance}/{questions.avance.length} | ✅ Expert : {scores.expert}/{questions.expert.length}</p>
       {totalScore >= Math.floor(totalQuestions * 0.6)
-        ? <h3 className="success">🚀 Fondations Microservices / JSON / async / LINQ maîtrisées !</h3>
-        : <p className="fail">📚 Révisez les slides — focus sur les points de confusion marqués ⚠️.</p>}
+        ? <h3 className="success">🚀 Excellent ! Évaluation & inconvénients ML maîtrisés.</h3>
+        : <p className="fail">📚 Retravailler les métriques selon le contexte et les corrections d'overfitting — cœur des entretiens.</p>
+      }
     </div>
   );
 };
@@ -524,19 +536,22 @@ const MLEvaluationInconvenients = () => {
 
   const handleNextQuestion = () => {
     const qs = questions[level];
-    if (currentQuestion + 1 < qs.length) { setCurrentQuestion(q => q + 1); setTimeLeft(25); setMessage(""); }
-    else {
-      if (level === "moyen") setLevel("avance");
-      else if (level === "avance") setLevel("expert");
-      else setShowResult(true);
+    if (currentQuestion + 1 < qs.length) {
+      setCurrentQuestion(q => q + 1); setTimeLeft(25); setMessage("");
+    } else {
+      if (level === "moyen") { setLevel("avance"); }
+      else if (level === "avance") { setLevel("expert"); }
+      else { setShowResult(true); }
       setCurrentQuestion(0); setTimeLeft(25); setMessage("");
     }
   };
 
   useEffect(() => {
     if (level !== "basic" && !showResult) {
-      if (timeLeft > 0) { const t = setTimeout(() => setTimeLeft(t2 => t2 - 1), 1000); return () => clearTimeout(t); }
-      else handleNextQuestion();
+      if (timeLeft > 0) {
+        const t = setTimeout(() => setTimeLeft(t2 => t2 - 1), 1000);
+        return () => clearTimeout(t);
+      } else handleNextQuestion();
     }
   }, [timeLeft, level, showResult]);
 
@@ -554,8 +569,12 @@ const MLEvaluationInconvenients = () => {
 
   const handleAnswerClick = (option) => {
     const current = questions[level][currentQuestion];
-    if (option === current.answer) { setScores(p => ({ ...p, [level]: p[level] + 1 })); setMessage("✅ Correct !"); }
-    else { setMessage(`❌ ${current.answer}\n\nℹ️ ${current.explanation}`); }
+    if (option === current.answer) {
+      setScores(p => ({ ...p, [level]: p[level] + 1 }));
+      setMessage("✅ Correct !");
+    } else {
+      setMessage(`❌ ${current.answer}\n\nℹ️ ${current.explanation}`);
+    }
     setTimeout(handleNextQuestion, 4000);
   };
 
@@ -564,13 +583,20 @@ const MLEvaluationInconvenients = () => {
       {showResult ? <Results scores={scores} /> : (
         <div>
           <h4 className="subtitle" style={{ fontSize: '10px', margin: '0 0 6px 0' }}>
-            Microservices · JSON · MSMQ · async · LINQ 🔹 {level === "basic"
+            ML Interview 🔹 {level === "basic"
               ? `Slide ${currentSlide + 1}/${basicSlides.length}`
-              : `QCM ${level.toUpperCase()} — Q${currentQuestion + 1}/${questions[level].length}`}
+              : `QCM ${level.toUpperCase()} — Q${currentQuestion + 1}/${questions[level].length}`
+            }
           </h4>
           {level === "basic"
             ? <Flashcard slide={basicSlides[currentSlide]} />
-            : <QuestionCard question={questions[level][currentQuestion].question} options={questions[level][currentQuestion].options} onAnswerClick={handleAnswerClick} timeLeft={timeLeft} />}
+            : <QuestionCard
+                question={questions[level][currentQuestion].question}
+                options={questions[level][currentQuestion].options}
+                onAnswerClick={handleAnswerClick}
+                timeLeft={timeLeft}
+              />
+          }
           {message && <p className="message" style={{ whiteSpace: 'pre-wrap', marginTop: '8px' }}>{message}</p>}
         </div>
       )}
