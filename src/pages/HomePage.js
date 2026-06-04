@@ -33,7 +33,7 @@ const HomePage = () => {
         {/* Bouton Projet 4 */}
         <Link to="/project4">
           <button className="home-page-button" id="project4-button">
-            4. Solid/Swp/Debug
+            4. Swp/Debug/Design/solid
           </button>
         </Link>
 
@@ -47,7 +47,7 @@ const HomePage = () => {
         {/* Bouton Projet 6 */}
         <Link to="/project6">
           <button className="home-page-button" id="project6-button">
-            6. Backend C#
+            6.Backen C#/OOP
           </button>
         </Link>
 

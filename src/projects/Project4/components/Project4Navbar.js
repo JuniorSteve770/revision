@@ -14,6 +14,7 @@ const Project4Navbar = () => {
       <Link to="/project4/page5_1">5.1 OMS Low_Freq</Link>
       <Link to="/project4/page6">6. C# Concurrence</Link>
       <Link to="/project4/page7">7. C# Tests</Link>
+      <Link to="/project4/page8">8. 100Qcm Design</Link>
     </nav>
   );
 };
