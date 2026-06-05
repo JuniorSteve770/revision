@@ -1,6 +1,6 @@
 // src/projects/Project2/pages/Page2.js
 
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useCallback } from "react";
 import "./Page.css";
 // partie 
 // Flashcards pour le niveau basic
@@ -231,13 +231,13 @@ const Page2 = () => {
 
   // Timer pour les niveaux QCM
   useEffect(() => {
-    if (level !== "basic" && !showResult && timeLeft > 0) {
+    if (level !== "basic" && !showResult && !message && timeLeft > 0) {
       const timer = setTimeout(() => setTimeLeft(timeLeft - 1), 1000);
       return () => clearTimeout(timer);
     } else if (level !== "basic" && timeLeft === 0) {
       handleNextQuestion();
     }
-  }, [timeLeft, level, showResult]);
+  }, [timeLeft, level, showResult, message, handleNextQuestion]);
 
   // Slide auto pour les flashcards
   useEffect(() => {
@@ -259,6 +259,7 @@ const Page2 = () => {
   }, [level, showResult]);
 
 const handleAnswerClick = (option, index) => {
+    if (message) return;
   const currentQuestions = questions[level];
   const current = currentQuestions[currentQuestion];
   const correctAnswer = current.answer;
@@ -278,7 +279,7 @@ const handleAnswerClick = (option, index) => {
   setTimeout(handleNextQuestion, 2500);
 };
 
-  const handleNextQuestion = () => {
+  const handleNextQuestion = useCallback(() => {
     const currentQuestions = questions[level];
     if (currentQuestion + 1 < currentQuestions.length) {
       setCurrentQuestion(currentQuestion + 1);
@@ -294,7 +295,7 @@ const handleAnswerClick = (option, index) => {
       setTimeLeft(20);
       setMessage("");
     }
-  };
+  }, [level, currentQuestion]);;
 
   return (
     <div className="qcm-container">

@@ -1,6 +1,6 @@
 // src/projects/CSharpAsync/AsyncProgrammingQCM.js
 
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useCallback } from "react";
 import "./Page.css";
 
 const basicSlides = [
@@ -619,7 +619,7 @@ const AsyncProgrammingQCM = () => {
   const [showResult, setShowResult] = useState(false);
   const [message, setMessage] = useState("");
 
-  const handleNext = () => {
+  const handleNext = useCallback(() => {
     const qs = questions[level];
     if (currentQuestion + 1 < qs.length) { setCurrentQuestion(q => q + 1); setTimeLeft(25); setMessage(""); }
     else {
@@ -628,14 +628,14 @@ const AsyncProgrammingQCM = () => {
       else setShowResult(true);
       setCurrentQuestion(0); setTimeLeft(25); setMessage("");
     }
-  };
+  }, [level, currentQuestion]);;
 
   useEffect(() => {
-    if (level !== "basic" && !showResult) {
+    if (level !== "basic" && !showResult && !message) {
       if (timeLeft > 0) { const t = setTimeout(() => setTimeLeft(p => p - 1), 1000); return () => clearTimeout(t); }
       else handleNext();
     }
-  }, [timeLeft, level, showResult]);
+  }, [timeLeft, level, showResult, message, handleNext]);
 
   useEffect(() => {
     if (level === "basic" && !showResult) {
@@ -650,6 +650,7 @@ const AsyncProgrammingQCM = () => {
   }, [level, showResult]);
 
   const handleAnswer = (opt) => {
+    if (message) return;
     const cur = questions[level][currentQuestion];
     if (opt === cur.answer) { setScores(p => ({ ...p, [level]: p[level] + 1 })); setMessage("✅ Correct !"); }
     else { setMessage(`❌ ${cur.answer}\n\nℹ️ ${cur.explanation}`); }

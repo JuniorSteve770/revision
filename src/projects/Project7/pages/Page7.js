@@ -1,6 +1,6 @@
 // src/projects/Project3/pages/Page_GitHubDeploy.js
 
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useCallback } from "react";
 import "./Page.css";
 
 const basicSlides = [
@@ -250,7 +250,9 @@ const questions = {
       ],
       "answer": "Sur PR : `terraform plan` et publier le plan en commentaire PR. Sur merge main : job séparé avec `terraform apply` dans l'environnement `infrastructure` (Required Reviewers). State dans S3 + DynamoDB locking.",
       "explanation": "GitOps Terraform workflow : (1) Branche feature → `terraform plan` → résultat publié en commentaire PR via `hashicorp/setup-terraform` + `github-script`. Les reviewers voient exactement ce qui va changer avant d'approuver. (2) Merge main → `terraform apply` dans l'environnement GitHub `infrastructure` (avec Required Reviewer). (3) State S3 + DynamoDB locking → pas de race condition. (4) `terraform fmt --check` + `terraform validate` dans le CI pour la qualité. Action : `hashicorp/setup-terraform@v3`. En FERMAT : changement infra K8s = plan reviewé par un architecte avant apply — aucune modification infra sans trace Git."
-    },
+    }
+  ],
+  expert: [
     {
       "question": "[GitHub Actions — OpenID Connect Azure Federated] Comment configurer l'authentification OIDC entre GitHub Actions et Azure sans Service Principal secret ?",
       "options": [
@@ -371,7 +373,7 @@ const Page_GitHubDeploy = () => {
   const [showResult, setShowResult] = useState(false);
   const [message, setMessage] = useState("");
 
-  const handleNextQuestion = () => {
+  const handleNextQuestion = useCallback(() => {
     const qs = questions[level];
     if (currentQuestion + 1 < qs.length) { setCurrentQuestion(q => q + 1); setTimeLeft(25); setMessage(""); }
     else {
@@ -380,14 +382,14 @@ const Page_GitHubDeploy = () => {
       else setShowResult(true);
       setCurrentQuestion(0); setTimeLeft(25); setMessage("");
     }
-  };
+  }, [level, currentQuestion]);;
 
   useEffect(() => {
-    if (level !== "basic" && !showResult) {
+    if (level !== "basic" && !showResult && !message) {
       if (timeLeft > 0) { const t = setTimeout(() => setTimeLeft(t2 => t2 - 1), 1000); return () => clearTimeout(t); }
       else handleNextQuestion();
     }
-  }, [timeLeft, level, showResult]);
+  }, [timeLeft, level, showResult, message, handleNextQuestion]);
 
   useEffect(() => {
     if (level === "basic" && !showResult) {
@@ -402,6 +404,7 @@ const Page_GitHubDeploy = () => {
   }, [level, showResult]);
 
   const handleAnswerClick = (option) => {
+    if (message) return;
     const current = questions[level][currentQuestion];
     if (option === current.answer) { setScores(p => ({ ...p, [level]: p[level] + 1 })); setMessage("✅ Correct !"); }
     else { setMessage(`❌ ${current.answer}\n\nℹ️ ${current.explanation}`); }

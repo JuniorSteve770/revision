@@ -1,5 +1,5 @@
 // src/projects/ml/Page_ML_Eval.js
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useCallback } from "react";
 import "./Page.css";
 
 const basicSlides = [
@@ -534,7 +534,7 @@ const MLEvaluationInconvenients = () => {
   const [showResult, setShowResult] = useState(false);
   const [message, setMessage] = useState("");
 
-  const handleNextQuestion = () => {
+  const handleNextQuestion = useCallback(() => {
     const qs = questions[level];
     if (currentQuestion + 1 < qs.length) {
       setCurrentQuestion(q => q + 1); setTimeLeft(25); setMessage("");
@@ -544,16 +544,16 @@ const MLEvaluationInconvenients = () => {
       else { setShowResult(true); }
       setCurrentQuestion(0); setTimeLeft(25); setMessage("");
     }
-  };
+  }, [level, currentQuestion]);;
 
   useEffect(() => {
-    if (level !== "basic" && !showResult) {
+    if (level !== "basic" && !showResult && !message) {
       if (timeLeft > 0) {
         const t = setTimeout(() => setTimeLeft(t2 => t2 - 1), 1000);
         return () => clearTimeout(t);
       } else handleNextQuestion();
     }
-  }, [timeLeft, level, showResult]);
+  }, [timeLeft, level, showResult, message, handleNextQuestion]);
 
   useEffect(() => {
     if (level === "basic" && !showResult) {
@@ -568,6 +568,7 @@ const MLEvaluationInconvenients = () => {
   }, [level, showResult]);
 
   const handleAnswerClick = (option) => {
+    if (message) return;
     const current = questions[level][currentQuestion];
     if (option === current.answer) {
       setScores(p => ({ ...p, [level]: p[level] + 1 }));

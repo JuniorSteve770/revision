@@ -1,6 +1,6 @@
 // src/projects/Project3/pages/Page_CICD.js
 
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useCallback } from "react";
 import "./Page.css";
 
 const basicSlides = [
@@ -261,7 +261,10 @@ const questions = {
       ],
       "answer": "Utiliser `rules: changes:` par job pour conditionner l'exécution aux fichiers modifiés : `rules: - changes: [\"src/ExposureEngine/**\"]` sur le job `test-exposure`.",
       "explanation": "Optimisation monorepo avec `changes:` : `test-exposure: rules: - changes: [\"src/ExposureEngine/**\", \"tests/ExposureEngine/**\"]`. Un commit dans `src/Reporting/` ne déclenche que `test-reporting` — pas `test-exposure` ni `test-limitmonitor`. Pipeline 3× plus rapide. Alternative avancée : `trigger:` avec sous-pipelines (`include: local: 'src/ExposureEngine/.gitlab-ci.yml'`) — chaque module a son propre pipeline. En pratique FERMAT : les 3 modules partagent des classes (`Models/`) — `changes` sur `Models/` déclenche les 3 tests."
-    },
+    }
+  ],
+
+  expert: [
     {
       "question": "[Checkmarx — SAST] Un scan Checkmarx détecte une vulnérabilité `SQL Injection` dans le code C# de FERMAT. Quelle est la correction appropriée ?",
       "options": [
@@ -372,7 +375,7 @@ const Page_CICD = () => {
   const [showResult, setShowResult] = useState(false);
   const [message, setMessage] = useState("");
 
-  const handleNextQuestion = () => {
+  const handleNextQuestion = useCallback(() => {
     const qs = questions[level];
     if (currentQuestion + 1 < qs.length) { setCurrentQuestion(q => q + 1); setTimeLeft(25); setMessage(""); }
     else {
@@ -381,14 +384,14 @@ const Page_CICD = () => {
       else setShowResult(true);
       setCurrentQuestion(0); setTimeLeft(25); setMessage("");
     }
-  };
+  }, [level, currentQuestion]);;
 
   useEffect(() => {
-    if (level !== "basic" && !showResult) {
+    if (level !== "basic" && !showResult && !message) {
       if (timeLeft > 0) { const t = setTimeout(() => setTimeLeft(t2 => t2 - 1), 1000); return () => clearTimeout(t); }
       else handleNextQuestion();
     }
-  }, [timeLeft, level, showResult]);
+  }, [timeLeft, level, showResult, message, handleNextQuestion]);
 
   useEffect(() => {
     if (level === "basic" && !showResult) {
@@ -403,6 +406,7 @@ const Page_CICD = () => {
   }, [level, showResult]);
 
   const handleAnswerClick = (option) => {
+    if (message) return;
     const current = questions[level][currentQuestion];
     if (option === current.answer) { setScores(p => ({ ...p, [level]: p[level] + 1 })); setMessage("✅ Correct !"); }
     else { setMessage(`❌ ${current.answer}\n\nℹ️ ${current.explanation}`); }

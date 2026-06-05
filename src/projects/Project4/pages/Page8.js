@@ -1,10 +1,10 @@
 // src/projects/CIBPricing/DesignPatterns.js
 
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useCallback } from "react";
 import "./Page.css";
 
 const basicSlides = [
- {
+  {
     "question": "Singleton — Une seule instance | Natixis/Finance",
     "answer": "**Problème résolu** : garantir qu'une seule instance d'une classe existe afin de centraliser une ressource partagée et éviter les incohérences. ◆ **Principes OOP** : Encapsulation. ◆ **SOLID associé** : SRP (parfois). ◆ **Mots-clés C#** : `static`, `private constructor`, `sealed`. ◆ **Implémentation thread-safe** : instance statique ou `lock`. ◆ **Cas d'usage Natixis/Finance** : Logger, Configuration, Cache Redis. ◆ **⚠️ Confusion fréquente** : Singleton ≠ variable globale. ◆ **Anti-pattern** : difficile à tester si surutilisé."
   },
@@ -1256,7 +1256,9 @@ const questions = {
       ],
       "answer": "`RiskEngine` utilise `IVaRStrategy` pour calculer. Après calcul, si `var > _limit`, publie `OnVaRLimitBreached` event. Strategy = axe d'extension de l'algorithme. Observer = axe d'extension des réactions. Indépendants.",
       "explanation": "Design orthogonal Strategy + Observer : `var result = _strategy.Compute(portfolio)` — Strategy choisit l'algorithme (Historical/MonteCarlo/Parametric). `if(result.VaR > _limit) OnVaRLimitBreached?.Invoke(new VaRAlert(...))` — Observer notifie les réactions. Changer d'algorithme VaR n'affecte pas les canaux de notification. Ajouter un canal de notification n'affecte pas l'algorithme. Deux axes d'évolution complètement découplés."
-    },
+    }
+  ],
+  expert: [
     {
       "question": "[All Patterns — Anti-patterns] Un service `GodRiskService` fait : pricing, calcul VaR, mise à jour Oracle, envoi FIX, génération rapports, alertes. Quels patterns devraient être appliqués pour le refactorer ?",
       "options": [
@@ -1362,7 +1364,7 @@ const Page8 = () => {
   const [showResult, setShowResult] = useState(false);
   const [message, setMessage] = useState("");
 
-  const handleNext = () => {
+  const handleNext = useCallback(() => {
     const qs = questions[level];
     if (currentQuestion + 1 < qs.length) { setCurrentQuestion(q => q + 1); setTimeLeft(25); setMessage(""); }
     else {
@@ -1371,14 +1373,14 @@ const Page8 = () => {
       else setShowResult(true);
       setCurrentQuestion(0); setTimeLeft(25); setMessage("");
     }
-  };
+  }, [level, currentQuestion]);;
 
   useEffect(() => {
-    if (level !== "basic" && !showResult) {
+    if (level !== "basic" && !showResult && !message) {
       if (timeLeft > 0) { const t = setTimeout(() => setTimeLeft(p => p - 1), 1000); return () => clearTimeout(t); }
       else handleNext();
     }
-  }, [timeLeft, level, showResult]);
+  }, [timeLeft, level, showResult, message, handleNext]);
 
   useEffect(() => {
     if (level === "basic" && !showResult) {
@@ -1393,6 +1395,7 @@ const Page8 = () => {
   }, [level, showResult]);
 
   const handleAnswer = (opt) => {
+    if (message) return;
     const cur = questions[level][currentQuestion];
     if (opt === cur.answer) { setScores(p => ({ ...p, [level]: p[level] + 1 })); setMessage("✅ Correct !"); }
     else { setMessage(`❌ ${cur.answer}\n\nℹ️ ${cur.explanation}`); }

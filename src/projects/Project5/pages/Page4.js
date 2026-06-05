@@ -1,6 +1,6 @@
 // src/projects/Project1/pages/Page2.js
 
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useCallback } from "react";
 import "./Page.css";
 // partie 
 // Flashcards pour le niveau basic
@@ -811,6 +811,7 @@ const Page4 = () => {
   }, [level, showResult]);
 
   const handleAnswerClick = (option) => {
+    if (message) return;
     const currentQuestions = questions[level];
     const current = currentQuestions[currentQuestion];
     if (option === current.answer) {
@@ -822,7 +823,7 @@ const Page4 = () => {
     setTimeout(handleNextQuestion, 2500);
   };
 
-  const handleNextQuestion = () => {
+  const handleNextQuestion = useCallback(() => {
     const currentQuestions = questions[level];
     if (currentQuestion + 1 < currentQuestions.length) {
       setCurrentQuestion(currentQuestion + 1);
@@ -838,7 +839,7 @@ const Page4 = () => {
       setTimeLeft(15);
       setMessage("");
     }
-  };
+  }, [level, currentQuestion]);;
 
   return (
     <div className="qcm-container">

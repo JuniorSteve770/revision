@@ -1,6 +1,6 @@
 // src/projects/Project3/pages/Page_DevOps.js
 
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useCallback } from "react";
 import "./Page.css";
 
 const basicSlides = [
@@ -261,7 +261,9 @@ const questions = {
       ],
       "answer": "Deployment Frequency (fréquence des déploiements), Lead Time for Changes (délai commit → prod), Change Failure Rate (% déploiements causant un incident), MTTR (temps moyen de restauration après incident).",
       "explanation": "DORA (DevOps Research and Assessment) 4 métriques : (1) Deployment Frequency : Elite = plusieurs/jour. Low = moins d'un mois. (2) Lead Time : Elite = < 1 heure. Low = 1-6 mois. (3) Change Failure Rate : Elite = 0-15%. Low = 46-60%. (4) MTTR : Elite = < 1 heure. Low = 1 semaine-1 mois. Objectif FERMAT : augmenter Deployment Frequency (CI/CD mature), réduire Lead Time (pipeline rapide), maintenir Change Failure Rate bas (tests suffisants), MTTR < 30min (SLA 99.95%). En banque : DORA metrics = KPIs du département IT présentés au COMEX."
-    },
+    }
+  ],
+  expert: [
     {
       "question": "[Kubernetes — PodDisruptionBudget] Lors d'une mise à jour Kubernetes d'un nœud, comment garantir qu'au moins 2 pods FERMAT restent disponibles sur les 3 existants ?",
       "options": [
@@ -372,7 +374,7 @@ const Page_DevOps = () => {
   const [showResult, setShowResult] = useState(false);
   const [message, setMessage] = useState("");
 
-  const handleNextQuestion = () => {
+  const handleNextQuestion = useCallback(() => {
     const qs = questions[level];
     if (currentQuestion + 1 < qs.length) { setCurrentQuestion(q => q + 1); setTimeLeft(25); setMessage(""); }
     else {
@@ -381,14 +383,14 @@ const Page_DevOps = () => {
       else setShowResult(true);
       setCurrentQuestion(0); setTimeLeft(25); setMessage("");
     }
-  };
+  }, [level, currentQuestion]);;
 
   useEffect(() => {
-    if (level !== "basic" && !showResult) {
+    if (level !== "basic" && !showResult && !message) {
       if (timeLeft > 0) { const t = setTimeout(() => setTimeLeft(t2 => t2 - 1), 1000); return () => clearTimeout(t); }
       else handleNextQuestion();
     }
-  }, [timeLeft, level, showResult]);
+  }, [timeLeft, level, showResult, message, handleNextQuestion]);
 
   useEffect(() => {
     if (level === "basic" && !showResult) {
@@ -403,6 +405,7 @@ const Page_DevOps = () => {
   }, [level, showResult]);
 
   const handleAnswerClick = (option) => {
+    if (message) return;
     const current = questions[level][currentQuestion];
     if (option === current.answer) { setScores(p => ({ ...p, [level]: p[level] + 1 })); setMessage("✅ Correct !"); }
     else { setMessage(`❌ ${current.answer}\n\nℹ️ ${current.explanation}`); }
