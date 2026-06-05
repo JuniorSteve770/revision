@@ -12,6 +12,9 @@ const Project7Navbar = () => {
       <Link to="/project7/page2_2">2.2 AWS exo</Link>
       <Link to="/project7/page3">3. Aws + ai</Link>
       <Link to="/project7/page4">4. Aws ++ </Link>
+      <Link to="/project7/page5">5. CICD</Link>
+      <Link to="/project7/page6">6. DeVops </Link>
+      <Link to="/project7/page7">7. GitHubDeploy</Link>
     </nav>
   );
 };

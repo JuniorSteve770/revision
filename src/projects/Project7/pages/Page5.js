@@ -1,649 +1,293 @@
-// src/projects/CIBPricing/MicroservicesFoundationsQCM.js
+// src/projects/Project3/pages/Page_CICD.js
 
 import React, { useState, useEffect } from "react";
 import "./Page.css";
 
 const basicSlides = [
   {
-    "question": "Vue d'ensemble — 20 fondations essentielles C#/.NET Finance/IT",
-    "answer": "**Microservices** : découper une application en services indépendants (Trading, Risque, Reporting). Chaque service a sa propre DB, son déploiement, sa logique. ◆ **JSON** : format d'échange standard entre services — sérialisation/désérialisation `JsonSerializer`, contrats partagés. ◆ **MSMQ / RabbitMQ** : file de messages asynchrone — le producteur envoie, le consommateur traite quand il est prêt. Aucune perte si le service B est down. ◆ **async/await** : libère le thread pendant l'I/O (SQL, API, fichiers) — scalabilité sans threads bloqués. `Task` vs `Thread` : Task = léger, pool géré. Thread = lourd, manuel. ◆ **LINQ** : requêter des collections C# comme du SQL. `Where`, `Select`, `OrderBy`, `GroupBy`, `FirstOrDefault`. Traduit en SQL par Entity Framework. ◆ **Points de confusion clés** : `async void` vs `async Task`, `First()` vs `FirstOrDefault()`, `IQueryable` vs `IEnumerable`, `Serialize` vs `Deserialize`, `HTTP` vs `MSMQ`, producteur vs consommateur."
+    "question": "CI/CD — Définition & pipeline | Natixis/Finance",
+    "answer": "**CI = Continuous Integration** : chaque `git push` déclenche automatiquement compilation, tests, qualité, sécurité. Objectif : détecter les bugs le plus tôt possible. ◆ **CD = Continuous Delivery/Deployment** : le code validé est automatiquement packagé et déployé vers recette → staging → prod. ◆ **Pipeline bancaire** : `git push` → Build → Tests → SonarQube → Checkmarx → Docker build → Deploy recette → (manuel) Deploy prod. ◆ **Mots-clés** : `pipeline`, `stage`, `job`, `runner`, `artifact`, `trigger`, `webhook`. ◆ **En banque** : deploy prod toujours `when: manual` — validation humaine obligatoire (DORA, risque opérationnel). ◆ **Outils** : GitLab CI (on-premise bancaire), GitHub Actions (hors banque), Jenkins (legacy)."
   },
   {
-    "question": "Microservice — Définition, responsabilité unique, exemple Trading CIB",
-    "answer": "**Définition** : un microservice est un service indépendant qui gère une responsabilité métier unique. Il a sa propre base de données, son propre déploiement, sa propre logique. Il ne partage RIEN avec les autres services directement. ◆ **Exemple CIB** : `TradeService` (créer/modifier/annuler les trades), `RiskService` (calculer VaR, Greeks, limites), `InstrumentService` (référentiel ISIN, caractéristiques), `ReportingService` (P&L, positions EOD). Chacun est un projet C# séparé déployé dans son propre container Docker. ◆ **Ce qu'un microservice NE fait PAS** : il ne lit pas directement la base d'un autre service, il ne partage pas ses objets internes, il ne connaît pas l'implémentation des autres. ◆ **Communication** : via REST API (synchrone) ou MessageQueue (asynchrone). Jamais via DB partagée — c'est l'anti-pattern n°1. ◆ **Règle de taille** : un microservice = ce qu'une petite équipe peut développer, déployer et comprendre complètement."
+    "question": "CI/CD — C# vs Python : différences clés | Natixis/Finance",
+    "answer": "**C# — étape Build obligatoire** : `dotnet build` compile le code. Toute erreur de syntaxe ou de type = pipeline bloqué AVANT les tests. Filet de sécurité fort. ◆ **Python — pas de compilation** : le pipeline passe directement aux tests. Une erreur de syntaxe dans un fichier non couvert par les tests peut passer le CI et exploser en prod. ◆ **Conséquence** : coverage Python doit être plus strict (≥80%) pour compenser l'absence de compilation. ◆ **C#** : `dotnet restore` → `dotnet build` → `dotnet test` → `dotnet publish`. ◆ **Python** : `pip install -r requirements.txt` → `ruff check` (lint) → `pytest --cov` → `docker build`. ◆ **Package** : C# = `.dll`/`.exe` via `dotnet publish` | Python = `.whl` via `pip wheel`."
   },
   {
-    "question": "Monolithe vs Microservices — Tableau comparatif et quand choisir",
-    "answer": "**Monolithe** : une seule application, un seul déploiement, tout est couplé. Simple à démarrer, difficile à maintenir en équipe. Modifier le service Risque nécessite de redéployer toute l'application. ◆ **Microservices** : chaque service déployé indépendamment. `TradeService` peut être mis à jour sans toucher `RiskService`. Scalabilité : `RiskService` (CPU intensif) peut avoir 10 pods Kubernetes, `ReportingService` (utilisé 1×/jour) en a 1. ◆ **Quand choisir Microservices** : grande équipe (> 5 devs), plusieurs domaines métiers distincts, besoin de scalabilité différenciée, cycle de déploiement fréquent. ◆ **Quand garder un monolithe** : petite équipe, projet au démarrage (YAGNI), domaine métier non stabilisé — migrer vers microservices plus tard avec Strangler Fig. ◆ **⚠️ Point de confusion** : microservices ≠ meilleur dans tous les cas. Un monolithe bien structuré est préférable à des microservices mal découpés ('distributed monolith')."
+    "question": "GitHub Actions — Structure YAML | C# & Python",
+    "answer": "**Fichier** : `.github/workflows/ci.yml` à la racine. ◆ **Déclencheurs** : `on: push` (branches) + `on: pull_request`. ◆ **Structure** : `jobs:` → `runs-on: ubuntu-latest` → `steps:` → `uses:` (action) ou `run:` (commande shell). ◆ **C# essentiel** : `uses: actions/setup-dotnet@v4` → `run: dotnet restore` → `run: dotnet build` → `run: dotnet test --collect:\"XPlat Code Coverage\"`. ◆ **Python essentiel** : `uses: actions/setup-python@v5` → `run: pip install -r requirements.txt` → `run: ruff check .` → `run: pytest --cov=src --cov-fail-under=80`. ◆ **Différence** : C# a une étape `dotnet build` explicite. Python remplace le build par `ruff check` (lint statique)."
   },
   {
-    "question": "Communication synchrone vs asynchrone — HTTP REST vs Message Queue",
-    "answer": "**HTTP REST (synchrone)** : `A → appelle B → attend la réponse → continue`. Si B est down : erreur immédiate pour A. Si B est lent (3s) : A attend 3s, thread bloqué. Utilisé quand : la réponse est nécessaire immédiatement pour continuer (`BookTrade` doit retourner le `TradeId`). ◆ **Message Queue (asynchrone)** : `A → envoie un message dans la queue → continue immédiatement`. B traite le message quand il est disponible. Si B est down : le message attend dans la queue, aucune perte. Utilisé quand : la réponse n'est pas nécessaire immédiatement (calcul de risk après booking, envoi d'email de confirmation). ◆ **Analogie** : HTTP = appel téléphonique (attend que l'autre décroche). Queue = envoyer un SMS (l'autre répond quand il peut). ◆ **⚠️ Point de confusion** : MSMQ et RabbitMQ ne remplacent PAS HTTP — ce sont des outils complémentaires. Certains flows nécessitent les deux dans le même système."
+    "question": "GitLab CI — Pipeline bancaire Natixis FERMAT | C#",
+    "answer": "**Fichier** : `.gitlab-ci.yml` à la racine. Runners **on-premise** (code ne sort jamais des serveurs internes). ◆ **Stages** : `build` → `test` → `quality` → `security` → `package` → `deploy`. ◆ **Variables** : `variables: SONAR_PROJECT_KEY: fermat-risk`. ◆ **Artifacts** : `artifacts: paths: [\"**/bin/Release/\"]` conserve les binaires entre stages. ◆ **Deploy recette** : `only: [develop]` + automatique. **Deploy prod** : `only: [main]` + `when: manual` (OBLIGATOIRE en banque). ◆ **Pourquoi GitLab on-premise ?** RGPD + confidentialité code source (formules de risque) + DORA (contrôle des données). GitHub héberge sur serveurs Microsoft = interdit en banque pour code sensible."
   },
   {
-    "question": "JSON — Sérialisation, désérialisation, contrat, erreurs fréquentes",
-    "answer": "**Sérialisation** : objet C# → texte JSON. `string json = JsonSerializer.Serialize(trade);` ◆ **Désérialisation** : texte JSON → objet C#. `Trade t = JsonSerializer.Deserialize<Trade>(json);` ◆ **Options importantes** : `new JsonSerializerOptions { PropertyNamingPolicy = JsonNamingPolicy.CamelCase, WriteIndented = true, DefaultIgnoreCondition = JsonIgnoreCondition.WhenWritingNull }` ◆ **Attributs** : `[JsonPropertyName(\"trade_id\")]` sur une propriété pour mapper un nom JSON différent du nom C#. `[JsonIgnore]` pour exclure un champ de la sérialisation. ◆ **Contrat JSON** : structure partagée entre services. Changer `TradeId` en `Id` dans le JSON casse tous les consommateurs. Versionner : `/api/v1/trades` garde l'ancien format, `/api/v2/trades` introduit le nouveau. ◆ **⚠️ Points de confusion** : `Serialize` = C# vers JSON (vers l'extérieur). `Deserialize` = JSON vers C# (depuis l'extérieur). `null` en JSON ≠ valeur absente — utiliser `[JsonIgnore]` ou `JsonIgnoreCondition`."
+    "question": "Docker dans le pipeline CI/CD | C# vs Python",
+    "answer": "**C# — Multi-stage build** : Stage 1 (`sdk:8.0`, 780 MB) compile avec `dotnet publish`. Stage 2 (`aspnet:8.0`, 220 MB) contient uniquement le runtime. Image finale 3× plus légère, surface d'attaque réduite. ◆ **Python — Layer caching** : copier `requirements.txt` AVANT le code source → Docker cache le layer `pip install` si requirements ne change pas → build 10× plus rapide. ◆ **Bonne pratique commune** : utilisateur non-root (`USER appuser`), image `slim`/`alpine` pour minimiser la taille. ◆ **Dans le pipeline** : `docker build -t fermat:$CI_COMMIT_SHA .` → `docker push registry/fermat:$CI_COMMIT_SHA` → `kubectl set image deployment/fermat app=fermat:$CI_COMMIT_SHA`."
   },
   {
-    "question": "MSMQ — Architecture, producteur, consommateur, persistance",
-    "answer": "**MSMQ (Microsoft Message Queuing)** : système de files de messages intégré à Windows. Persistance locale — les messages survivent aux redémarrages. Transactionnel — envoi et réception atomiques. ◆ **Producteur** : `using System.Messaging; var queue = new MessageQueue(\".\\\\Private$\\\\TradeQueue\"); queue.Send(new Message(trade) { Label = \"NewTrade\", Formatter = new XmlMessageFormatter() });` ◆ **Consommateur** : `var msg = queue.Receive(TimeSpan.FromSeconds(10)); var trade = (Trade)msg.Body;` ◆ **Queue transactionnelle** : `queue.Send(msg, MessageQueueTransactionType.Single)` — si l'application plante après l'envoi mais avant le traitement, le message reste dans la queue. ◆ **Limitations MSMQ** : Windows uniquement, pas de broker centralisé, pas de monitoring web, pas de routing complexe, difficile à scaler horizontalement. ◆ **⚠️ Point de confusion** : MSMQ ≠ RabbitMQ. MSMQ = local, legacy, .NET Framework. RabbitMQ = broker centralisé, moderne, multi-langages, cloud-native."
+    "question": "SonarQube & Checkmarx — Qualité et sécurité | CI/CD",
+    "answer": "**SonarQube** : analyse qualité du code. Métriques : coverage, code smells, bugs, vulnérabilités, dette technique. **Quality Gate** = seuil qui bloque le pipeline si non atteint (ex: coverage < 80% ou vuln critique). Supporte C# (Roslyn) et Python. ◆ **Checkmarx** : SAST (Static Application Security Testing) — analyse le code source pour détecter les vulnérabilités OWASP (injection SQL, XSS, secrets hardcodés). ◆ **C# spécifique** : Roslyn Analyzers (intégrés au SDK), `dotnet format`. ◆ **Python spécifique** : Bandit (vulnérabilités sécurité), Ruff/Flake8 (qualité/style), `pip audit`/Safety (packages vulnérables). ◆ **DevSecOps** : sécurité intégrée DANS le pipeline, pas après. SAST + DAST + Dependency Check."
   },
   {
-    "question": "RabbitMQ — Exchange, Queue, Binding, patterns de routing",
-    "answer": "**Concepts** : Producer → Exchange → Binding → Queue → Consumer. L'exchange reçoit les messages et les route vers les queues selon les bindings et le routingKey. ◆ **Direct exchange** : `channel.BasicPublish(exchange: \"trades\", routingKey: \"trade.booked\", body: payload)` → queue liée à exactement `\"trade.booked\"`. ◆ **Topic exchange** : `routingKey: \"trade.equity.booked\"` → queue abonnée à `\"trade.equity.*\"` ou `\"trade.#\"`. ◆ **Fanout exchange** : broadcast — toutes les queues liées reçoivent le message (audit, risk, reporting, blotter simultanément). ◆ **Acknowledgements** : `channel.BasicAck(deliveryTag, false)` après traitement réussi. `channel.BasicNack(deliveryTag, false, requeue: true)` si erreur → rejeu. ◆ **Dead-letter queue** : messages rejetés → `trades.dlq` pour inspection. ◆ **⚠️ Point de confusion** : l'exchange NE stocke PAS les messages — c'est la queue qui stocke. L'exchange route seulement. Un message non routé (aucune queue binding) est perdu."
+    "question": "GitLab CI vs GitHub Actions — Comparatif bancaire",
+    "answer": "**GitLab CI** : fichier `.gitlab-ci.yml`. Runners on-premise. Natif GitLab (merge requests, issues). `stages:` définis explicitement. Artifacts entre jobs. Standard en banque (BNP, SG, Natixis, CACIB). ◆ **GitHub Actions** : fichier `.github/workflows/*.yml`. Runners cloud (ubuntu-latest, windows-latest). Marketplace d'actions (`uses: actions/...`). Standard hors banque et startups. ◆ **Différence clé** : GitHub = serveurs Microsoft (cloud). GitLab on-premise = serveurs internes banque. ◆ **Variables secrètes** : GitLab → `$CI_REGISTRY_PASSWORD` (CI/CD Variables). GitHub → `${{ secrets.DOCKER_PASSWORD }}` (Secrets). ◆ **Syntaxe commune** : YAML, stages/jobs, artifacts, environnements, déclencheurs."
   },
   {
-    "question": "async/await — Fonctionnement interne, libération de thread, règles",
-    "answer": "**Sans async (bloquant)** : `var data = GetData();` — le thread attend, immobilisé pendant toute la durée de l'I/O. Sur ASP.NET Core : si 200 requêtes simultanées chacune attendant 100ms SQL → 200 threads bloqués → pool de threads épuisé → nouvelles requêtes en attente. ◆ **Avec async** : `var data = await GetDataAsync();` — le thread est libéré pendant l'attente I/O, il revient dans le pool et peut traiter d'autres requêtes. Quand le résultat SQL arrive, un thread (pas forcément le même) reprend l'exécution après le `await`. ◆ **Règle du bout en bout** : si une méthode utilise `await`, elle doit être `async Task` jusqu'au contrôleur. Interrompre la chaîne avec `.Result` ou `.Wait()` = deadlock potentiel. ◆ **CancellationToken** : `async Task GetDataAsync(CancellationToken ct)` — si le client ferme la connexion, l'opération est annulée proprement. ◆ **⚠️ Point de confusion majeur** : `async` ne rend pas le code plus rapide pour une seule requête — il améliore la scalabilité (plus de requêtes simultanées avec moins de threads)."
-  },
-  {
-    "question": "async void vs async Task — La confusion la plus dangereuse en C#",
-    "answer": "**`async Task`** : méthode awaitable. Les exceptions sont capturées et propagées à l'appelant. `await MaMethodeAsync()` — l'appelant peut gérer l'exception avec `try/catch`. La méthode peut être attendue (testable, composable). ◆ **`async void`** : NON awaitable. Les exceptions NE sont PAS capturées — elles plantent le process entier sans possibilité de try/catch. Utilisable UNIQUEMENT pour les event handlers UI (obligation de signature) : `private async void Button_Click(object sender, EventArgs e)`. ◆ **Pourquoi c'est dangereux** : `private async void ProcessMessage(Message msg) { await _repo.SaveAsync(msg); }` → si `SaveAsync` lève une exception → le process crash → tous les messages en cours sont perdus. ◆ **Règle absolue** : toujours `async Task`, sauf event handlers. `async void` dans un service backend = bombe à retardement. ◆ **⚠️ Point de confusion** : les deux se compilent sans erreur — le compilateur n'avertit pas pour `async void`. C'est une erreur silencieuse."
-  },
-  {
-    "question": "Task vs Thread — Différences fondamentales et quand utiliser chaque",
-    "answer": "**Thread** : `new Thread(() => { DoWork(); }).Start()` — crée un thread OS dédié. Lourd (~1MB de stack), géré manuellement (Start, Join, Abort). Pas de valeur de retour native. Pas de composition. ◆ **Task** : `Task.Run(() => DoWork())` — utilise le ThreadPool géré par .NET. Léger, recyclé entre les opérations. Valeur de retour (`Task<T>`). Composable (`Task.WhenAll`, `ContinueWith`). ◆ **Quand utiliser Thread** : opérations longues (thread dédié pour un consommateur RabbitMQ qui tourne indéfiniment), cas où le contrôle précis du thread est nécessaire. ◆ **Quand utiliser Task** : tout le reste — calculs parallèles, opérations async, parallélisme logique. ◆ **ThreadPool** : `Thread` crée un thread neuf. `Task.Run` prend un thread du pool (déjà créé). Créer 1000 `Thread` = 1000 threads OS = ~1GB de stack. 1000 `Task.Run` = réutilise ~20-50 threads du pool. ◆ **⚠️ Point de confusion** : `await` ne crée PAS un thread — il libère un thread. La confusion entre 'parallélisme' et 'asynchronisme' est très fréquente."
-  },
-  {
-    "question": "LINQ — Where, Select, OrderBy, GroupBy, FirstOrDefault — Syntaxe et pièges",
-    "answer": "**Where** : `trades.Where(t => t.Price > 100 && t.Status == \"Active\")` — filtre, retourne `IEnumerable<T>`. ◆ **Select** : `trades.Select(t => new TradeDto(t.Id, t.Price))` — projection, transforme chaque élément. `Select` retourne toujours autant d'éléments qu'en entrée. ◆ **SelectMany** : aplatit une collection de collections. `desks.SelectMany(d => d.Trades)` — toutes les trades de tous les desks en une seule liste. ◆ **OrderBy / ThenBy** : `trades.OrderBy(t => t.Maturity).ThenBy(t => t.Strike)` — tri multi-niveaux. ◆ **GroupBy** : `trades.GroupBy(t => t.Desk).Select(g => new { Desk = g.Key, Total = g.Sum(t => t.Notional) })` ◆ **FirstOrDefault / SingleOrDefault** : `FirstOrDefault()` = premier élément ou `null` si vide. `SingleOrDefault()` = un seul élément attendu, exception si plusieurs. ◆ **⚠️ Point de confusion** : `Select` ≠ filtre — c'est une projection. Pour filtrer : `Where`. `First()` lève une exception si la collection est vide. `FirstOrDefault()` retourne `null`."
-  },
-  {
-    "question": "LINQ — Exécution différée vs immédiate — Le piège des IEnumerable",
-    "answer": "**Exécution différée** : `IEnumerable<T>` — la requête n'est PAS exécutée à la ligne du `Where`/`Select`. Elle est exécutée au moment de l'itération (`foreach`, `.ToList()`, `.Count()`, `.Any()`). ◆ **Démonstration** : `var query = trades.Where(t => t.Price > 100);` ← requête construite, pas exécutée. `var result = query.ToList();` ← requête exécutée ici. ◆ **Conséquence piège** : `var q = trades.Where(t => t.Price > 100); trades.Clear(); var list = q.ToList();` → la liste est vide — la requête lit `trades` au moment de `.ToList()`, pas au moment du `Where`. ◆ **Exécution immédiate** : `.ToList()`, `.ToArray()`, `.Count()`, `.Any()`, `.First()`, `.Sum()`, `.Max()`, `.Min()` — forcent l'exécution. ◆ **IQueryable vs IEnumerable** : `IQueryable` traduit en SQL (exécuté côté serveur). `IEnumerable` exécuté côté client après chargement. `db.Trades.Where(...)` = `IQueryable` → SQL filtré. `db.Trades.ToList().Where(...)` = `IEnumerable` → TOUT chargé en mémoire, puis filtré en C#. ◆ **⚠️ Point de confusion** : appeler `.ToList()` trop tôt est l'une des erreurs de performance LINQ les plus fréquentes."
-  },
-  {
-    "question": "First() vs FirstOrDefault() vs Single() vs SingleOrDefault() — Tableau des différences",
-    "answer": "**`First()`** : premier élément — lance `InvalidOperationException` si la collection est VIDE. ◆ **`FirstOrDefault()`** : premier élément ou `null` (ou valeur par défaut du type) si vide — ne plante JAMAIS. ◆ **`Single()`** : exactement un seul élément — lance `InvalidOperationException` si vide OU si plus d'un élément. ◆ **`SingleOrDefault()`** : zéro ou un élément — retourne `null` si vide, lance si plus d'un. ◆ **Quand utiliser quoi** : `First()` = je sais que la collection n'est pas vide (données critiques, logique garantie). `FirstOrDefault()` = la collection peut être vide (recherche optionnelle). `Single()` = je veux exactement 1 résultat et c'est une erreur s'il y en a 0 ou 2 (chercher par clé primaire). `SingleOrDefault()` = 0 ou 1 résultat attendu. ◆ **Exemple CIB** : `var trade = trades.FirstOrDefault(t => t.Id == id);` puis `if (trade == null) return NotFound();`. NE PAS faire : `var trade = trades.First(t => t.Id == id)` si l'ID peut ne pas exister — exception en production. ◆ **⚠️ Point de confusion** : `First()` n'est PAS 'meilleur' que `FirstOrDefault()`. Utiliser le bon selon le contrat métier."
-  },
-  {
-    "question": "Producteur et Consommateur — Pattern fondamental des architectures distribuées",
-    "answer": "**Producteur** : service qui crée et envoie des messages. `TradeService` crée un trade et publie `TradeBooked` sur RabbitMQ. Il n'attend pas que le message soit traité — il continue immédiatement. ◆ **Consommateur** : service qui lit et traite les messages. `RiskService` écoute `TradeBooked`, calcule les Greeks, vérifie les limites. Il traite à son propre rythme. ◆ **Backpressure** : si le producteur est plus rapide que le consommateur, la queue grossit. Solutions : ajouter des consommateurs (scale out), ou bounded queue avec rejet/attente. ◆ **Competing consumers** : plusieurs instances de `RiskService` consomment la même queue — chaque message est traité par un seul consommateur. RabbitMQ distribue les messages en round-robin. ◆ **Fan-out** : un message `TradeBooked` consommé par `RiskService` ET `AuditService` ET `BlotterService` simultanément — chacun a sa propre queue. ◆ **⚠️ Point de confusion** : dans RabbitMQ, un message est délivré à UNE SEULE queue par défaut (Direct/Topic). Pour le fan-out, utiliser un Fanout Exchange ou plusieurs bindings."
-  },
-  {
-    "question": "Résilience et gestion d'erreurs — Retry, Circuit Breaker, Dead-Letter Queue",
-    "answer": "**Retry** : retenter automatiquement les opérations transitoires. Avec Polly : `Policy.Handle<HttpRequestException>().WaitAndRetry(3, r => TimeSpan.FromSeconds(Math.Pow(2, r)))` — 3 tentatives avec backoff exponentiel (2s, 4s, 8s). Ne pas retenter les erreurs permanentes (401, 404). ◆ **Circuit Breaker** : après N erreurs consécutives, ouvrir le circuit 30s. Le service ne tente plus d'appeler le service down — réponse immédiate de refus. Se referme progressivement (half-open) pour tester la récupération. ◆ **Dead-Letter Queue** : message en erreur après N tentatives → redirigé vers la DLQ. L'équipe inspecte, corrige l'anomalie, rejoue. Sans DLQ : le message est perdu ou bloque la queue. ◆ **Timeout** : toujours configurer un timeout sur les `HttpClient`. Sans timeout : si le service distant ne répond jamais, le thread est bloqué indéfiniment. `client.Timeout = TimeSpan.FromSeconds(5)` ◆ **⚠️ Point de confusion** : Circuit Breaker ≠ Retry. Le retry retente sur erreur transitoire. Le circuit breaker arrête de tenter quand le service est clairement down — économise les ressources et accélère la détection de pannes."
-  },
-  {
-    "question": "Versioning d'API REST — URL, Header, négociation de contenu",
-    "answer": "**URL versioning** : `/api/v1/trades`, `/api/v2/trades` — le plus explicite. Visible dans les logs, simple à tester, simple à documenter. ◆ **Header versioning** : `Api-Version: 2` dans le header HTTP — URL propre, moins visible. `[ApiVersion(\"2.0\")][MapToApiVersion(\"2.0\")] public IActionResult GetV2()` ◆ **Query string** : `/api/trades?api-version=2` — facile à tester dans un navigateur, peu recommandé en production. ◆ **Pourquoi versionner** : un contrat JSON modifié (ajout de champ obligatoire, renommage) casse les clients qui n'ont pas encore migré. V1 doit rester stable pendant la période de migration. ◆ **Stratégie de dépréciation** : `Deprecation: true` header + `Sunset: 2025-06-01` — les clients ont un délai pour migrer. ◆ **⚠️ Point de confusion** : ajouter un champ OPTIONNEL au JSON est backward compatible (V1 clients ignorent le nouveau champ). Rendre un champ obligatoire ou le renommer est un breaking change nécessitant une nouvelle version."
-  },
-  {
-    "question": "Sécurité des échanges — HTTPS, JWT, Validation des inputs, Secrets",
-    "answer": "**HTTPS** : chiffre les données en transit. Obligatoire en finance. `app.UseHsts(); app.UseHttpsRedirection();` ◆ **JWT (JSON Web Token)** : token signé contenant des claims (userId, rôle, desk, expiration). Vérifié côté serveur sans accès DB — stateless. `[Authorize] [HttpPost] public IActionResult BookTrade(...)` — 401 si token absent ou invalide. ◆ **Validation des inputs** : `[Required][Range(0.01, 1_000_000)] public decimal Notional { get; set; }` — `[ApiController]` retourne 400 automatiquement si invalide. FluentValidation pour les règles métier complexes. ◆ **Secrets** : jamais de credentials dans le code source ou les fichiers appSettings versionnés. Utiliser `User Secrets` (dev), `Azure Key Vault` ou variables d'environnement (prod). ◆ **SQL Injection** : utiliser uniquement des requêtes paramétrées ou ORM. `WHERE Id = @id` (Dapper) ou `Where(t => t.Id == id)` (EF Core) — jamais concaténer des inputs utilisateur dans du SQL. ◆ **⚠️ Point de confusion** : JWT ≠ chiffrement — le payload est lisible (Base64), pas secret. JWT = signé (authentification). Utiliser HTTPS pour le chiffrement."
-  },
-  {
-    "question": "Traçabilité inter-services — Correlation ID, Structured Logging, Distributed Tracing",
-    "answer": "**Correlation ID** : UUID généré à l'entrée du système, propagé dans tous les headers et logs. `X-Correlation-ID: 550e8400-e29b-41d4-a716-446655440000` — permet de retrouver tous les événements d'une requête dans tous les services. ◆ **Structured Logging** : `_logger.LogInformation(\"Trade booked {TradeId} {ISIN} {Desk} {Notional}\", trade.Id, trade.Isin, trade.Desk, trade.Notional)` — chaque propriété est indexée séparément dans Elasticsearch. Recherche `TradeId=12345` retrouve tous les logs liés. ◆ **Serilog** : `Log.ForContext(\"TradeId\", id).ForContext(\"Service\", \"BookingService\").Information(\"Processing...\")` ◆ **OpenTelemetry** : standard de tracing distribué. Chaque service crée un span. Jaeger/Zipkin reconstituent le chemin complet. ◆ **⚠️ Point de confusion** : les logs textuels (sans structured logging) ne peuvent pas être filtrés efficacement. `LogError(\"Error for trade \" + tradeId)` = texte non indexé. `LogError(\"Error for trade {TradeId}\", tradeId)` = propriété indexée."
-  },
-  {
-    "question": "Entity Framework Core + LINQ — Requêtes efficaces sur la base de données",
-    "answer": "**DbContext** : `public class MapsDbContext : DbContext { public DbSet<Trade> Trades { get; set; } public DbSet<Instrument> Instruments { get; set; } }` ◆ **Requête simple** : `var trades = await _ctx.Trades.Where(t => t.DeskId == deskId && t.TradeDate >= DateTime.Today).AsNoTracking().ToListAsync(ct);` ◆ **Include (jointure)** : `var trades = await _ctx.Trades.Include(t => t.Instrument).Where(...).ToListAsync();` — charge les instruments en même temps (évite N+1). ◆ **Projection** : `var dtos = await _ctx.Trades.Select(t => new TradeDto(t.Id, t.Instrument.Isin, t.Notional)).ToListAsync();` — SQL ne charge que les colonnes nécessaires. ◆ **AsNoTracking** : pour les lectures seules — EF Core ne surveille pas les modifications, 2× plus rapide. ◆ **⚠️ Anti-pattern N+1** : `foreach(var trade in trades) { var instr = _ctx.Instruments.Find(trade.InstrumentId); }` → 1 requête pour les trades + N requêtes pour les instruments. Correction : `Include(t => t.Instrument)` = 1 seule requête SQL avec JOIN."
-  },
-  {
-    "question": "Cas pratique complet — Trade CIB de la saisie à la base de données",
-    "answer": "**Étape 1 — Saisie** : le trader POSTs `{ TradeId: 1, ISIN: \"FR0000131104\", Notional: 500000, Price: 52.3 }` sur `POST /api/v1/trades`. ◆ **Étape 2 — API REST** : `[Authorize][HttpPost] public async Task<IActionResult> Book([FromBody] BookingRequest req, CancellationToken ct)` — JWT validé, inputs validés (Notional > 0), ISIN format vérifié. ◆ **Étape 3 — Service** : `var isin = await _isinService.ResolveAsync(req.Isin, ct)` (cache Redis → Sophis). `var trade = await _tradeService.BookAsync(req, ct)`. ◆ **Étape 4 — Sérialisation JSON** : `JsonSerializer.Serialize(trade)` pour la publication sur RabbitMQ. ◆ **Étape 5 — MSMQ/RabbitMQ** : `await _bus.PublishAsync(\"trade.booked\", trade, ct)` — `RiskService`, `AuditService`, `BlotterService` consomment l'événement. ◆ **Étape 6 — async/await** : tous les appels DB, Sophis, RabbitMQ sont `await` — aucun thread bloqué. ◆ **Étape 7 — LINQ** : `_ctx.Trades.Where(t => t.DeskId == deskId).Sum(t => t.Notional)` — exposition nette du desk mise à jour. ◆ **Étape 8 — Réponse** : 201 Created + `{ tradeId: \"...\", location: \"/api/v1/trades/...\" }`."
+    "question": "Coverage & Tests dans le pipeline | C# vs Python",
+    "answer": "**C# coverage** : `dotnet test --collect:\"XPlat Code Coverage\"` génère `coverage.cobertura.xml`. GitLab CI extrait le % avec une regex. `coverlet` est la lib standard. ◆ **Python coverage** : `pytest --cov=src --cov-report=xml --cov-fail-under=80`. `pytest-cov` = lib standard. `--cov-fail-under=80` = exit code 1 si coverage < 80% (bloque le pipeline). ◆ **Pourquoi 80% minimum ?** En Python, compenser l'absence de compilation. En C#, bonne pratique industrie. ◆ **Types de tests dans CI** : unitaires (rapides, pas de DB), intégration (Docker Compose, DB test), e2e (staging uniquement). ◆ **Rapport coverage** : publié sur GitLab Pages ou Codecov pour visualisation par l'équipe."
   }
 ];
 
 const questions = {
   moyen: [
     {
-      "question": "[Terme → Définition] Qu'est-ce qu'un microservice dans une architecture CIB comme MAPS ?",
+      "question": "[CI/CD — Définition] Quelle est la différence entre Continuous Delivery et Continuous Deployment ?",
       "options": [
-        "Une petite classe C# qui fait une seule chose.",
-        "Un service indépendant avec sa propre base de données, sa propre logique métier et son propre déploiement, communicant avec les autres via API ou MessageQueue.",
-        "Un service qui dépend d'une base de données partagée avec tous les autres services.",
-        "Un composant interne d'une application monolithique."
+        "Ce sont des synonymes — les deux désignent le même processus.",
+        "Continuous Delivery : le pipeline s'arrête avant la prod et attend une validation humaine. Continuous Deployment : tout est automatique jusqu'en production sans intervention.",
+        "Continuous Delivery concerne C#, Continuous Deployment concerne Python.",
+        "Continuous Delivery déploie sur recette, Continuous Deployment déploie sur staging."
       ],
-      "answer": "Un service indépendant avec sa propre base de données, sa propre logique métier et son propre déploiement, communicant avec les autres via API ou MessageQueue.",
-      "explanation": "Le principe fondamental d'un microservice : indépendance totale. Il ne partage pas sa DB, n'appelle pas directement les objets internes des autres services. En CIB : `TradeService`, `RiskService`, `InstrumentService` sont des projets C# séparés, déployés dans leurs propres containers Docker, communiquant via REST ou RabbitMQ. La DB partagée est l'anti-pattern n°1 des microservices — elle réintroduit le couplage qu'on cherchait à éliminer."
+      "answer": "Continuous Delivery : le pipeline s'arrête avant la prod et attend une validation humaine. Continuous Deployment : tout est automatique jusqu'en production sans intervention.",
+      "explanation": "Nuance importante : Delivery = livraison prête à déployer, déploiement sur décision humaine. Deployment = déploiement automatique à chaque commit validé. En banque, on utilise Continuous Delivery pour la prod (validation obligatoire par un humain — DORA, risque opérationnel). Continuous Deployment est courant dans les SaaS/startups où le risque d'un déploiement raté est faible."
     },
     {
-      "question": "[Confusion] En C#, `JsonSerializer.Serialize(trade)` et `JsonSerializer.Deserialize<Trade>(json)` — laquelle transforme l'objet C# en texte JSON ?",
+      "question": "[GitHub Actions — YAML] Dans GitHub Actions, que fait `uses: actions/checkout@v4` ?",
       "options": [
-        "Deserialize — elle lit et reconstruit l'objet.",
-        "Serialize — elle transforme l'objet C# en texte JSON (vers l'extérieur).",
-        "Les deux font la même chose dans des sens différents.",
-        "Aucune des deux — JSON.Parse est la méthode correcte en C#."
+        "Installe Git sur le runner.",
+        "Publie l'artefact sur GitHub Packages.",
+        "Clone le dépôt Git sur le runner pour que les étapes suivantes accèdent aux fichiers sources.",
+        "Crée une nouvelle branche pour le pipeline."
       ],
-      "answer": "Serialize — elle transforme l'objet C# en texte JSON (vers l'extérieur).",
-      "explanation": "Moyen mnémotechnique : Serialize = 'mettre en série' = transformer en texte plat pour transmettre. Deserialize = 'défaire la série' = reconstruire l'objet depuis le texte. En CIB : avant d'envoyer un trade sur RabbitMQ, on `Serialize` → texte JSON. Quand `RiskService` reçoit le message de la queue, il `Deserialize` → objet Trade C# qu'il peut manipuler."
+      "answer": "Clone le dépôt Git sur le runner pour que les étapes suivantes accèdent aux fichiers sources.",
+      "explanation": "`actions/checkout` est toujours la première étape d'un workflow GitHub Actions. Sans elle, le runner ne possède pas le code source. Elle exécute `git clone` et `git checkout` sur la branche qui a déclenché le pipeline. Sans cette étape, `dotnet build` ou `pytest` échoueraient car aucun fichier source n'est présent."
     },
     {
-      "question": "[Confusion] Quelle est la différence entre `async void` et `async Task` en C# ?",
+      "question": "[CI/CD C# vs Python] Pourquoi un pipeline Python a-t-il besoin d'un coverage minimum plus strict qu'un pipeline C# ?",
       "options": [
-        "Aucune différence — les deux s'utilisent indifféremment.",
-        "`async Task` est awaitable et propage les exceptions. `async void` n'est pas awaitable et les exceptions crashent le process — à utiliser SEULEMENT dans les event handlers UI.",
-        "`async void` est plus rapide car il ne crée pas de Task.",
-        "`async Task` bloque le thread, `async void` le libère."
+        "Python produit plus de bugs que C# par nature.",
+        "Sans étape de compilation, une erreur de syntaxe dans un fichier non couvert par les tests peut passer le CI et exploser en production.",
+        "pytest est moins fiable que dotnet test.",
+        "GitHub Actions impose un coverage minimum de 80% pour Python."
       ],
-      "answer": "`async Task` est awaitable et propage les exceptions. `async void` n'est pas awaitable et les exceptions crashent le process — à utiliser SEULEMENT dans les event handlers UI.",
-      "explanation": "Piège classique en entretien CIB : `async void ProcessMessage()` dans un service RabbitMQ → si une exception est lancée → le process crash sans catchable exception → messages perdus, service redémarre silencieusement. Règle absolue : toujours `async Task` dans les services backend. `async void` = event handlers WinForms/WPF uniquement (`Button_Click`). Le compilateur accepte les deux sans avertissement — erreur silencieuse."
+      "answer": "Sans étape de compilation, une erreur de syntaxe dans un fichier non couvert par les tests peut passer le CI et exploser en production.",
+      "explanation": "C# compile avant de tester : toute erreur de syntaxe ou de type est détectée au build, avant même les tests. Python est interprété : un fichier `strategy.py` avec une `SyntaxError` qui n'est jamais importé dans les tests passera silencieusement le CI. `--cov-fail-under=80` est le filet de sécurité : il force à couvrir 80% du code, réduisant la probabilité qu'un fichier buggé passe inaperçu."
     },
     {
-      "question": "[Confusion] `First()` vs `FirstOrDefault()` sur une collection LINQ — Que se passe-t-il si la collection est vide ?",
+      "question": "[Docker — C#] Pourquoi utilise-t-on un Dockerfile multi-stage pour une application C# ?",
       "options": [
-        "Les deux retournent `null` si la collection est vide.",
-        "`First()` lance `InvalidOperationException`. `FirstOrDefault()` retourne `null` (ou la valeur par défaut du type).",
-        "`First()` retourne `null`, `FirstOrDefault()` retourne la valeur par défaut.",
-        "Les deux lancent une exception si la collection est vide."
+        "Pour que Docker puisse builder en parallèle.",
+        "Stage 1 (sdk, 780 MB) compile avec `dotnet publish`. Stage 2 (aspnet, 220 MB) contient uniquement le runtime. L'image finale est 3× plus légère — surface d'attaque réduite et déploiement plus rapide.",
+        "Le multi-stage est obligatoire pour .NET 8.",
+        "Pour séparer les tests du build dans le Dockerfile."
       ],
-      "answer": "`First()` lance `InvalidOperationException`. `FirstOrDefault()` retourne `null` (ou la valeur par défaut du type).",
-      "explanation": "En production CIB : `trades.First(t => t.Id == id)` → si l'ID n'existe pas → exception non gérée → 500 Internal Server Error pour le trader. `trades.FirstOrDefault(t => t.Id == id)` → `null` → le code peut gérer le cas avec `if (trade == null) return NotFound()`. Règle : utiliser `FirstOrDefault()` pour les recherches et vérifier le null. Utiliser `First()` uniquement quand l'absence est une erreur logique garantie (ex: après un `Any()` qui a confirmé l'existence)."
+      "answer": "Stage 1 (sdk, 780 MB) compile avec `dotnet publish`. Stage 2 (aspnet, 220 MB) contient uniquement le runtime. L'image finale est 3× plus légère — surface d'attaque réduite et déploiement plus rapide.",
+      "explanation": "L'image `sdk:8.0` contient les compilateurs, outils de diagnostic, debugger — inutiles en production et dangereux (surface d'attaque). L'image `aspnet:8.0` contient uniquement ce qu'il faut pour exécuter une app ASP.NET. Multi-stage = compiler avec le grand outil, déployer avec l'outil minimal. En banque : images Docker auditées et minimales = politique de sécurité."
     },
     {
-      "question": "[Terme → Définition] Qu'est-ce que MSMQ et pourquoi est-il utilisé dans MAPS plutôt qu'un appel HTTP direct ?",
+      "question": "[GitLab CI — Bancaire] Pourquoi les banques (Natixis, BNP, SG) utilisent-elles GitLab on-premise plutôt que GitHub ?",
       "options": [
-        "MSMQ est une base de données rapide pour les messages temporaires.",
-        "MSMQ est une file de messages — si le service destinataire est down, le message attend. Avec HTTP direct, si le service est down, l'appel échoue immédiatement.",
-        "MSMQ est plus rapide qu'un appel HTTP pour tous les types de requêtes.",
-        "MSMQ est utilisé uniquement pour les communications entre bases de données."
+        "GitLab est gratuit, GitHub est payant.",
+        "Le code source et les pipelines ne doivent pas transiter par des serveurs externes : RGPD, confidentialité des formules de risque, et réglementation DORA imposent le contrôle total des données.",
+        "GitHub ne supporte pas les pipelines C#.",
+        "GitLab on-premise est 10× plus rapide que GitHub Actions."
       ],
-      "answer": "MSMQ est une file de messages — si le service destinataire est down, le message attend. Avec HTTP direct, si le service est down, l'appel échoue immédiatement.",
-      "explanation": "Scénario CIB : `TradeService` book un trade et doit notifier `RiskService`. Si `RiskService` est en maintenance, HTTP = erreur immédiate, trade potentiellement non risqué. MSMQ = le message `TradeBooked` attend dans la queue. Quand `RiskService` redémarre, il traite tous les messages en attente — aucun trade n'est passé sous le radar. Ce découplage temporel est la valeur principale des message queues."
+      "answer": "Le code source et les pipelines ne doivent pas transiter par des serveurs externes : RGPD, confidentialité des formules de risque, et réglementation DORA imposent le contrôle total des données.",
+      "explanation": "Contraintes réglementaires bancaires : le code source contient des formules de risque propriétaires (CVA, SA-CCR), des algorithmes de trading. RGPD interdit l'envoi de certaines données hors UE. DORA (Digital Operational Resilience Act) impose la souveraineté des systèmes critiques. GitLab on-premise = runners sur serveurs internes, aucune donnée ne sort du SI bancaire. GitHub (Microsoft cloud) = non conforme pour le code source sensible."
     },
     {
-      "question": "[Confusion] Quelle est la différence entre `IQueryable<T>` et `IEnumerable<T>` dans une requête EF Core sur la table des trades ?",
+      "question": "[SonarQube] Qu'est-ce qu'un Quality Gate dans SonarQube ?",
       "options": [
-        "Ce sont des types identiques — seule la syntaxe LINQ diffère.",
-        "`IQueryable<T>` traduit le filtre en SQL (exécuté en base). `IEnumerable<T>` charge TOUT en mémoire, puis filtre côté C#.",
-        "`IEnumerable<T>` est plus rapide car il n'a pas besoin de connexion SQL.",
-        "`IQueryable<T>` ne supporte pas le `Where` et le `Select`."
+        "Une interface graphique pour visualiser le code.",
+        "Un ensemble de seuils (coverage minimum, vulnérabilités critiques, code smells) qui, si non atteints, font échouer le pipeline CI/CD.",
+        "Un système d'authentification pour accéder au code source.",
+        "Un outil pour merger automatiquement les branches."
       ],
-      "answer": "`IQueryable<T>` traduit le filtre en SQL (exécuté en base). `IEnumerable<T>` charge TOUT en mémoire, puis filtre côté C#.",
-      "explanation": "Anti-pattern fréquent en CIB : `_ctx.Trades.ToList().Where(t => t.DeskId == deskId)` → `.ToList()` force l'exécution → `SELECT * FROM Trades` → charge 500 000 trades en RAM → `Where` filtre en C# les 50 qui appartiennent au desk. Correct : `_ctx.Trades.Where(t => t.DeskId == deskId).ToList()` → EF Core génère `SELECT * FROM Trades WHERE DeskId = @id` → 50 lignes en RAM. Sur une table de millions de trades en CIB, la différence est critique."
+      "answer": "Un ensemble de seuils (coverage minimum, vulnérabilités critiques, code smells) qui, si non atteints, font échouer le pipeline CI/CD.",
+      "explanation": "Quality Gate SonarQube = définition de 'done' technique. Exemple : coverage ≥ 80%, zéro vulnérabilité critique, dette technique < 1 jour, zéro bug bloquant. Si un commit introduit une vulnérabilité critique ou fait chuter le coverage, le stage SonarQube échoue → le merge est bloqué. En banque : Quality Gates configurés par la DSI avec des seuils stricts pour les applications de risque."
     },
     {
-      "question": "[Terme → Définition] Pourquoi utiliser `async/await` dans un controller ASP.NET Core qui appelle une base SQL ?",
+      "question": "[Docker — Python] Pourquoi copier `requirements.txt` AVANT le code source dans un Dockerfile Python ?",
       "options": [
-        "Pour rendre la requête SQL plus rapide.",
-        "Pour libérer le thread HTTP pendant l'attente SQL — Kestrel peut traiter d'autres requêtes avec le même thread, augmentant la scalabilité de l'API.",
-        "Pour exécuter la requête SQL sur un thread séparé.",
-        "Pour permettre plusieurs connections SQL simultanées."
+        "Python exige que les dépendances soient déclarées avant le code source.",
+        "Docker cache chaque instruction (layer). Copier `requirements.txt` en premier permet de mettre en cache le layer `pip install` — il n'est ré-exécuté que si `requirements.txt` change, pas à chaque modification du code.",
+        "Pour que `pip install` soit exécuté en parallèle du `COPY`.",
+        "Pour réduire la taille de l'image finale."
       ],
-      "answer": "Pour libérer le thread HTTP pendant l'attente SQL — Kestrel peut traiter d'autres requêtes avec le même thread, augmentant la scalabilité de l'API.",
-      "explanation": "`async` ne rend pas UNE requête plus rapide — c'est une erreur de compréhension fréquente. Il permet à BEAUCOUP de requêtes d'être traitées simultanement avec peu de threads. Sans async : 500 req/sec × 10ms SQL = 5 threads constamment bloqués. Avec async : ces 5 threads, pendant qu'ils attendent SQL, servent 10-20 autres requêtes. En CIB à l'ouverture des marchés (pic de trafic) : la différence entre async et synchrone peut faire crasher ou non le service."
+      "answer": "Docker cache chaque instruction (layer). Copier `requirements.txt` en premier permet de mettre en cache le layer `pip install` — il n'est ré-exécuté que si `requirements.txt` change, pas à chaque modification du code.",
+      "explanation": "Optimisation Docker layer caching : Docker invalide le cache à partir du premier COPY/RUN modifié. Si on copie tout le code d'abord (`COPY . .`), le moindre changement d'un fichier `.py` invalide le cache de `pip install` → re-téléchargement de toutes les dépendances à chaque build. Ordre correct : `COPY requirements.txt ./` → `RUN pip install -r requirements.txt` → `COPY src/ ./src/`. Build 10× plus rapide en développement."
     },
     {
-      "question": "[Correspondance] Associez : `where` → ? / `select` → ? / `groupby` → ?",
+      "question": "[GitLab CI — Stages] Dans un pipeline GitLab CI C#, que se passe-t-il si le stage `test` échoue (coverage < 80%) ?",
       "options": [
-        "Trier / Projeter / Filtrer",
-        "Filtrer / Projeter / Regrouper",
-        "Projeter / Filtrer / Trier",
-        "Regrouper / Trier / Projeter"
+        "Le pipeline continue vers `quality` et `deploy` malgré l'échec.",
+        "Les stages suivants (`quality`, `security`, `deploy`) ne s'exécutent pas — le pipeline est marqué `failed` et le merge request est bloqué.",
+        "GitLab envoie un email et continue quand même.",
+        "Le stage `test` est ignoré si `allow_failure: true` est absent."
       ],
-      "answer": "Filtrer / Projeter / Regrouper",
-      "explanation": "`Where` = filtre (réduit le nombre d'éléments). `Select` = projection (transforme chaque élément, ne réduit pas le nombre). `GroupBy` = regroupe les éléments par une clé. En CIB : `trades.Where(t => t.Price > 100)` → filtre. `trades.Select(t => t.Isin)` → liste des ISIN seulement. `trades.GroupBy(t => t.Desk).Select(g => new { g.Key, Total = g.Sum(t => t.Notional) })` → notionnel total par desk."
+      "answer": "Les stages suivants (`quality`, `security`, `deploy`) ne s'exécutent pas — le pipeline est marqué `failed` et le merge request est bloqué.",
+      "explanation": "Comportement par défaut GitLab CI : si un job échoue (exit code ≠ 0), le pipeline s'arrête. Les stages suivants ne s'exécutent pas. Le merge request affiche un badge rouge. Exception : `allow_failure: true` permet à un job d'échouer sans bloquer le pipeline (utilisé pour des analyses non bloquantes). En banque : `allow_failure: false` (défaut) est obligatoire sur les jobs `test` et `security`."
     },
     {
-      "question": "[Confusion] Quelle est la différence entre HTTP synchrone et message queue asynchrone dans l'architecture MAPS ?",
+      "question": "[CI/CD — Commandes] Quelle commande .NET génère un rapport de coverage au format Cobertura (XML) ?",
       "options": [
-        "HTTP est toujours meilleur car plus rapide.",
-        "HTTP (sync) : A attend la réponse de B, erreur si B est down. Queue (async) : A envoie le message et continue, B traite quand disponible, message conservé si B est down.",
-        "Message Queue est toujours meilleur car plus résilient.",
-        "HTTP et Message Queue servent exactement les mêmes cas d'usage."
+        "`dotnet coverage --format xml`",
+        "`dotnet test --collect:\"XPlat Code Coverage\"` avec le package `coverlet.collector`",
+        "`dotnet analyze --coverage`",
+        "`dotnet report --cobertura`"
       ],
-      "answer": "HTTP (sync) : A attend la réponse de B, erreur si B est down. Queue (async) : A envoie le message et continue, B traite quand disponible, message conservé si B est down.",
-      "explanation": "Choix du bon outil selon le cas d'usage : `POST /api/v1/trades` (HTTP) retourne le `TradeId` — le client a besoin de la réponse immédiatement pour confirmer le booking → HTTP obligatoire. `TradeBooked` → calcul des Greeks (RabbitMQ) — le trader n'attend pas que le risk soit calculé pour confirmer le booking → queue. Les deux coexistent dans MAPS. L'erreur est de vouloir tout mettre dans une queue ou tout en HTTP."
+      "answer": "`dotnet test --collect:\"XPlat Code Coverage\"` avec le package `coverlet.collector`",
+      "explanation": "`--collect:\"XPlat Code Coverage\"` active la collecte de coverage via `coverlet.collector` (NuGet package). Il génère automatiquement `coverage.cobertura.xml` dans le répertoire de test results. GitLab CI peut parser ce fichier pour afficher le % dans l'interface. Configuration dans GitLab CI : `coverage: '/Total[^|]*\\|[^|]*\\|\\s*(\\d+\\.?\\d*)%/'` pour extraire le pourcentage."
     },
     {
-      "question": "[Terme → Définition] Qu'est-ce qu'un contrat JSON dans une architecture microservices ?",
+      "question": "[Bandit — Python] Quel type de vulnérabilités détecte Bandit dans un pipeline Python ?",
       "options": [
-        "Un fichier de configuration JSON pour les microservices.",
-        "La structure JSON partagée entre le producteur et le consommateur — changer un champ requis sans versioning casse les consommateurs qui attendaient l'ancien format.",
-        "Un document légal définissant les SLAs entre services.",
-        "Un schéma SQL stocké en JSON."
+        "Uniquement les erreurs de syntaxe Python.",
+        "Les vulnérabilités de sécurité dans le code source : injection de commandes shell, usage de hashlib.md5 sans `usedforsecurity=False`, hardcoding de mots de passe, `subprocess` avec `shell=True`.",
+        "Les packages Python avec des licences non conformes.",
+        "Les violations de style PEP 8."
       ],
-      "answer": "La structure JSON partagée entre le producteur et le consommateur — changer un champ requis sans versioning casse les consommateurs qui attendaient l'ancien format.",
-      "explanation": "En CIB : `TradeService` publie `{ TradeId: 1, ISIN: \"FR...\", Notional: 500000 }` sur RabbitMQ. `RiskService` désérialise en supposant que `Notional` existe. Si `TradeService` renomme `Notional` en `Amount`, `RiskService` reçoit `Amount: 500000` et `Notional: null` → calcul de risque à 0 → trades non risqués → incident majeur. Le contrat JSON doit être versionné ou modifier uniquement de façon backward-compatible (ajouter des champs optionnels)."
+      "answer": "Les vulnérabilités de sécurité dans le code source : injection de commandes shell, usage de hashlib.md5 sans `usedforsecurity=False`, hardcoding de mots de passe, `subprocess` avec `shell=True`.",
+      "explanation": "Bandit est un analyseur SAST Python (Static Application Security Testing). Il détecte les patterns dangereux : `subprocess.call('rm -rf /', shell=True)` (injection), `password = 'oracle123'` (hardcoded secret), `md5(data)` (algorithme faible), `pickle.loads(data)` (désérialisation non sécurisée). Équivalent Python de Checkmarx pour les vérifications rapides en CI. `bandit -r src/ -ll` = signale uniquement les Medium et High."
     },
     {
-      "question": "[Confusion] `Task.Run()` vs `await` — est-ce que `await` crée un nouveau thread ?",
+      "question": "[GitHub Actions vs GitLab CI] Comment référence-t-on un secret (mot de passe, token) dans chaque outil ?",
       "options": [
-        "Oui — `await` crée toujours un nouveau thread pour l'opération.",
-        "Non — `await` LIBÈRE le thread actuel pendant l'attente I/O. Il ne crée pas de thread. `Task.Run()` soumet un travail au ThreadPool.",
-        "`await` et `Task.Run()` créent tous les deux des threads.",
-        "`await` est uniquement pour les opérations SQL, `Task.Run()` pour le reste."
+        "Les deux utilisent `${SECRET_NAME}` dans le YAML.",
+        "GitHub Actions : `${{ secrets.MY_TOKEN }}`. GitLab CI : `$MY_TOKEN` (défini dans CI/CD Variables du projet).",
+        "GitHub Actions : `$MY_TOKEN`. GitLab CI : `{{ secrets.MY_TOKEN }}`.",
+        "Les secrets ne sont pas supportés dans les pipelines YAML — il faut un fichier `.env`."
       ],
-      "answer": "Non — `await` LIBÈRE le thread actuel pendant l'attente I/O. Il ne crée pas de thread. `Task.Run()` soumet un travail au ThreadPool.",
-      "explanation": "Confusion très fréquente en entretien. `await GetDataAsync()` : quand le thread atteint le `await`, il est libéré dans le pool. Quand les données SQL arrivent, un thread (souvent différent) reprend l'exécution. Aucun thread créé. `Task.Run(() => HeavyCalc())` : soumet `HeavyCalc` à un thread du ThreadPool — là, un thread de pool est utilisé. `await Task.Run(...)` = utilise un thread du pool + libère le thread appelant. En CIB : `await _ctx.SaveChangesAsync()` → zéro thread créé, un thread libéré."
+      "answer": "GitHub Actions : `${{ secrets.MY_TOKEN }}`. GitLab CI : `$MY_TOKEN` (défini dans CI/CD Variables du projet).",
+      "explanation": "Syntaxe différente, concept identique : les secrets sont stockés chiffrés dans l'interface du service (jamais en clair dans le YAML). GitHub Actions : `${{ secrets.DOCKER_PASSWORD }}` dans les étapes. GitLab CI : `$CI_REGISTRY_PASSWORD` pour les variables prédéfinies ou `$SONAR_TOKEN` pour les variables définies dans Settings → CI/CD → Variables. En banque : les secrets (connexions Oracle, tokens SonarQube) sont définis dans GitLab Variables et injectés automatiquement."
     },
     {
-      "question": "[Terme → Définition] Qu'est-ce que l'exécution différée en LINQ et pourquoi est-ce un piège fréquent ?",
+      "question": "[Pipeline — `when: manual`] Dans quel cas utilise-t-on `when: manual` dans un pipeline GitLab CI bancaire ?",
       "options": [
-        "LINQ s'exécute toujours au moment de la définition de la requête.",
-        "La requête LINQ n'est PAS exécutée à la ligne du `Where` — elle est exécutée au moment de l'itération (`foreach`, `.ToList()`). Si la source change entre les deux, le résultat reflète l'état au moment de l'itération.",
-        "L'exécution différée signifie que LINQ attend 100ms avant de s'exécuter.",
-        "L'exécution différée ne s'applique qu'aux requêtes EF Core, pas aux collections en mémoire."
+        "Pour les jobs qui prennent plus de 10 minutes.",
+        "Uniquement pour le déploiement en production — validation humaine obligatoire avant toute mise en prod (risque opérationnel, DORA).",
+        "Pour tous les jobs de test — les tests doivent être approuvés par un lead developer.",
+        "Pour le stage SonarQube car il peut prendre du temps."
       ],
-      "answer": "La requête LINQ n'est PAS exécutée à la ligne du `Where` — elle est exécutée au moment de l'itération (`foreach`, `.ToList()`). Si la source change entre les deux, le résultat reflète l'état au moment de l'itération.",
-      "explanation": "Piège en CIB : `var activeTradesQuery = trades.Where(t => t.Status == \"Active\");` — requête construite. Si entre cette ligne et `activeTradesQuery.ToList()`, un autre thread modifie la liste `trades` (trade cancelled), le résultat contiendra l'état modifié — surprise ! Pour les IQueryable EF Core : le SQL est envoyé à la base seulement au `.ToListAsync()`. Si le DbContext a été modifié entre les deux, la requête peut retourner des données différentes de ce qu'on attendait."
-    },
-    {
-      "question": "[Confusion] Producteur vs Consommateur dans RabbitMQ — qui crée le message et qui le traite ?",
-      "options": [
-        "Le consommateur crée le message, le producteur le traite.",
-        "Le producteur crée et envoie le message dans la queue. Le consommateur lit et traite le message depuis la queue.",
-        "Les deux peuvent être producteur et consommateur simultanément dans la même opération.",
-        "Dans RabbitMQ, le broker est aussi le producteur."
-      ],
-      "answer": "Le producteur crée et envoie le message dans la queue. Le consommateur lit et traite le message depuis la queue.",
-      "explanation": "`TradeService` (producteur) : `channel.BasicPublish(exchange, routingKey, body: Serialize(trade))` — envoie et oublie. `RiskService` (consommateur) : `channel.BasicConsume(queue, autoAck: false, consumer)` — lit et traite. En CIB, un service peut être les deux : `TradeService` consomme `MarketDataUpdated` pour enrichir les trades ET produit `TradeBooked` pour le risk. La séparation producteur/consommateur est logique, pas physique — un même service peut avoir les deux rôles."
-    },
-    {
-      "question": "[Terme → Définition] Pourquoi ne jamais concaténer une entrée utilisateur dans une requête SQL en C# ?",
-      "options": [
-        "Pour des raisons de performance uniquement.",
-        "Pour éviter l'injection SQL — un input malveillant peut modifier la requête pour lire, modifier ou supprimer des données non autorisées. Les requêtes paramétrées ou ORM séparent code SQL et données.",
-        "Les entrées utilisateur contiennent toujours des caractères invalides pour SQL.",
-        "La concaténation SQL est interdite par le standard C# depuis .NET 5."
-      ],
-      "answer": "Pour éviter l'injection SQL — un input malveillant peut modifier la requête pour lire, modifier ou supprimer des données non autorisées. Les requêtes paramétrées ou ORM séparent code SQL et données.",
-      "explanation": "Exemple d'injection : `\"SELECT * FROM Trades WHERE Isin = '\" + userInput + \"'\"`. Si `userInput = \"'; DROP TABLE Trades; --\"` → `SELECT * FROM Trades WHERE Isin = ''; DROP TABLE Trades; --'` → destruction de la table Trades. En CIB, une telle attaque sur la table des positions serait catastrophique. Correction : Dapper `WHERE Isin = @isin` + `new { isin = userInput }` ou EF Core `.Where(t => t.Isin == userInput)` — le driver paramétrise automatiquement."
-    },
-    {
-      "question": "[Confusion] La difference entre `Single()` et `First()` dans LINQ — dans quel cas `Single()` est-il préférable ?",
-      "options": [
-        "`Single()` est toujours préférable à `First()` car plus strict.",
-        "`Single()` vérifie qu'il n'y a exactement qu'un résultat — utile pour chercher par clé primaire où plusieurs résultats seraient une erreur de données. `First()` prend le premier même si plusieurs existent.",
-        "`Single()` retourne `null` si la collection est vide, `First()` lance une exception.",
-        "`Single()` et `First()` sont identiques sauf pour les performances."
-      ],
-      "answer": "`Single()` vérifie qu'il n'y a exactement qu'un résultat — utile pour chercher par clé primaire où plusieurs résultats seraient une erreur de données. `First()` prend le premier même si plusieurs existent.",
-      "explanation": "En CIB : `_ctx.Trades.Single(t => t.Id == tradeId)` — si deux trades ont le même ID (corruption de données), `Single()` lance une exception immédiatement — bug détecté. `First()` retournerait silencieusement le premier sans signaler le doublon. Règle : `Single()` pour les clés uniques (GUID, clé primaire) → sécurité de données. `First()` / `FirstOrDefault()` pour les cas où plusieurs résultats sont acceptables (tri par date, prendre le plus récent)."
-    },
-    {
-      "question": "[Confusion] `SelectMany()` vs `Select()` en LINQ — quelle est la différence clé ?",
-      "options": [
-        "`SelectMany()` sélectionne plusieurs colonnes, `Select()` en sélectionne une.",
-        "`Select()` retourne une collection de collections. `SelectMany()` aplatit — retourne tous les éléments imbriqués dans une seule collection.",
-        "`SelectMany()` filtre en plus de projeter.",
-        "`Select()` est pour les types simples, `SelectMany()` pour les objets complexes."
-      ],
-      "answer": "`Select()` retourne une collection de collections. `SelectMany()` aplatit — retourne tous les éléments imbriqués dans une seule collection.",
-      "explanation": "En CIB : `desks.Select(d => d.Trades)` retourne `IEnumerable<IEnumerable<Trade>>` — une liste de listes. `desks.SelectMany(d => d.Trades)` retourne `IEnumerable<Trade>` — toutes les trades de tous les desks en une seule liste plate. Utile pour : calculer le notionnel total cross-desks `desks.SelectMany(d => d.Trades).Sum(t => t.Notional)`, ou pour obtenir tous les ISIN uniques de tous les portefeuilles `funds.SelectMany(f => f.Positions).Select(p => p.Isin).Distinct()`."
-    },
-    {
-      "question": "[Terme → Définition] Qu'est-ce qu'un acknowledgement (ACK) dans RabbitMQ et pourquoi est-il critique ?",
-      "options": [
-        "Un message de confirmation envoyé par le producteur après publication.",
-        "Une confirmation envoyée par le consommateur après traitement réussi — sans ACK, RabbitMQ considère le message non traité et le redélivre. Permet d'éviter la perte de messages si le consommateur crash pendant le traitement.",
-        "Un token d'authentification pour accéder à RabbitMQ.",
-        "Un header JSON confirmant que le message a bien été désérialisé."
-      ],
-      "answer": "Une confirmation envoyée par le consommateur après traitement réussi — sans ACK, RabbitMQ considère le message non traité et le redélivre. Permet d'éviter la perte de messages si le consommateur crash pendant le traitement.",
-      "explanation": "Scénario CIB sans ACK : `RiskService` reçoit un message `TradeBooked`, commence à calculer les Greeks, crash à mi-chemin. Sans ACK, RabbitMQ pense que le message a été traité — trade non risqué, position incorrecte. Avec ACK manuel (`autoAck: false`) : le message est redelivré à une autre instance de `RiskService`. `BasicAck(deliveryTag)` = traitement réussi, RabbitMQ supprime le message. `BasicNack(deliveryTag, requeue: false)` = échec, envoyer vers la DLQ. `autoAck: true` = dangereux en CIB (trade perdu si crash)."
-    },
-    {
-      "question": "[Confusion] JWT — pourquoi le payload du token est-il visible en Base64 mais pas sécurisé comme un mot de passe ?",
-      "options": [
-        "Le payload JWT est chiffré — il est illisible sans la clé secrète.",
-        "Le payload JWT est encodé en Base64 (lisible) mais SIGNÉ — quiconque peut le lire, mais personne ne peut le modifier sans invalider la signature. Les données sensibles (mot de passe) ne doivent jamais être dans le JWT.",
-        "JWT chiffre automatiquement les données sensibles dans le payload.",
-        "Le payload JWT est illisible — seul le serveur peut le déchiffrer."
-      ],
-      "answer": "Le payload JWT est encodé en Base64 (lisible) mais SIGNÉ — quiconque peut le lire, mais personne ne peut le modifier sans invalider la signature. Les données sensibles (mot de passe) ne doivent jamais être dans le JWT.",
-      "explanation": "JWT = 3 parties séparées par `.` : Header.Payload.Signature. Le payload `{ userId: 123, role: TRADER, desk: equity }` est décodable par n'importe qui avec Base64. La signature (HMAC-SHA256 avec la clé secrète serveur) garantit l'intégrité — si quelqu'un modifie `role: ADMIN`, la signature ne correspond plus → rejet. HTTPS chiffre le token en transit. Ne jamais mettre un mot de passe, numéro de carte ou donnée confidentielle dans le JWT payload — visible."
-    },
-    {
-      "question": "[Terme → Définition] Quelle est l'utilité d'un Correlation ID dans une architecture microservices ?",
-      "options": [
-        "Un identifiant de corrélation entre une table SQL et une entité C#.",
-        "Un UUID généré à l'entrée du système et propagé dans tous les logs et headers de tous les services — permet de retrouver tous les événements d'une requête en filtrant sur cet ID dans les logs centralisés.",
-        "Un token de sécurité alternatif au JWT pour les appels inter-services.",
-        "Un identifiant de version pour les contrats JSON."
-      ],
-      "answer": "Un UUID généré à l'entrée du système et propagé dans tous les logs et headers de tous les services — permet de retrouver tous les événements d'une requête en filtrant sur cet ID dans les logs centralisés.",
-      "explanation": "Sans Correlation ID en CIB : un trade échoue, le trader appelle le support. Le support regarde les logs de `BookingService` → trouve l'erreur, mais ne sait pas quel appel `RiskService` a été fait, ni quel message `RabbitMQ` a été publié. Avec Correlation ID : `X-Correlation-ID: 550e8400-...` propagé dans tous les headers → dans Elasticsearch, filtrer `correlationId=\"550e8400\"` → voir tous les logs de tous les services pour ce trade spécifique. Débogage en secondes au lieu d'heures."
-    },
-    {
-      "question": "[Confusion] `AsNoTracking()` dans EF Core — dans quel cas NE PAS l'utiliser ?",
-      "options": [
-        "Ne jamais utiliser `AsNoTracking()` — il est dangereux.",
-        "Ne pas utiliser `AsNoTracking()` quand on veut MODIFIER les entités chargées — le change tracking détecte les modifications et les sauvegarde avec `SaveChanges()`. Pour les lectures seules, `AsNoTracking()` est recommandé.",
-        "`AsNoTracking()` ne fonctionne pas avec `Include()` pour les jointures.",
-        "`AsNoTracking()` doit être utilisé uniquement pour les tables de plus de 1000 lignes."
-      ],
-      "answer": "Ne pas utiliser `AsNoTracking()` quand on veut MODIFIER les entités chargées — le change tracking détecte les modifications et les sauvegarde avec `SaveChanges()`. Pour les lectures seules, `AsNoTracking()` est recommandé.",
-      "explanation": "Avec change tracking (sans `AsNoTracking`) : `var trade = _ctx.Trades.First(t => t.Id == id); trade.Status = \"Cancelled\"; await _ctx.SaveChangesAsync();` → EF Core détecte la modification et génère `UPDATE Trades SET Status='Cancelled' WHERE Id=@id`. Avec `AsNoTracking()` : `trade.Status = \"Cancelled\"` → pas de suivi → `SaveChanges()` ne sauvegarde rien. En CIB : les endpoints GET (liste des positions, référentiel ISIN) → `AsNoTracking()`. Les endpoints POST/PATCH (booking, modification) → sans `AsNoTracking()`."
-    },
-    {
-      "question": "[Confusion] `.Result` et `.Wait()` sur une Task async en C# — pourquoi sont-ils dangereux dans ASP.NET Core ?",
-      "options": [
-        "Ils sont identiques à `await` — simple préférence de syntaxe.",
-        "Ils bloquent le thread appelant de façon synchrone, et dans ASP.NET Core provoquent un deadlock : le thread HTTP attend la Task, mais la continuation de la Task attend d'être schedulée sur ce même thread — impasse totale.",
-        "Ils sont dangereux uniquement dans les applications console, pas dans ASP.NET Core.",
-        "Ils causent uniquement une légère dégradation de performance."
-      ],
-      "answer": "Ils bloquent le thread appelant de façon synchrone, et dans ASP.NET Core provoquent un deadlock : le thread HTTP attend la Task, mais la continuation de la Task attend d'être schedulée sur ce même thread — impasse totale.",
-      "explanation": "Deadlock classique en CIB : `public IActionResult BookTrade() { var result = _service.BookAsync().Result; return Ok(result); }`. Le thread HTTP appelle `.Result` → se bloque en attendant. La continuation de `BookAsync()` essaie de reprendre sur le contexte de synchronisation ASP.NET (le même thread) → impasse. La requête ne revient jamais. Correction : `await _service.BookAsync()` jusqu'au bout de la chaîne. Si du code synchrone doit appeler du code async : `Task.Run(() => _service.BookAsync()).Result` (thread pool séparé) — mais mieux vaut refactoriser toute la chaîne en async."
-    },
-    {
-      "question": "[Terme → Définition] Quelle est la différence entre `Any()` et `Count() > 0` en LINQ pour vérifier si une collection contient des éléments ?",
-      "options": [
-        "Ce sont des équivalents stricts — le compilateur les optimise de la même façon.",
-        "`Any()` s'arrête dès qu'il trouve un premier élément (court-circuit). `Count() > 0` parcourt TOUTE la collection pour compter. Sur 1M d'éléments, `Any()` peut s'arrêter au premier, `Count()` parcourt tout.",
-        "`Count()` est recommandé car il retourne un entier réutilisable.",
-        "`Any()` ne fonctionne pas avec les `IQueryable` EF Core."
-      ],
-      "answer": "`Any()` s'arrête dès qu'il trouve un premier élément (court-circuit). `Count() > 0` parcourt TOUTE la collection pour compter. Sur 1M d'éléments, `Any()` peut s'arrêter au premier, `Count()` parcourt tout.",
-      "explanation": "En CIB sur `IQueryable` : `_ctx.Trades.Where(t => t.DeskId == id).Any()` génère `SELECT TOP 1 1 FROM Trades WHERE DeskId=@id` — SQL s'arrête dès le premier résultat. `_ctx.Trades.Where(t => t.DeskId == id).Count() > 0` génère `SELECT COUNT(*) FROM Trades WHERE DeskId=@id` — SQL compte tous les enregistrements. Sur une table de 10M trades, `Any()` retourne en microsecondes, `Count()` en secondes. Règle : pour une vérification d'existence → toujours `Any()`. Pour connaître le nombre exact → `Count()`."
-    },
-    {
-      "question": "[Confusion] Dans RabbitMQ, quelle est la différence entre une queue `durable` et `autoDelete` ?",
-      "options": [
-        "Ce sont des options contradictoires qui ne peuvent pas coexister.",
-        "`durable: true` = la queue survit au redémarrage du broker (persistée sur disque). `autoDelete: true` = la queue est supprimée quand le dernier consommateur se déconnecte. En CIB, les queues de booking doivent être `durable: true, autoDelete: false`.",
-        "`durable` concerne les messages, `autoDelete` concerne les exchanges.",
-        "`autoDelete` supprime les messages non consommés après un TTL."
-      ],
-      "answer": "`durable: true` = la queue survit au redémarrage du broker (persistée sur disque). `autoDelete: true` = la queue est supprimée quand le dernier consommateur se déconnecte. En CIB, les queues de booking doivent être `durable: true, autoDelete: false`.",
-      "explanation": "Scénario CIB sans `durable` : RabbitMQ redémarre (maintenance), la queue `trade.booked` est supprimée → tous les messages non consommés sont perdus → trades non risqués. Avec `durable: true` : la queue et ses messages survivent au redémarrage. Note : les messages eux-mêmes doivent aussi être persistants (`deliveryMode: 2`) pour survivre au redémarrage. `autoDelete: true` est utile pour les queues temporaires de réponse (pattern RPC), jamais pour les queues métier critiques en CIB."
-    },
-    {
-      "question": "[Terme → Définition] Qu'est-ce que le principe DRY (Don't Repeat Yourself) appliqué aux contrats JSON entre microservices ?",
-      "options": [
-        "Ne jamais définir deux endpoints REST qui retournent le même type de données.",
-        "Partager les DTOs et contrats JSON dans un package NuGet commun entre les services — évite de dupliquer les définitions `TradeBookedEvent` dans `TradeService` et `RiskService`, source d'incohérence si l'un est mis à jour et pas l'autre.",
-        "DRY s'applique uniquement au code C#, pas aux structures JSON.",
-        "Utiliser un seul endpoint qui retourne tous les types de données possibles."
-      ],
-      "answer": "Partager les DTOs et contrats JSON dans un package NuGet commun entre les services — évite de dupliquer les définitions `TradeBookedEvent` dans `TradeService` et `RiskService`, source d'incohérence si l'un est mis à jour et pas l'autre.",
-      "explanation": "Anti-pattern en CIB : `TradeService` définit `class TradeBookedEvent { string TradeId; decimal Notional; }` et `RiskService` définit sa propre copie `class TradeBookedEvent { string TradeId; decimal Amount; }`. Quand `TradeService` publie `Notional: 500000`, `RiskService` désérialise `Amount: null` → calcul de risque incorrect. Solution : package NuGet `Maps.Contracts` avec les classes partagées, référencé par les deux services. Inconvénient : couplage de build — toute modification du contrat nécessite de republier le package et mettre à jour tous les consommateurs."
+      "answer": "Uniquement pour le déploiement en production — validation humaine obligatoire avant toute mise en prod (risque opérationnel, DORA).",
+      "explanation": "`when: manual` crée un bouton 'play' dans l'interface GitLab — le job ne s'exécute que si quelqu'un clique. En banque, le deploy prod est TOUJOURS manuel : une mise en prod automatique d'un bug critique sur un système de risque peut avoir des conséquences réglementaires graves. DORA impose des procédures de changement documentées. Recette et staging peuvent être automatiques (`when: on_success`), prod = manuel avec approbation du release manager."
     }
   ],
   avance: [
     {
-      "question": "[Architecture] Pourquoi le pattern 'Base de données partagée' est-il l'anti-pattern n°1 des microservices en CIB ?",
+      "question": "[CI/CD — Multi-environnements] Comment gérer des configurations différentes (Oracle recette vs Oracle prod) dans un pipeline GitLab CI C# ?",
       "options": [
-        "C'est uniquement un problème de performance.",
-        "La DB partagée réintroduit le couplage que les microservices cherchent à éliminer : une migration SQL affecte tous les services simultanément, les services ne peuvent pas être déployés indépendamment, et les transactions cross-services créent des dépendances cachées.",
-        "Deux services peuvent partager la même DB s'ils lisent les mêmes tables.",
-        "La DB partagée est acceptable si les services sont dans le même datacenter."
+        "Hardcoder les deux configurations dans le code et commenter l'une.",
+        "Utiliser des variables GitLab CI par environnement (`$ORACLE_CONN_RECETTE`, `$ORACLE_CONN_PROD`) combinées avec `appsettings.{Environment}.json` — l'environnement est injecté via `ASPNETCORE_ENVIRONMENT`.",
+        "Créer deux branches différentes — une pour recette, une pour prod.",
+        "Dupliquer le `.gitlab-ci.yml` pour chaque environnement."
       ],
-      "answer": "La DB partagée réintroduit le couplage que les microservices cherchent à éliminer : une migration SQL affecte tous les services simultanément, les services ne peuvent pas être déployés indépendamment, et les transactions cross-services créent des dépendances cachées.",
-      "explanation": "Anti-pattern 'Distributed Monolith' : `TradeService` et `RiskService` partagent `TradesDB`. `TradeService` ajoute une colonne NOT NULL → `RiskService` plante immédiatement (colonne inconnue). Les deux doivent être déployés ensemble. `ALTER TABLE` nécessite de tester et déployer les deux services. Correct : chaque service a sa propre DB. La communication se fait via API REST ou événements RabbitMQ. Le `RiskService` maintient sa propre copie des données de trade (eventual consistency) mise à jour via l'événement `TradeBooked`."
+      "answer": "Utiliser des variables GitLab CI par environnement (`$ORACLE_CONN_RECETTE`, `$ORACLE_CONN_PROD`) combinées avec `appsettings.{Environment}.json` — l'environnement est injecté via `ASPNETCORE_ENVIRONMENT`.",
+      "explanation": "Pattern standard .NET multi-env : `appsettings.json` (base) + `appsettings.Recette.json` (override) + `appsettings.Production.json`. `ASPNETCORE_ENVIRONMENT=Production` déclenche la surcharge. GitLab CI injecte la valeur via `variables:` par environnement (Settings → Environments). La chaîne Oracle est stockée dans GitLab CI Variables (chiffrée), jamais dans le code. `dotnet publish` ne contient pas les secrets — ils sont injectés au runtime par Kubernetes via ConfigMap/Secret."
     },
     {
-      "question": "[Anti-pattern] Un développeur écrit `var risks = await Task.Run(() => trades.Where(t => t.Price > 100).Select(t => CalculateRisk(t)).ToList());` pour un calcul de risque. Quel problème architectural ?",
+      "question": "[Docker — Sécurité] Un pipeline CI/CD bancaire exige que l'image Docker finale ne tourne pas en root. Comment l'implémenter correctement ?",
       "options": [
-        "Le code est correct et optimal.",
-        "`Task.Run` avec du LINQ sur une `IEnumerable` charge en mémoire + calcul sur le ThreadPool = deux problèmes : LINQ non optimisé (pas IQueryable) ET `Task.Run` sur du CPU-bound sans `Parallel.For` = séquentiel sur un thread de pool. Correction : `Parallel.ForEach(trades, t => results.Add(CalculateRisk(t)))` pour CPU-bound.",
-        "Le seul problème est l'absence de `CancellationToken`.",
-        "`Task.Run` ne peut pas être awaitable dans ASP.NET Core."
+        "Utiliser `CMD [\"sudo\", \"-u\", \"appuser\", \"dotnet\", \"app.dll\"]`",
+        "Créer un utilisateur non-root dans le Dockerfile : `RUN adduser --disabled-password appuser && chown -R appuser /app` puis `USER appuser` avant `ENTRYPOINT`.",
+        "Utiliser `EXPOSE 443` au lieu de `EXPOSE 80` pour sécuriser.",
+        "Ajouter `--no-root` dans la commande `docker run`."
       ],
-      "answer": "`Task.Run` avec du LINQ sur une `IEnumerable` charge en mémoire + calcul sur le ThreadPool = deux problèmes : LINQ non optimisé (pas IQueryable) ET `Task.Run` sur du CPU-bound sans `Parallel.For` = séquentiel sur un thread de pool. Correction : `Parallel.ForEach(trades, t => results.Add(CalculateRisk(t)))` pour CPU-bound.",
-      "explanation": "Double anti-pattern CIB : (1) `Task.Run` sur une opération CPU-bound (calcul de risque) ne parallélise pas — le calcul reste séquentiel sur un thread du pool. Pour le parallélisme CPU : `var results = new ConcurrentBag<Risk>(); Parallel.ForEach(trades, t => results.Add(CalculateRisk(t)));`. (2) `Task.Run` dans ASP.NET Core sur des opérations qui sont déjà async = ThreadPool thread starvation (prend un thread pour libérer un autre). Règle : async/await pour I/O-bound (DB, réseau). `Parallel.For/ForEach` pour CPU-bound (calculs numériques)."
+      "answer": "Créer un utilisateur non-root dans le Dockerfile : `RUN adduser --disabled-password appuser && chown -R appuser /app` puis `USER appuser` avant `ENTRYPOINT`.",
+      "explanation": "Sécurité conteneur : par défaut, les processus Docker tournent en `root` — si un attaquant exploite une vulnérabilité, il a les droits root dans le conteneur (et potentiellement sur l'hôte). Bonne pratique : créer un utilisateur dédié avec le minimum de privilèges. `chown -R appuser /app` donne les droits sur le répertoire applicatif uniquement. `USER appuser` bascule avant l'ENTRYPOINT. En banque : scanning des images Docker (Trivy, Clair) vérifie l'absence de root process."
     },
     {
-      "question": "[Code → Identification] `var notionnel = await _ctx.Trades.Where(t => t.DeskId == deskId && t.Status == \"Active\").AsNoTracking().SumAsync(t => t.Notional, ct);`. Identifiez tous les patterns utilisés.",
+      "question": "[Pipeline — Artifacts & Cache] Dans GitLab CI, quelle est la différence entre `artifacts` et `cache` ?",
       "options": [
-        "Seul async/await est utilisé.",
-        "IQueryable (SQL côté serveur) + async/await (libération thread) + AsNoTracking (lecture seule, 2× plus rapide) + CancellationToken (annulation propre) + projection directe SumAsync (SQL `SUM()` côté DB).",
-        "EF Core + LINQ + Repository Pattern.",
-        "Unit of Work + IQueryable + Circuit Breaker."
+        "Ce sont des synonymes — les deux stockent des fichiers entre jobs.",
+        "`artifacts` : fichiers générés par un job, partagés entre stages du MÊME pipeline (ex: binaires compilés). `cache` : fichiers réutilisés entre PLUSIEURS pipelines (ex: packages NuGet, venv Python) pour accélérer les builds.",
+        "`artifacts` sont stockés sur GitLab. `cache` est stocké localement sur le runner.",
+        "`cache` est chiffré, `artifacts` ne le sont pas."
       ],
-      "answer": "IQueryable (SQL côté serveur) + async/await (libération thread) + AsNoTracking (lecture seule, 2× plus rapide) + CancellationToken (annulation propre) + projection directe SumAsync (SQL `SUM()` côté DB).",
-      "explanation": "Analyse ligne par ligne : `_ctx.Trades` = `IQueryable<Trade>` (pas encore exécuté). `.Where(...)` = filtre traduit en `WHERE` SQL. `.AsNoTracking()` = pas de change tracking (lecture seule). `.SumAsync(t => t.Notional, ct)` = traduit en `SELECT SUM(Notional) FROM Trades WHERE DeskId=@d AND Status=@s` — UNE seule ligne retournée par SQL (pas 50k lignes en RAM). `await` = libère le thread pendant l'I/O SQL. `ct` = si le client ferme la connexion → SQL annulé. SQL généré très efficace pour une table de millions de trades."
+      "answer": "`artifacts` : fichiers générés par un job, partagés entre stages du MÊME pipeline (ex: binaires compilés). `cache` : fichiers réutilisés entre PLUSIEURS pipelines (ex: packages NuGet, venv Python) pour accélérer les builds.",
+      "explanation": "Usage pratique FERMAT : `artifacts` sur le job `build` avec `paths: [\"**/bin/Release/\"]` → le job `test` peut utiliser les binaires compilés sans recompiler (`dotnet test --no-build`). `cache` sur `paths: [\".nuget/\"]` → `dotnet restore` ne re-télécharge pas les packages NuGet à chaque pipeline. `expire_in: 1 hour` sur les artifacts (inutiles après le pipeline). Cache = persistant entre pipelines. Artifacts = éphémère dans le pipeline."
     },
     {
-      "question": "[Refactoring] Un service MAPS publie un message RabbitMQ avec `channel.BasicPublish(...)` directement dans le controller. Comment refactoriser pour la testabilité et la résilience ?",
+      "question": "[DevSecOps — SAST vs DAST] Quelle est la différence entre SAST et DAST dans un pipeline CI/CD bancaire ?",
       "options": [
-        "Déplacer le `BasicPublish` dans une méthode privée du controller.",
-        "Extraire `IMessageBus { Task PublishAsync<T>(string routingKey, T message, CancellationToken ct); }` + implémenter `RabbitMqMessageBus` + injecter dans le controller. En test : mocker `IMessageBus`. En prod : ajouter Polly retry sur `RabbitMqMessageBus`.",
-        "Utiliser un static helper `MessageBusHelper.Publish(...)` accessible partout.",
-        "Publisher directement depuis `DbContext.SaveChanges()` via un hook EF Core."
+        "SAST analyse le code Python, DAST analyse le code C#.",
+        "SAST (Static) analyse le code source sans l'exécuter — détecte les vulnérabilités dans le code. DAST (Dynamic) teste l'application en cours d'exécution — simule des attaques réelles sur l'API déployée.",
+        "SAST est exécuté en production, DAST en développement.",
+        "Ce sont deux noms pour le même outil — Checkmarx fait les deux simultanément."
       ],
-      "answer": "Extraire `IMessageBus { Task PublishAsync<T>(string routingKey, T message, CancellationToken ct); }` + implémenter `RabbitMqMessageBus` + injecter dans le controller. En test : mocker `IMessageBus`. En prod : ajouter Polly retry sur `RabbitMqMessageBus`.",
-      "explanation": "SRP + DIP + Testabilité : le controller ne doit pas connaître RabbitMQ directement. Avec `IMessageBus` injectée : test unitaire → `new Mock<IMessageBus>().Verify(m => m.PublishAsync(\"trade.booked\", trade, ct), Times.Once)`. `RabbitMqMessageBus` = implémentation concrète avec retry Polly (`Policy.Handle<BrokerUnreachableException>().WaitAndRetry(3, ...)`). Migration MSMQ→RabbitMQ : créer `RabbitMqMessageBus : IMessageBus` → le controller change zéro ligne. La mission mentionne explicitement MSMQ et RabbitMQ coexistants — cette abstraction est la clé."
+      "answer": "SAST (Static) analyse le code source sans l'exécuter — détecte les vulnérabilités dans le code. DAST (Dynamic) teste l'application en cours d'exécution — simule des attaques réelles sur l'API déployée.",
+      "explanation": "Pipeline DevSecOps complet : SAST (Checkmarx, SonarQube) dans le stage `security` — analyse le code statiquement, avant déploiement. DAST (OWASP ZAP, Burp Suite) dans un stage `staging-security` après déploiement sur staging — envoie des requêtes malveillantes et détecte les vulnérabilités runtime (injections SQL, XSS, authentification faible). En banque : les deux sont obligatoires pour les applications exposant une API (API REST FERMAT). SAST = rapide (minutes). DAST = lent (heures)."
     },
     {
-      "question": "[Situation → Architecture] `RiskService` crash pendant le traitement d'un message `TradeBooked`. Le message avait `autoAck: true`. Conséquences et correction.",
+      "question": "[Pipeline Python — `--cov-fail-under`] Un pipeline Python retourne exit code 1 malgré tous les tests verts. Quelle est la cause et la solution ?",
       "options": [
-        "Aucune conséquence — RabbitMQ redélivre le message automatiquement.",
-        "Avec `autoAck: true`, RabbitMQ supprime le message dès sa réception — si le service crash pendant le calcul, le message est perdu. Le trade n'est jamais risqué. Correction : `autoAck: false` + `BasicAck()` après traitement réussi + DLQ pour les rejets.",
-        "Le message est conservé dans la mémoire du serveur jusqu'au redémarrage.",
-        "RabbitMQ envoie automatiquement un NACK si le consommateur crash."
+        "pytest est mal installé — réinstaller avec `pip install --upgrade pytest`.",
+        "Le coverage global est inférieur au seuil `--cov-fail-under=80`. Solution : `pytest --cov-report=term-missing` pour identifier les lignes non couvertes, puis écrire les tests manquants.",
+        "Un test est marqué `@pytest.mark.skip` — le supprimer pour que le coverage augmente.",
+        "Le fichier `conftest.py` est absent du répertoire de test."
       ],
-      "answer": "Avec `autoAck: true`, RabbitMQ supprime le message dès sa réception — si le service crash pendant le calcul, le message est perdu. Le trade n'est jamais risqué. Correction : `autoAck: false` + `BasicAck()` après traitement réussi + DLQ pour les rejets.",
-      "explanation": "Scenario CIB : 100 trades sont bookés pendant un pic d'activité. `RiskService` reçoit les messages mais crash (OOM) à mi-traitement. Avec `autoAck: true` : les 50 premiers messages déjà reçus = perdus → 50 trades sans calcul de risque → exposition inconnue → incident majeur (MiFID II). Avec `autoAck: false` : les messages non ACKés sont redelivrés à une autre instance de `RiskService`. DLQ : si un message échoue 3× (donnée corrompue), il va en dead-letter pour inspection manuelle — pas de loop infinie."
+      "answer": "Le coverage global est inférieur au seuil `--cov-fail-under=80`. Solution : `pytest --cov-report=term-missing` pour identifier les lignes non couvertes, puis écrire les tests manquants.",
+      "explanation": "`--cov-fail-under=80` force exit code 2 si le coverage total est sous 80%, indépendamment du résultat des tests. `--cov-report=term-missing` affiche dans le terminal les lignes exactes non couvertes (ex: `strategies.py   line 45-52: not covered`). Solution correcte : écrire des tests unitaires pour ces lignes. Ne JAMAIS baisser le seuil ou ajouter `# pragma: no cover` sans justification — en banque, le code non testé est un risque de production."
     },
     {
-      "question": "[Anti-pattern] Un développeur définit `[JsonIgnore]` sur la propriété `Notional` d'un DTO de réponse de booking. Quel impact sur les clients RabbitMQ ?",
+      "question": "[GitLab CI — `only` vs `rules`] Dans une pipeline GitLab CI récente, pourquoi préférer `rules:` à `only:` pour contrôler les déclencheurs d'un job ?",
       "options": [
-        "Aucun impact — `JsonIgnore` n'affecte pas la désérialisation.",
-        "`[JsonIgnore]` exclut le champ lors de la sérialisation ET désérialisation — le JSON publié sur RabbitMQ ne contient pas `Notional`. `RiskService` qui lit ce champ reçoit `0` ou `null` → calcul de risque incorrect sur tous les trades.",
-        "`[JsonIgnore]` masque uniquement l'affichage, pas la valeur réelle.",
-        "`[JsonIgnore]` génère une erreur de compilation si le champ est requis."
+        "`only:` est déprécié depuis GitLab 14 — `rules:` est le remplacement recommandé avec des conditions plus expressives (`if`, `changes`, `exists`).",
+        "Ce sont des synonymes, le choix est une question de style.",
+        "`rules:` est plus rapide que `only:` car il court-circuite l'évaluation.",
+        "`only:` ne fonctionne que sur les branches protégées."
       ],
-      "answer": "`[JsonIgnore]` exclut le champ lors de la sérialisation ET désérialisation — le JSON publié sur RabbitMQ ne contient pas `Notional`. `RiskService` qui lit ce champ reçoit `0` ou `null` → calcul de risque incorrect sur tous les trades.",
-      "explanation": "Contrat JSON brisé silencieusement : `TradeService` sérialise `BookedTradeEvent` avec `[JsonIgnore]` sur `Notional`. JSON publié : `{ TradeId: 1, ISIN: 'FR...' }` — sans Notional. `RiskService` désérialise → `trade.Notional = 0`. Calcul VaR à 0. Trades passent toutes les limites. Bug silencieux car aucune exception n'est lancée. Correction : utiliser `[JsonIgnore]` uniquement pour les données qui ne doivent JAMAIS être partagées (ex: hash de mot de passe dans un DTO utilisateur). Si `Notional` doit être dans le message interne mais pas dans la réponse HTTP, créer deux DTOs séparés."
+      "answer": "`only:` est déprécié depuis GitLab 14 — `rules:` est le remplacement recommandé avec des conditions plus expressives (`if`, `changes`, `exists`).",
+      "explanation": "`rules:` offre des conditions composées : `if: $CI_COMMIT_BRANCH == 'main' && $CI_PIPELINE_SOURCE == 'push'` (branche + source). `changes:` déclenche uniquement si des fichiers spécifiques changent : `changes: [\"src/Risk/**/*\"]` → le job `test-risk` ne tourne que si des fichiers Risk ont changé — pipeline plus rapide. `exists:` vérifie la présence d'un fichier. `only:` ne supporte pas ces combinaisons. En FERMAT : `rules: changes: [\"src/ExposureEngine/**\"]` pour ne tester que le module modifié."
     },
     {
-      "question": "[Multi-concepts] Comment implémenter un pipeline de traitement de trade en C# qui : (1) valide asynchonement, (2) calcule les Greeks en parallèle, (3) publie sur RabbitMQ, (4) persiste en SQL — en moins de 200ms ?",
+      "question": "[CI/CD — Rollback] Dans un pipeline Kubernetes (Natixis), comment implémenter un rollback automatique si le déploiement échoue ?",
       "options": [
-        "Exécuter chaque étape séquentiellement avec `await` pour chaque appel.",
-        "`await ValidateAsync(trade, ct)` → `await Task.WhenAll(ComputeDeltaAsync(), ComputeVegaAsync(), CheckLimitsAsync())` → `await Task.WhenAll(_bus.PublishAsync(), _ctx.SaveChangesAsync(ct))` — validation séquentielle (nécessite le résultat) + Greeks en parallèle + publish+save en parallèle.",
-        "Utiliser `Parallel.ForEach` pour toutes les étapes.",
-        "Créer 4 threads séparés avec `new Thread()`."
+        "Supprimer manuellement le pod défaillant dans Kubernetes.",
+        "`kubectl rollout status deployment/fermat --timeout=5m` suivi de `kubectl rollout undo deployment/fermat` si le status échoue — intégré dans le script de deploy du pipeline.",
+        "Redéployer l'image Docker précédente manuellement depuis l'interface GitLab.",
+        "Kubernetes gère automatiquement les rollbacks sans configuration supplémentaire."
       ],
-      "answer": "`await ValidateAsync(trade, ct)` → `await Task.WhenAll(ComputeDeltaAsync(), ComputeVegaAsync(), CheckLimitsAsync())` → `await Task.WhenAll(_bus.PublishAsync(), _ctx.SaveChangesAsync(ct))` — validation séquentielle (nécessaire car les étapes suivantes en dépendent) + Greeks en parallèle + publish+save en parallèle.",
-      "explanation": "Optimisation du pipeline : validation d'abord (séquentielle — pas la peine de calculer les Greeks si le trade est invalide). Greeks calculés en parallèle (`Task.WhenAll`) — si Delta=20ms, Vega=25ms, limites=15ms → total=25ms au lieu de 60ms. Publication RabbitMQ + save SQL en parallèle (indépendants l'un de l'autre) — si publish=5ms, save=10ms → total=10ms au lieu de 15ms. Résultat : ~50ms au lieu de ~100ms séquentiel. `CancellationToken` propagé partout — si annulation, toutes les Tasks sont annulées proprement."
+      "answer": "`kubectl rollout status deployment/fermat --timeout=5m` suivi de `kubectl rollout undo deployment/fermat` si le status échoue — intégré dans le script de deploy du pipeline.",
+      "explanation": "Pattern rollback automatique dans GitLab CI : `script: - kubectl apply -f k8s/deployment.yaml - kubectl rollout status deployment/fermat --timeout=5m || (kubectl rollout undo deployment/fermat && exit 1)`. Si le rollout échoue (pods en CrashLoopBackOff, readiness probe échoue), `rollout undo` revient à la version précédente et le job échoue → alerte. En FERMAT : health check via `/health` endpoint après déploiement. Timeout 5 minutes = temps de démarrage d'une application Risk IT avec chargement des données Oracle."
     },
     {
-      "question": "[Thème ↔ Concept] Comment le pattern Outbox Pattern résout-il le problème de cohérence entre `SaveChangesAsync()` (SQL) et `PublishAsync()` (RabbitMQ) ?",
+      "question": "[Pipeline — Monorepo] FERMAT est un monorepo avec 3 modules (ExposureEngine, LimitMonitor, Reporting). Comment optimiser le pipeline GitLab CI pour ne tester que le module modifié ?",
       "options": [
-        "En utilisant une transaction distribuée XA entre SQL et RabbitMQ.",
-        "Écrire le message dans une table `OutboxMessages` SQL dans la même transaction que le trade. Un background service lit et publie les messages non envoyés sur RabbitMQ. Si RabbitMQ est down, les messages attendent en SQL — aucune incohérence.",
-        "Utiliser `Task.WhenAll(save, publish)` garantit l'atomicité.",
-        "Le problème n'existe pas — SQL et RabbitMQ peuvent être traités indépendamment."
+        "Créer 3 branches séparées — une par module.",
+        "Utiliser `rules: changes:` par job pour conditionner l'exécution aux fichiers modifiés : `rules: - changes: [\"src/ExposureEngine/**\"]` sur le job `test-exposure`.",
+        "Tester les 3 modules à chaque push — c'est la seule façon fiable.",
+        "Utiliser des sous-pipelines indépendants avec `trigger:` pour chaque module."
       ],
-      "answer": "Écrire le message dans une table `OutboxMessages` SQL dans la même transaction que le trade. Un background service lit et publie les messages non envoyés sur RabbitMQ. Si RabbitMQ est down, les messages attendent en SQL — aucune incohérence.",
-      "explanation": "Problème CIB : `await _ctx.SaveChangesAsync()` réussit (trade en base) puis RabbitMQ est down → `await _bus.PublishAsync()` échoue → `RiskService` ne reçoit jamais `TradeBooked` → trade non risqué. `Task.WhenAll` ne garantit pas l'atomicité — si publish échoue, le save est déjà committé. Outbox Pattern : transaction SQL atomique `{ INSERT INTO Trades, INSERT INTO OutboxMessages }`. `IHostedService` lit l'Outbox toutes les secondes, publie sur RabbitMQ, marque les messages comme envoyés. Guaranteed delivery sans transaction distribuée."
+      "answer": "Utiliser `rules: changes:` par job pour conditionner l'exécution aux fichiers modifiés : `rules: - changes: [\"src/ExposureEngine/**\"]` sur le job `test-exposure`.",
+      "explanation": "Optimisation monorepo avec `changes:` : `test-exposure: rules: - changes: [\"src/ExposureEngine/**\", \"tests/ExposureEngine/**\"]`. Un commit dans `src/Reporting/` ne déclenche que `test-reporting` — pas `test-exposure` ni `test-limitmonitor`. Pipeline 3× plus rapide. Alternative avancée : `trigger:` avec sous-pipelines (`include: local: 'src/ExposureEngine/.gitlab-ci.yml'`) — chaque module a son propre pipeline. En pratique FERMAT : les 3 modules partagent des classes (`Models/`) — `changes` sur `Models/` déclenche les 3 tests."
     },
     {
-      "question": "[Confusion + Performance] `GroupBy` suivi de `Count()` en LINQ sur IQueryable vs IEnumerable — quelle est la différence de SQL généré ?",
+      "question": "[Checkmarx — SAST] Un scan Checkmarx détecte une vulnérabilité `SQL Injection` dans le code C# de FERMAT. Quelle est la correction appropriée ?",
       "options": [
-        "Les deux génèrent le même SQL.",
-        "Sur `IQueryable` : `SELECT DeskId, COUNT(*) FROM Trades GROUP BY DeskId` — SQL côté serveur. Sur `IEnumerable` (après `.ToList()`) : charge TOUTES les trades en mémoire, groupe en C#. Sur 1M de trades, la différence est de secondes vs millisecondes.",
-        "`GroupBy` n'est pas supporté sur `IQueryable` — uniquement `IEnumerable`.",
-        "`GroupBy` sur `IQueryable` génère N+1 requêtes SQL."
+        "Ajouter un commentaire `// NOSONAR` pour ignorer la vulnérabilité.",
+        "Remplacer la concaténation de chaîne SQL par des paramètres liés : `new OracleCommand(\"SELECT * FROM EXPOSURE WHERE ID = :id\", conn)` avec `cmd.Parameters.Add(\":id\", id)` — jamais de `\"SELECT ... WHERE ID = \" + id`.",
+        "Encoder l'input utilisateur en Base64 avant de l'injecter dans la requête SQL.",
+        "Utiliser `try/catch` autour de la requête SQL pour gérer les injections."
       ],
-      "answer": "Sur `IQueryable` : `SELECT DeskId, COUNT(*) FROM Trades GROUP BY DeskId` — SQL côté serveur. Sur `IEnumerable` (après `.ToList()`) : charge TOUTES les trades en mémoire, groupe en C#. Sur 1M de trades, la différence est de secondes vs millisecondes.",
-      "explanation": "Démonstration : `_ctx.Trades.GroupBy(t => t.DeskId).Select(g => new { Desk = g.Key, Count = g.Count() })` → SQL : `SELECT DeskId, COUNT(*) FROM Trades GROUP BY DeskId` → retourne N lignes (une par desk). `_ctx.Trades.ToList().GroupBy(...)` → SQL : `SELECT * FROM Trades` → 1M lignes en RAM → groupe en C# → 1M objets Trade créés pour obtenir le même N-lignes résultat. En CIB avec une table de positions historiques (10M lignes), la version `ToList()` avant `GroupBy` peut provoquer un OutOfMemoryException."
+      "answer": "Remplacer la concaténation de chaîne SQL par des paramètres liés : `new OracleCommand(\"SELECT * FROM EXPOSURE WHERE ID = :id\", conn)` avec `cmd.Parameters.Add(\":id\", id)` — jamais de `\"SELECT ... WHERE ID = \" + id`.",
+      "explanation": "SQL Injection = vulnérabilité OWASP Top 1. Pattern dangereux : `\"SELECT * FROM EXPOSURE WHERE CPTY_ID = '\" + counterpartyId + \"'\"` → si `counterpartyId = \"'; DROP TABLE EXPOSURE; --\"` → catastrophe. Paramètres liés = la seule protection fiable : Oracle/SQL Server traite `:id` comme une valeur, jamais comme du SQL. En banque : une injection SQL sur la table EXPOSURE = accès à toutes les positions de toutes les contreparties = incident de sécurité majeur. Checkmarx bloque le merge jusqu'à la correction."
     },
     {
-      "question": "[Anti-pattern] Un service publie `{ TradeId: 1, EmployeeSalary: 85000, JwtSecret: \"abc123\" }` dans un message RabbitMQ. Quels problèmes ?",
+      "question": "[CI/CD Avancé — Blue/Green Deploy] Natixis déploie FERMAT en Blue/Green deployment. Qu'est-ce que cela implique dans le pipeline ?",
       "options": [
-        "Aucun problème — les messages RabbitMQ sont chiffrés.",
-        "Surcharge du contrat JSON (données non nécessaires pour les consommateurs) + fuite d'informations sensibles (salaire, secret JWT) lisibles par tous les services consommateurs et dans les logs de monitoring RabbitMQ.",
-        "Le seul problème est la taille excessive du message.",
-        "Le problème est uniquement de sécurité — chiffrer le message suffit."
+        "Le pipeline déploie deux versions différentes du code en même temps sur le même environnement.",
+        "Le pipeline déploie la nouvelle version (Green) en parallèle de l'ancienne (Blue), bascule le trafic progressivement via le load balancer, et détruit Blue si Green est stable — rollback instantané possible en rebasculant sur Blue.",
+        "Blue = C#, Green = Python — les deux versions du service coexistent.",
+        "Blue/Green = déploiement le matin (Blue) et le soir (Green)."
       ],
-      "answer": "Surcharge du contrat JSON (données non nécessaires pour les consommateurs) + fuite d'informations sensibles (salaire, secret JWT) lisibles par tous les services consommateurs et dans les logs de monitoring RabbitMQ.",
-      "explanation": "Principe de minimisation (RGPD + sécurité) : les messages doivent contenir uniquement ce dont les consommateurs ont besoin. `RiskService` a besoin de `TradeId`, `ISIN`, `Notional`, pas du salaire. `JwtSecret` dans un message = catastrophe sécurité — visible dans les logs RabbitMQ management, dans les logs des consommateurs (Serilog), potentiellement stocké en DLQ. Règle : créer un DTO spécifique au message `TradeBookedEvent { TradeId, ISIN, Notional, Desk, Timestamp }` — seuls les champs nécessaires aux consommateurs."
-    },
-    {
-      "question": "[Situation → Pattern] Le `RiskService` a besoin des données d'un trade pour calculer le risque, mais il ne partage pas la DB avec `TradeService`. Comment maintenir sa copie locale des trades ?",
-      "options": [
-        "Appeler `GET /api/v1/trades/{id}` à chaque calcul de risque.",
-        "Pattern CQRS + Event Sourcing : consommer l'événement `TradeBooked` depuis RabbitMQ → stocker une copie locale dans la DB du `RiskService` (sa propre table `Trades_Risk`) → lire localement pour les calculs. Eventual consistency acceptable.",
-        "Accéder directement à la DB de `TradeService` en lecture seule.",
-        "Utiliser une transaction distribuée XA pour synchroniser les deux DBs."
-      ],
-      "answer": "Pattern CQRS + Event Sourcing : consommer l'événement `TradeBooked` depuis RabbitMQ → stocker une copie locale dans la DB du `RiskService` (sa propre table `Trades_Risk`) → lire localement pour les calculs. Eventual consistency acceptable.",
-      "explanation": "DB per service + eventual consistency : `RiskService` a sa propre table `TradesForRisk { TradeId, ISIN, Notional, DeskId }` (uniquement les champs nécessaires au calcul de risque). `IHostedService` consomme `TradeBooked` depuis RabbitMQ → `INSERT OR UPDATE TradesForRisk`. Avantages : lecture locale ultra-rapide (pas d'appel HTTP vers `TradeService`), pas de couplage runtime, résilience (`TradeService` peut être down pendant le calcul de risque). Eventual consistency : le `RiskService` peut avoir quelques secondes de délai — acceptable en finance post-trade."
-    },
-    {
-      "question": "[Refactoring] Un `BookingController` de 400 lignes gère : désérialisation JSON, validation métier, appel Sophis, save SQL, publish RabbitMQ, logging, gestion d'erreurs. Refactorisez en SOLID.",
-      "options": [
-        "Diviser en méthodes privées dans le même controller.",
-        "SRP : `IBookingValidator` (validation), `IIsinService` (Sophis), `ITradeRepository` (SQL), `IEventPublisher` (RabbitMQ). `BookingController` = orchestrateur 20 lignes qui appelle chaque service injecté. DIP : interfaces injectées par constructeur. Tests : mocker chaque interface indépendamment.",
-        "Créer un service `BookingHelper` statique avec toutes les méthodes.",
-        "Utiliser des middlewares ASP.NET Core pour chaque responsabilité."
-      ],
-      "answer": "SRP : `IBookingValidator` (validation), `IIsinService` (Sophis), `ITradeRepository` (SQL), `IEventPublisher` (RabbitMQ). `BookingController` = orchestrateur 20 lignes qui appelle chaque service injecté. DIP : interfaces injectées par constructeur. Tests : mocker chaque interface indépendamment.",
-      "explanation": "SRP sur le controller : un controller 400 lignes = 5 raisons de changer = fragile. Après refactoring : `BookingController` → `await _validator.ValidateAsync(req)` → `var isin = await _isinService.ResolveAsync(req.Isin)` → `var trade = await _tradeRepo.CreateAsync(trade)` → `await _eventPublisher.PublishAsync(\"trade.booked\", trade)`. Chaque service testable isolément avec `Mock<IIsinService>`. Si Sophis change d'API : modifier uniquement `SophisIsinService`, zéro modification du controller. DIP : le controller dépend d'abstractions, pas des implémentations concrètes."
-    },
-    {
-      "question": "[Architecture] Comment versionner un contrat JSON publié sur RabbitMQ sans casser les consommateurs existants ?",
-      "options": [
-        "Modifier directement le JSON — les consommateurs s'adapteront automatiquement.",
-        "Ajouter les nouveaux champs en optionnel (backward compatible). Pour les breaking changes : créer un nouveau routingKey `trade.booked.v2`, les anciens consommateurs gardent leur abonnement `trade.booked.v1`, les nouveaux s'abonnent à `v2`. Dual-publish pendant la transition.",
-        "Utiliser une transaction distribuée pour migrer tous les consommateurs simultanément.",
-        "Supprimer la queue et recréer — les messages en attente sont perdus."
-      ],
-      "answer": "Ajouter les nouveaux champs en optionnel (backward compatible). Pour les breaking changes : créer un nouveau routingKey `trade.booked.v2`, les anciens consommateurs gardent leur abonnement `trade.booked.v1`, les nouveaux s'abonnent à `v2`. Dual-publish pendant la transition.",
-      "explanation": "Versioning de contrat de message en CIB : Backward compatible (ajouter champ optionnel `CurrencyCode?`) — tous les consommateurs l'ignorent ou l'utilisent s'ils en ont besoin. Breaking change (renommer `Notional` → `Amount`) → dual-publish : `TradeService` publie sur `trade.booked` (format v1 pour les anciens) ET `trade.booked.v2` (format v2 pour les nouveaux). Quand tous les consommateurs ont migré, retirer le dual-publish. Timeline : 2-4 semaines de transition. Documenter le changelog avec la date de dépréciation de v1."
-    },
-    {
-      "question": "[Confusion + Architecture] Quelle est la différence entre `Competing Consumers` et `Publish-Subscribe` dans RabbitMQ ?",
-      "options": [
-        "Ce sont deux noms pour le même pattern.",
-        "Competing Consumers : plusieurs instances du même service partagent une queue — chaque message traité par UN seul consommateur (load balancing). Publish-Subscribe : chaque service a SA propre queue (Fanout Exchange) — chaque message reçu par TOUS les abonnés.",
-        "Competing Consumers utilise Topic Exchange, Publish-Subscribe utilise Direct Exchange.",
-        "Publish-Subscribe est uniquement pour les messages prioritaires."
-      ],
-      "answer": "Competing Consumers : plusieurs instances du même service partagent une queue — chaque message traité par UN seul consommateur (load balancing). Publish-Subscribe : chaque service a SA propre queue (Fanout Exchange) — chaque message reçu par TOUS les abonnés.",
-      "explanation": "Cas d'usage CIB : Competing Consumers → `RiskService` a 3 instances qui consomment toutes `risk.trade.booked` (une seule queue). Un message `TradeBooked` est traité par une seule des 3 instances — scale out horizontal, chaque trade risqué une seule fois. Publish-Subscribe → `TradeBooked` doit être reçu par `RiskService` ET `AuditService` ET `BlotterService` — Fanout Exchange copie le message dans 3 queues dédiées. Mélange des deux : `risk.trade.booked` (unique, 3 instances en competing consumers) + `audit.trade.booked` (unique) + `blotter.trade.booked` (unique)."
-    },
-    {
-      "question": "[Code → Analyse] `services.AddScoped<ITradeRepository, EfTradeRepository>()`. Que signifie `Scoped` et pourquoi est-ce le bon choix pour un `DbContext` EF Core ?",
-      "options": [
-        "Scoped = une seule instance pour toute la durée de vie de l'application (même chose que Singleton).",
-        "Scoped = une instance créée par requête HTTP et partagée dans cette requête. Le `DbContext` EF Core est conçu pour une seule unité de travail (une requête) — réutiliser le même DbContext entre plusieurs requêtes causerait des incohérences de change tracking.",
-        "Scoped = une nouvelle instance créée à chaque injection (même chose que Transient).",
-        "Scoped s'applique uniquement aux services qui accèdent au cache Redis."
-      ],
-      "answer": "Scoped = une instance créée par requête HTTP et partagée dans cette requête. Le `DbContext` EF Core est conçu pour une seule unité de travail (une requête) — réutiliser le même DbContext entre plusieurs requêtes causerait des incohérences de change tracking.",
-      "explanation": "Cycles de vie DI en ASP.NET Core : Singleton = une instance pour toute l'app (pour les services stateless : `IMessageBus`, `IHttpClientFactory`). Scoped = une instance par requête HTTP (pour `DbContext` EF Core, `ITradeRepository`). Transient = nouvelle instance à chaque injection (pour les services légers sans état). Piège : injecter un service Scoped dans un Singleton → exception à l'exécution (`IServiceScopeFactory` obligatoire). En CIB : `DbContext` Scoped garantit que le change tracking d'une requête de booking n'interfère pas avec la requête suivante."
-    },
-    {
-      "question": "[Situation → Architecture] Un `RiskService` appelle `TradeService` via HTTP pour chaque calcul de risque (100 appels/seconde). `TradeService` est down 5 minutes. Comment concevoir la résilience ?",
-      "options": [
-        "Augmenter le timeout HTTP à 5 minutes pour attendre le retour de `TradeService`.",
-        "Circuit Breaker Polly : après 5 erreurs consécutives, ouvrir le circuit 30s (réponse immédiate de refus). Fallback : utiliser les données de trade en cache local. Retry avec backoff exponentiel pour les erreurs transitoires. Alert monitoring quand le circuit s'ouvre.",
-        "Supprimer l'appel HTTP et accéder directement à la DB de `TradeService`.",
-        "Retry infini toutes les 100ms — `TradeService` finira par répondre."
-      ],
-      "answer": "Circuit Breaker Polly : après 5 erreurs consécutives, ouvrir le circuit 30s (réponse immédiate de refus). Fallback : utiliser les données de trade en cache local. Retry avec backoff exponentiel pour les erreurs transitoires. Alert monitoring quand le circuit s'ouvre.",
-      "explanation": "Sans circuit breaker : 100 appels/s × 5 minutes = 30 000 requêtes bloquées pendant le timeout (ex: 10s chacune) → 100 threads bloqués en permanence → `RiskService` crash également. Cascade de pannes. Circuit Breaker Polly : `services.AddHttpClient<ITradeServiceClient>().AddResilienceHandler(\"trade\", b => b.AddCircuitBreaker(new CircuitBreakerStrategyOptions { FailureRatio = 0.5, SamplingDuration = TimeSpan.FromSeconds(10), MinimumThroughput = 5, BreakDuration = TimeSpan.FromSeconds(30) }))`. Circuit ouvert → `RiskService` répond immédiatement avec données cache → reste disponible. Retry exponentiel (2s, 4s, 8s) pour les erreurs réseau transitoires seulement."
-    },
-    {
-      "question": "[Anti-pattern + LINQ] Un développeur filtre une liste de 50k trades avec `trades.Where(t => t.Desk == \"Equity\").Count()` dans une boucle appelée 1000 fois. Quel problème et quelle correction ?",
-      "options": [
-        "Aucun problème — LINQ est optimisé par le compilateur.",
-        "Exécution différée mal exploitée : `Count()` exécute le `Where` à chaque appel → O(n) × 1000 = 50M itérations. Correction : `var equityCount = trades.Where(t => t.Desk == \"Equity\").Count()` UNE FOIS hors de la boucle, ou `trades.GroupBy(t => t.Desk).ToDictionary(g => g.Key, g => g.Count())` pour tous les desks en une passe.",
-        "Le seul problème est que `Count()` devrait être remplacé par `Any()`.",
-        "Utiliser `Parallel.ForEach` sur la boucle résout le problème."
-      ],
-      "answer": "Exécution différée mal exploitée : `Count()` exécute le `Where` à chaque appel → O(n) × 1000 = 50M itérations. Correction : `var equityCount = trades.Where(t => t.Desk == \"Equity\").Count()` UNE FOIS hors de la boucle, ou `trades.GroupBy(t => t.Desk).ToDictionary(g => g.Key, g => g.Count())` pour tous les desks en une passe.",
-      "explanation": "Exécution différée + boucle = piège de performance classique. En CIB pour un rapport de positions : calculer le nombre de trades par desk dans une boucle de 1000 itérations sur 50k trades = 50M comparaisons. Optimisation : matérialiser le résultat une fois (`var counts = trades.GroupBy(t => t.Desk).ToDictionary(g => g.Key, g => g.Count())`) → une seule passe sur 50k trades. Puis dans la boucle : `counts.GetValueOrDefault(\"Equity\", 0)` → O(1). Gain : 50M itérations → 50k + 1000 lookups O(1)."
-    }
-  ],
-  expert: [
-    {
-      "question": "[Architecture + Multi-concepts] Concevez un système garantissant qu'un trade booké dans MAPS est toujours risqué, même si RabbitMQ est temporairement indisponible. Nommez tous les patterns utilisés.",
-      "options": [
-        "Retry infini sur la publication RabbitMQ.",
-        "Outbox Pattern (message stocké en SQL dans la même transaction que le trade) + IHostedService (polling Outbox → publish RabbitMQ quand disponible) + Idempotency Key (RiskService ne recalcule pas deux fois le même trade) + Circuit Breaker sur RabbitMQ (ne pas bloquer le booking si RabbitMQ est down).",
-        "Transaction distribuée XA entre SQL Server et RabbitMQ.",
-        "Synchroniser directement les DBs de TradeService et RiskService."
-      ],
-      "answer": "Outbox Pattern (message stocké en SQL dans la même transaction que le trade) + IHostedService (polling Outbox → publish RabbitMQ quand disponible) + Idempotency Key (RiskService ne recalcule pas deux fois le même trade) + Circuit Breaker sur RabbitMQ (ne pas bloquer le booking si RabbitMQ est down).",
-      "explanation": "Architecture garantie de livraison : (1) Outbox : `BEGIN TRANSACTION; INSERT INTO Trades; INSERT INTO OutboxMessages (tradeId, payload, sentAt=null); COMMIT;` — atomique. (2) `IHostedService` : toutes les 5s, `SELECT TOP 100 FROM OutboxMessages WHERE sentAt IS NULL` → publie → `UPDATE sentAt=NOW`. (3) Si RabbitMQ est down : le trade est en DB, l'OutboxMessage attend. Quand RabbitMQ revient : publication automatique. (4) Idempotency Key sur `RiskService` : si l'Outbox publie deux fois (retry) → `RiskService` vérifie `ProcessedTradeIds` → ignore le doublon. (5) Circuit Breaker Polly : si RabbitMQ down → circuit ouvert → publish échoue vite → Outbox conserve en SQL."
-    },
-    {
-      "question": "[Nommage inversé] Un mécanisme garantit que si `SaveChangesAsync()` (SQL) réussit mais que `PublishAsync()` (RabbitMQ) échoue, le message sera quand même publié — éventuellement, sans transaction distribuée. Quel est ce mécanisme ?",
-      "options": [
-        "Two-Phase Commit (2PC) distribué",
-        "Outbox Pattern — le message est persisté dans la même transaction SQL que l'entité métier. Il est publié asynchronement par un background service. La cohérence est éventuelle mais garantie.",
-        "Saga Pattern avec compensation",
-        "Dead-Letter Queue avec retry automatique"
-      ],
-      "answer": "Outbox Pattern — le message est persisté dans la même transaction SQL que l'entité métier. Il est publié asynchronement par un background service. La cohérence est éventuelle mais garantie.",
-      "explanation": "Outbox Pattern résout le problème 'dual write' : deux systèmes (SQL + RabbitMQ) qui doivent être mis à jour de façon cohérente sans transaction distribuée. La table `OutboxMessages { Id, Payload, RoutingKey, CreatedAt, PublishedAt? }` est dans la même DB que les trades. Transaction SQL atomique : trade + outbox message ensemble. Le background service (`IHostedService`) assure la publication avec retry. Idempotency Key côté consommateur gère les éventuels doublons. 2PC distribué (option A) = trop lourd, verrouille les deux systèmes."
-    },
-    {
-      "question": "[Situation → Multi-concepts] 10 services consomment l'événement `TradeBooked`. Chacun doit le recevoir indépendamment. Décrivez l'architecture RabbitMQ complète.",
-      "options": [
-        "Une seule queue `trade.booked` partagée entre les 10 services — round-robin.",
-        "Fanout Exchange `trades.events` → 10 queues dédiées (`risk.trade.booked`, `audit.trade.booked`, `blotter.trade.booked`, etc.) via bindings. Chaque service a sa propre queue — indépendance totale, chaque service reçoit tous les messages.",
-        "Direct Exchange avec 10 routingKeys différents — le producteur publie 10 fois.",
-        "Un seul message copié manuellement vers 10 services via HTTP."
-      ],
-      "answer": "Fanout Exchange `trades.events` → 10 queues dédiées (`risk.trade.booked`, `audit.trade.booked`, `blotter.trade.booked`, etc.) via bindings. Chaque service a sa propre queue — indépendance totale, chaque service reçoit tous les messages.",
-      "explanation": "Fan-out architecture CIB : `TradeService` publie UNE fois sur `trades.events` (Fanout Exchange). RabbitMQ copie le message dans les 10 queues liées. Chaque service consomme SA propre queue à son propre rythme. Si `AuditService` est lent, sa queue grossit — les autres services ne sont pas affectés. Si `BlotterService` est down 1h, ses messages attendent dans `blotter.trade.booked` — retrouvés au redémarrage. Une queue partagée (Competing Consumers) = chaque message traité par UN SEUL consommateur (load balancing). Fanout = chaque message traité par TOUS les consommateurs."
-    },
-    {
-      "question": "[Anti-pattern + Sécurité] Un développeur expose `GET /api/v1/trades?linq=trades.Where(t => t.Desk == {userInput}).ToList()` et évalue l'expression LINQ dynamiquement. Diagnostiquez.",
-      "options": [
-        "Acceptable si l'endpoint est protégé par JWT.",
-        "Code Injection identique au RCE — l'expression LINQ est compilée et exécutée avec tous les droits du process. Un attaquant peut accéder à `_ctx.Users`, `_ctx.AuditLogs`, exécuter des méthodes système. Correction : paramètres typés (`deskId`, `status`, `dateFrom`) + LINQ hardcodé + validation whitelist.",
-        "Le seul risque est que l'expression LINQ soit incorrecte.",
-        "L'expression LINQ est sécurisée car elle n'accède pas au SQL directement."
-      ],
-      "answer": "Code Injection identique au RCE — l'expression LINQ est compilée et exécutée avec tous les droits du process. Un attaquant peut accéder à `_ctx.Users`, `_ctx.AuditLogs`, exécuter des méthodes système. Correction : paramètres typés (`deskId`, `status`, `dateFrom`) + LINQ hardcodé + validation whitelist.",
-      "explanation": "LINQ dynamique évalué avec Roslyn/ExpressionBuilder = vecteur d'injection critique. Expression malveillante : `trades.Where(t => t.Desk == \"equity\"); _ctx.Users.ToList()` — double expression, accès à la table Users. Ou plus grave : utilisation des méthodes de réflexion pour accéder aux objets non exposés. En CIB : données de position, trades confidentiels, noms des traders, limites de risque. Architecture correcte : `GET /api/v1/trades?deskId=equity&status=Active&dateFrom=2024-01-01` → validation enum pour `deskId`, validation date pour `dateFrom` → LINQ hardcodé `.Where(t => t.DeskId == deskId && t.Status == status)` → pas d'injection possible."
-    },
-    {
-      "question": "[Multi-concepts] Décrivez comment implémenter un système de traçabilité end-to-end (de la saisie du trader jusqu'aux logs de compliance) pour un trade CIB, en nommant chaque composant.",
-      "options": [
-        "Console.WriteLine dans chaque méthode.",
-        "1. Middleware génère `X-Correlation-ID` (UUID). 2. JWT claims propagent `userId + desk`. 3. Serilog enrichit chaque log avec `{CorrelationId, UserId, TradeId, ISIN, Service}`. 4. `X-Correlation-ID` propagé dans tous les headers RabbitMQ + HTTP. 5. OpenTelemetry spans sur chaque appel. 6. Elasticsearch indexe les logs. 7. Grafana/Kibana filtre par `correlationId`. 8. Immutable SQL audit table (INSERT-only).",
-        "Logs en fichiers texte sur chaque serveur, agrégés manuellement.",
-        "Utiliser `Debug.WriteLine` avec le mode verbose activé en production."
-      ],
-      "answer": "1. Middleware génère `X-Correlation-ID` (UUID). 2. JWT claims propagent `userId + desk`. 3. Serilog enrichit chaque log avec `{CorrelationId, UserId, TradeId, ISIN, Service}`. 4. `X-Correlation-ID` propagé dans tous les headers RabbitMQ + HTTP. 5. OpenTelemetry spans sur chaque appel. 6. Elasticsearch indexe les logs. 7. Grafana/Kibana filtre par `correlationId`. 8. Immutable SQL audit table (INSERT-only).",
-      "explanation": "Traçabilité CIB complète (MiFID II) : (1) Chaque requête HTTP reçoit un UUID `X-Correlation-ID` en entrée. (2) Le JWT porte `userId`, `desk`, `role`. (3) Serilog avec `LogContext.PushProperty` enrichit automatiquement tous les logs du contexte avec `CorrelationId + UserId`. (4) Les messages RabbitMQ portent le `CorrelationId` dans les headers AMQP. (5) OpenTelemetry crée un span par service traversé — `BookingService (50ms) → IsinService (5ms) → SophisAdapter (30ms) → RabbitMQ.Publish (1ms)`. (6) Table `AuditLogs { Id, TradeId, UserId, Action, Timestamp, OldValues, NewValues }` append-only — conforme MiFID II (5 ans de rétention)."
-    },
-    {
-      "question": "[Ordre de dépendance] Pour construire le système MAPS complet (API REST + MSMQ/RabbitMQ + SQL + async + LINQ), dans quel ordre les fondations doivent-elles être maîtrisées ?",
-      "options": [
-        "Docker → Kubernetes → CI/CD → Code",
-        "1. C# OOP (classes, interfaces, async/await) → 2. LINQ (requêtes sur collections) → 3. SQL Server + EF Core (persistance) → 4. API REST ASP.NET Core (exposition) → 5. MSMQ/RabbitMQ (messaging async) → 6. Microservices patterns (DIP, SRP, Outbox) → 7. Docker + CI/CD (infrastructure).",
-        "Microservices → APIs → Bases de données → C# de base",
-        "Docker → API REST → SQL → C# OOP"
-      ],
-      "answer": "1. C# OOP (classes, interfaces, async/await) → 2. LINQ (requêtes sur collections) → 3. SQL Server + EF Core (persistance) → 4. API REST ASP.NET Core (exposition) → 5. MSMQ/RabbitMQ (messaging async) → 6. Microservices patterns (DIP, SRP, Outbox) → 7. Docker + CI/CD (infrastructure).",
-      "explanation": "Ordre de dépendance des fondations : Sans C# OOP solide (classes, interfaces, async/await), aucune autre compétence ne tient. LINQ est utilisé dans EF Core — doit être maîtrisé avant. EF Core (SQL) est la persistance de toutes les API — avant les controllers. L'API REST utilise les services (DIP) qui utilisent EF Core et async. RabbitMQ s'appuie sur async/await et la sérialisation JSON. Les patterns microservices (Outbox, CQRS) nécessitent de maîtriser les briques de base. Docker = empaqueter ce qui fonctionne déjà. Tentative inverse fréquente : apprendre Docker sans maîtriser async/await = impossible de diagnostiquer les problèmes."
-    },
-    {
-      "question": "[Confusion profonde] Quelle est la différence entre `await Task.WhenAll(t1, t2)` et `await t1; await t2;` pour deux appels simultanés dans un service de pricing ?",
-      "options": [
-        "Aucune différence — les deux exécutent les tâches en parallèle.",
-        "`await t1; await t2` exécute les tâches SÉQUENTIELLEMENT (attend t1 entièrement, puis lance t2). `await Task.WhenAll(t1, t2)` lance les DEUX simultanément et attend que la plus lente finisse — gain de temps = durée de la plus longue, pas la somme.",
-        "`Task.WhenAll` est plus lent car il crée plus de threads.",
-        "`await t1; await t2` est recommandé pour éviter les race conditions."
-      ],
-      "answer": "`await t1; await t2` exécute les tâches SÉQUENTIELLEMENT (attend t1 entièrement, puis lance t2). `await Task.WhenAll(t1, t2)` lance les DEUX simultanément et attend que la plus lente finisse — gain de temps = durée de la plus longue, pas la somme.",
-      "explanation": "Confusion critique en CIB : `var delta = await ComputeDeltaAsync(); var vega = await ComputeVegaAsync();` → 20ms + 25ms = 45ms séquentiel. `await Task.WhenAll(ComputeDeltaAsync(), ComputeVegaAsync())` → 25ms (la plus longue), les deux partent simultanément. Important : les Tasks doivent être créées AVANT le `WhenAll` pour vraiment démarrer simultanément. `await Task.WhenAll(ComputeDeltaAsync(), ComputeVegaAsync())` = correct. `var t1 = ComputeDeltaAsync(); var t2 = ComputeVegaAsync(); await Task.WhenAll(t1, t2)` = idem. Si une Task lève une exception, `WhenAll` propage la première exception — les autres continuent quand même."
-    },
-    {
-      "question": "[Architecture complète] Un trade est créé en 3 étapes : validation (10ms), booking Sophis (150ms), publication RabbitMQ (5ms). Comment architecturer pour répondre au client le plus vite possible tout en garantissant la persistance et la notification ?",
-      "options": [
-        "Exécuter les 3 étapes de façon séquentielle et bloquer le client 165ms.",
-        "Validation (await, 10ms) → Booking Sophis (await, 150ms) → répondre 201 Created avec TradeId → publication RabbitMQ en fire-and-forget avec Outbox Pattern (si RabbitMQ down, le message est en SQL) → total ressenti client : 160ms, publication garantie.",
-        "Répondre immédiatement au client sans validation ni booking.",
-        "Tout exécuter en `Task.WhenAll` — validation, booking et publication simultanément."
-      ],
-      "answer": "Validation (await, 10ms) → Booking Sophis (await, 150ms) → répondre 201 Created avec TradeId → publication RabbitMQ en fire-and-forget avec Outbox Pattern (si RabbitMQ down, le message est en SQL) → total ressenti client : 160ms, publication garantie.",
-      "explanation": "Architecture optimale : certaines étapes sont bloquantes par nature (validation doit précéder le booking ; Sophis doit retourner un TradeId). La publication RabbitMQ peut être découplée de la réponse HTTP avec l'Outbox Pattern — le message est inséré dans la même transaction SQL que le trade (atomique), puis publié par un `IHostedService`. Le client reçoit 201 en 160ms. Si RabbitMQ est down : le trade est en DB, le message attend dans `OutboxMessages`. Quand RabbitMQ revient : publication automatique. Le `RiskService` reçoit le message 5-10 secondes plus tard — eventual consistency acceptable pour le calcul de risque post-trade. On NE peut PAS mettre validation et booking en `Task.WhenAll` car la logique est séquentielle (booking nécessite validation préalable)."
-    },
-    {
-      "question": "[Nommage inversé + Confusion] Un mécanisme C# permet à un service de s'enregistrer comme dépendance et d'être injecté automatiquement dans les constructeurs sans que le consommateur sache quelle implémentation concrète est utilisée. Comment s'appelle ce mécanisme et quel en est l'avantage clé en tests ?",
-      "options": [
-        "Le pattern Singleton — une seule instance partagée entre tous les services.",
-        "L'Injection de Dépendances (DI) via `IServiceCollection` — `services.AddScoped<ITradeRepository, EfTradeRepository>()`. En tests : remplacer `EfTradeRepository` par `MockTradeRepository` sans modifier le code du service testé.",
-        "La réflexion .NET — `Activator.CreateInstance(typeof(TradeRepository))`.",
-        "Le pattern Service Locator — `ServiceLocator.GetService<ITradeRepository>()`."
-      ],
-      "answer": "L'Injection de Dépendances (DI) via `IServiceCollection` — `services.AddScoped<ITradeRepository, EfTradeRepository>()`. En tests : remplacer `EfTradeRepository` par `MockTradeRepository` sans modifier le code du service testé.",
-      "explanation": "DI + testabilité en CIB : `BookingService(ITradeRepository repo, IMessageBus bus, IIsinService isin)` — le service dépend d'abstractions, pas d'implémentations. En production : DI injecte `EfTradeRepository`, `RabbitMqMessageBus`, `SophisIsinService`. En test unitaire : `new BookingService(new Mock<ITradeRepository>().Object, new Mock<IMessageBus>().Object, new Mock<IIsinService>().Object)` — aucun SQL, aucun RabbitMQ, aucun Sophis instancié. Test rapide, isolé, reproductible. Service Locator (anti-pattern) = le service appelle lui-même `ServiceLocator.Get<ITradeRepository>()` → couplage caché, impossible à mocker sans modifier le service. La DI par constructeur est le pattern recommandé en ASP.NET Core."
+      "answer": "Le pipeline déploie la nouvelle version (Green) en parallèle de l'ancienne (Blue), bascule le trafic progressivement via le load balancer, et détruit Blue si Green est stable — rollback instantané possible en rebasculant sur Blue.",
+      "explanation": "Blue/Green dans le pipeline FERMAT : `kubectl apply -f k8s/deployment-green.yaml` (nouvelle version). Health checks sur Green pendant 5 minutes. Si OK : `kubectl patch service fermat-svc -p '{\"spec\":{\"selector\":{\"version\":\"green\"}}}'` (bascule du trafic). Monitoring 15 minutes. Si KO : patch selector vers 'blue' (rollback < 1s). Si OK : `kubectl delete deployment fermat-blue`. Avantage : zéro downtime, rollback instantané. En banque : critique pour les services de risque temps réel — un arrêt pendant le calcul du VaR de clôture est inacceptable."
     }
   ]
 };
+
+
 
 const renderInlineTokens = (text, keyPrefix) => {
   const regex = /(\*\*.*?\*\*|`.*?`|\*.*?\*)/g;
@@ -719,7 +363,7 @@ const Results = ({ scores }) => {
   );
 };
 
-const MicroservicesFoundationsQCM = () => {
+const Page_CICD = () => {
   const [level, setLevel] = useState("basic");
   const [currentSlide, setCurrentSlide] = useState(0);
   const [currentQuestion, setCurrentQuestion] = useState(0);
@@ -784,4 +428,5 @@ const MicroservicesFoundationsQCM = () => {
   );
 };
 
-export default MicroservicesFoundationsQCM;
+export default Page_CICD;
+
