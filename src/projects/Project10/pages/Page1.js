@@ -59,10 +59,7 @@ const basicSlides = [
     "question": "Redirection & Pipes Linux | Monitoring Trading",
     "answer": "**>** : redirige stdout vers fichier (écrase). `ls > liste.txt`. ◆ **>>** : redirige stdout vers fichier (append). `echo 'trade' >> trades.log`. ◆ **2>** : redirige stderr. `./trading_engine 2> errors.log`. ◆ **2>&1** : redirige stderr vers stdout. `./app > all.log 2>&1`. ◆ **|** (pipe) : connecte stdout d'une commande à stdin de la suivante. ◆ **Exemples trading** : `tail -f market.log | grep 'FILL' | awk '{print $5}'` — extraire les prix des fills. `cat trades.csv | sort -k3 -n | head -10` — top 10 trades par volume. `ps aux | grep java | awk '{sum += $4} END {print sum}'` — CPU total des processus Java. ◆ **tee** : écrit dans un fichier ET affiche. `./engine 2>&1 | tee session.log`."
   },
-  {
-    "question": "Processus Linux : Fork, PID, Signals | Trading",
-    "answer": "**Processus** : instance d'un programme en exécution avec son propre espace mémoire (PID, mémoire virtuelle, file descriptors). ◆ **Thread** : unité d'exécution légère dans un processus, partage la mémoire. Moins de ressources. ◆ **fork()** : crée un processus fils identique au père. Retourne 0 dans le fils, PID du fils dans le père. ◆ **Signals** : mécanisme IPC asynchrone. SIGTERM (15): arrêt propre. SIGKILL (9): arrêt forcé. SIGINT (2): Ctrl+C. SIGUSR1/2: signaux utilisateur. ◆ **kill -SIGTERM PID** vs **kill -9 PID** : SIGTERM permet au processus de se nettoyer (flush buffers, fermer connexions). SIGKILL immédiat sans cleanup. ◆ **Trading** : `kill -SIGTERM $(pgrep market_maker)` pour arrêt propre en fin de journée. Ne jamais kill -9 un trading engine sans comprendre l'état des ordres ouverts."
-  },
+
   // ── PYTHON ──
   {
     "question": "Python : Structures de Données Essentielles | Finance/Data",
