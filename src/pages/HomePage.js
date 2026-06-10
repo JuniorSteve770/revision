@@ -75,7 +75,7 @@ const HomePage = () => {
         {/* Bouton Projet 10 */}
         <Link to="/project10">
           <button className="home-page-button" id="project10-button">
-            10. Projet 10
+            10. Projet 10 bnp
           </button>
         </Link>
 
