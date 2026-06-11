@@ -1,6 +1,6 @@
-// src/projects/CIBPricing/CIBRestApiInfraQCM.js
+// src/projects/Project3/pages/Page7_Cpp.js
 
-import React, { useState, useEffect, useCallback } from "react";
+import React, { useState, useEffect } from "react";
 import "./Page.css";
 
 const basicSlides = [
@@ -479,9 +479,8 @@ const questions = {
       "answer": "Une optimisation du compilateur qui construit l'objet de retour directement dans l'espace de l'appelant — élimine la copie/move même sans std::move.",
       "explanation": "RVO (copy elision) : `vector<Quote> buildQuotes() { vector<Quote> v; ...; return v; }` — sans RVO : v est construit localement, puis move/copié vers l'appelant. Avec RVO (garanti depuis C++17 pour les cas simples) : v est construit directement dans l'espace de l'appelant = zéro copie/move. NRVO (Named RVO) : même chose pour les variables nommées — non garanti mais appliqué par la plupart des compilateurs. Conséquence : ne pas écrire `return std::move(v)` — ça désactive RVO en forçant un move."
     }
-  ],
-  expert: [
-    {
+  ]
+};
       "options": [
         "Ce sont trois syntaxes identiques pour initialiser un objet.",
         "Par valeur `T()` : zero-init pour les scalaires + init par défaut. Par défaut : appel du constructeur sans arguments. Par liste `T{a, b}` : aggregate init ou std::initializer_list — interdit le narrowing.",
@@ -490,203 +489,138 @@ const questions = {
       ],
       "answer": "Par valeur `T()` : zero-init pour les scalaires + init par défaut. Par défaut : appel du constructeur sans arguments. Par liste `T{a, b}` : aggregate init ou std::initializer_list — interdit le narrowing.",
       "explanation": "`int x;` : valeur indéterminée (UB si lue). `int x = 0;` ou `int x{}` : zero-init. `int x(5.5)` : narrowing silencieux. `int x{5.5}` : erreur de compilation (narrowing interdit). `vector<int>{1,2,3}` → std::initializer_list. `Widget w{arg1, arg2}` → aggregate init si pas de constructeur user-defined. Préférer `{}` en C++ moderne — plus sûr (no narrowing), plus uniforme. Piège : `vector<int>(5)` = 5 zéros. `vector<int>{5}` = un élément valant 5."
-     },
-     {
-      "question": "[C++] Pourquoi C++ et pas Python pour le moteur de trading en production ?",
-      "options": [
-        "Python n'existe pas sur Linux.",
-        "C++ compilé = exécution directe, latence microseconde prévisible, contrôle mémoire total, pas de GIL. Python = overhead interpréteur, GIL limite le parallélisme CPU, GC imprévisible.",
-        "Python ne supporte pas le multithreading.",
-        "C++ est plus facile à déboguer que Python."
-      ],
-      "answer": "C++ compilé = exécution directe, latence microseconde prévisible, contrôle mémoire total, pas de GIL. Python = overhead interpréteur, GIL limite le parallélisme CPU, GC imprévisible.",
-      "explanation": "Question piège classique en entretien AMM. C++ hot path : réception FIX → parsing → décision → envoi ordre en < 10µs. Python ne peut pas atteindre ces latences (interpréteur Python = ~100x plus lent sur les boucles). GIL Python empêche le vrai parallélisme CPU. GC Python = pauses imprévisibles. Répartition réelle : C++ pour tout ce qui est temps réel. Python pour backtesting, analyse, reporting, scripts de configuration."
-    },
-    {
-      "question": "[C++ Trading] Comment diagnostiquer un programme C++ qui consomme trop de CPU en production ?",
-      "options": [
-        "Ajouter des `printf` partout dans le code.",
-        "Utiliser `perf stat`/`perf record` + `perf report` pour profiler les fonctions les plus coûteuses, ou `valgrind --callgrind` pour l'analyse de cache.",
-        "Compiler en mode Debug et relancer en production.",
-        "Ajouter `sleep(1)` pour réduire la consommation CPU."
-      ],
-      "answer": "Utiliser `perf stat`/`perf record` + `perf report` pour profiler les fonctions les plus coûteuses, ou `valgrind --callgrind` pour l'analyse de cache.",
-      "explanation": "Profiling C++ en production : `perf stat ./trading_engine` donne les statistiques globales (instructions, cache misses, branches). `perf record -g ./engine && perf report` : flame graph des fonctions les plus coûteuses. `valgrind --tool=callgrind --cache-sim=yes` : analyse les cache miss. `gprof` : profiling basique avec instrumentation à la compilation. En trading : identifier si le bottleneck est dans le parsing des messages FIX, le calcul de pricing, ou les I/O réseau."
-    },
-    {
-      "question": "[C++ Memory] Qu'est-ce qu'un memory leak et comment le détecter ?",
-      "options": [
-        "Un bug qui fait que le programme écrit en dehors des bornes d'un tableau.",
-        "Mémoire allouée dynamiquement (new/malloc) qui n'est jamais libérée (delete/free) — la mémoire du processus croît indéfiniment. Détection : valgrind --leak-check=full ou AddressSanitizer.",
-        "Un bug qui fait que deux pointeurs pointent vers la même zone mémoire.",
-        "Un buffer trop petit pour contenir les données reçues."
-      ],
-      "answer": "Mémoire allouée dynamiquement (new/malloc) qui n'est jamais libérée (delete/free) — la mémoire du processus croît indéfiniment. Détection : valgrind --leak-check=full ou AddressSanitizer.",
-      "explanation": "Memory leak : `void tick() { auto* msg = new Message(data); process(msg); /* oubli delete msg */ }` appelé des milliers de fois/seconde → OOM (Out Of Memory) progressif. Détection : valgrind --leak-check=full trace chaque allocation non libérée. AddressSanitizer (ASan) : `-fsanitize=address` à la compilation, détecte au runtime avec overhead. En production : smart pointers (unique_ptr) éliminent les leaks par design — RAII garantit la libération."
-    },
-    {
-      "question": "[C++ Undefined Behavior] Parmi ces opérations, laquelle est un undefined behavior en C++ ?",
-      "options": [
-        "Déclarer deux variables avec le même nom dans des scopes différents.",
-        "Déréférencer un pointeur null (`*ptr` quand ptr == nullptr) ou accéder à un index hors bornes d'un array (`arr[size]`).",
-        "Appeler une méthode virtuelle dans le destructeur.",
-        "Créer un objet sur le stack dans une fonction qui retourne void."
-      ],
-      "answer": "Déréférencer un pointeur null (`*ptr` quand ptr == nullptr) ou accéder à un index hors bornes d'un array (`arr[size]`).",
-      "explanation": "Undefined behavior (UB) en C++ = le standard ne définit pas le comportement. Le programme peut crasher, retourner des données corrompues, ou sembler fonctionner (le pire cas). UB classiques : déréférence nullptr, accès hors bornes, integer overflow signé, data race, utilisation après free. En trading : UB intermittent peut corrompre les prix ou les positions sans crash visible — catastrophique. Détecter avec UBSan (`-fsanitize=undefined`)."
-    },
-
+    }
   ]
 };
 
-const renderInlineTokens = (text, keyPrefix) => {
-  const regex = /(\*\*.*?\*\*|`.*?`|\*.*?\*)/g;
-  const parts = text.split(regex);
-  return parts.map((part, idx) => {
-    if (part.startsWith("**") && part.endsWith("**")) {
-      return <strong key={`${keyPrefix}-${idx}`} style={{ display: 'inline', fontWeight: 'bold' }}>{part.slice(2, -2)}</strong>;
-    }
-    if (part.startsWith("`") && part.endsWith("`")) {
-      return (
-        <code key={`${keyPrefix}-${idx}`} style={{
-          display: 'inline', backgroundColor: '#eef2f7', padding: '1px 5px',
-          borderRadius: '3px', fontFamily: 'monospace', color: '#e01e5a',
-          fontWeight: 'bold', fontSize: '13px'
-        }}>
-          {part.slice(1, -1)}
-        </code>
-      );
-    }
-    if (part.startsWith("*") && part.endsWith("*")) {
-      return <em key={`${keyPrefix}-${idx}`} style={{ display: 'inline' }}>{part.slice(1, -1)}</em>;
-    }
-    return part;
-  });
-};
-
-const renderFormattedText = (text) => {
-  if (!text) return null;
-  let cleanText = text
-    .replace(/\r?\n- /g, " ◆ ").replace(/\r?\n• /g, " ◆ ").replace(/\r?\n/g, " ")
-    .replace(/\.-\s*\*\*/g, " ◆ **").replace(/-\s*\*\*/g, " ◆ **");
-  if (cleanText.startsWith(" ◆ ")) cleanText = cleanText.substring(3);
-  if (cleanText.startsWith("- ")) cleanText = cleanText.substring(2);
-  const segments = cleanText.split(" ◆ ");
-  return (
-    <span style={{ display: 'block', lineHeight: '1.7' }}>
-      {segments.map((segment, segIdx) => (
-        <span key={segIdx} style={{ display: 'block', marginBottom: segIdx < segments.length - 1 ? '6px' : '0' }}>
-          {segIdx > 0 && <span style={{ color: '#1a73e8', fontWeight: 'bold', marginRight: '5px' }}>◆</span>}
-          {renderInlineTokens(segment, `seg-${segIdx}`)}
-        </span>
-      ))}
-    </span>
-  );
-};
-
-const Timer = ({ timeLeft }) => <p className="timer">⏳ <span>{timeLeft}s</span></p>;
+const Flashcard = ({ slide }) => (
+  <div className="flashcard">
+    <h3 className="question">{slide.question}</h3>
+    <p className="answer" style={{ whiteSpace: "pre-wrap", fontSize: "11px", lineHeight: "1.5" }}
+      dangerouslySetInnerHTML={{ __html: slide.answer.replace(/\*\*(.*?)\*\*/g, "<strong>$1</strong>").replace(/`(.*?)`/g, "<code>$1</code>") }}
+    />
+  </div>
+);
 
 const QuestionCard = ({ question, options, onAnswerClick, timeLeft }) => (
   <div className="question-card">
-    <h4>💡 {question}</h4>
-    <Timer timeLeft={timeLeft} />
-    <div className="options-container">
-      {options.map((option, index) => (
-        <button key={index} onClick={() => onAnswerClick(option)} className="option-button">
-          {String.fromCharCode(65 + index)}. {option}
+    <div className="timer">⏱ {timeLeft}s</div>
+    <h3 className="question" style={{ fontSize: "12px" }}>{question}</h3>
+    <div className="options">
+      {options.map((opt, i) => (
+        <button key={i} className="option-btn" onClick={() => onAnswerClick(opt)}
+          style={{ fontSize: "11px", textAlign: "left", padding: "6px 10px", marginBottom: "4px", width: "100%" }}>
+          {opt}
         </button>
       ))}
     </div>
   </div>
 );
 
-const Flashcard = ({ slide }) => (
-  <div className="question-card" style={{ fontSize: '14px', margin: '0' }}>
-    <p style={{ fontWeight: 'bold', fontSize: '15px', color: '#1a73e8', margin: '0 0 10px 0' }}>{slide.question}</p>
-    <div style={{ padding: '12px 15px', background: '#f8f9fa', borderRadius: '8px', borderLeft: '4px solid #1a73e8', textAlign: 'left' }}>
-      {renderFormattedText(slide.answer)}
-    </div>
+const Results = ({ scores }) => (
+  <div className="results">
+    <h2>🎯 Résultats</h2>
+    <p>Niveau Moyen : {scores.moyen} / {questions.moyen.length}</p>
+    <p>Niveau Avancé : {scores.avance} / {questions.avance.length}</p>
+    <p>Total : {scores.moyen + scores.avance} / {questions.moyen.length + questions.avance.length}</p>
   </div>
 );
 
-const Results = ({ scores }) => {
-  const totalScore = scores.moyen + scores.avance + scores.expert;
-  const totalQuestions = questions.moyen.length + questions.avance.length + questions.expert.length;
-  return (
-    <div className="results">
-      <h3>🎯 Score : {totalScore} / {totalQuestions}</h3>
-      <p>✅ Moyen : {scores.moyen}/{questions.moyen.length} | ✅ Avancé : {scores.avance}/{questions.avance.length} | ✅ Expert : {scores.expert}/{questions.expert.length}</p>
-      {totalScore >= Math.floor(totalQuestions * 0.6)
-        ? <h3 className="success">🚀 Infrastructure REST API CIB maîtrisée — Mission MAPS prête !</h3>
-        : <p className="fail">📚 Révisez l'API REST, le multithreading C# et l'architecture microservices CIB.</p>}
-    </div>
-  );
-};
-
-const CIBRestApiInfraQCM = () => {
+const Page7_Cpp = () => {
   const [level, setLevel] = useState("basic");
   const [currentSlide, setCurrentSlide] = useState(0);
   const [currentQuestion, setCurrentQuestion] = useState(0);
-  const [scores, setScores] = useState({ moyen: 0, avance: 0, expert: 0 });
+  const [scores, setScores] = useState({ moyen: 0, avance: 0 });
   const [timeLeft, setTimeLeft] = useState(25);
   const [showResult, setShowResult] = useState(false);
   const [message, setMessage] = useState("");
 
-  const handleNextQuestion = useCallback(() => {
+  const handleNextQuestion = () => {
     const qs = questions[level];
-    if (currentQuestion + 1 < qs.length) { setCurrentQuestion(q => q + 1); setTimeLeft(25); setMessage(""); }
-    else {
-      if (level === "moyen") setLevel("avance");
-      else if (level === "avance") setLevel("expert");
-      else setShowResult(true);
-      setCurrentQuestion(0); setTimeLeft(25); setMessage("");
+    if (currentQuestion + 1 < qs.length) {
+      setCurrentQuestion(q => q + 1);
+      setTimeLeft(25);
+      setMessage("");
+    } else {
+      if (level === "moyen") {
+        setLevel("avance");
+      } else {
+        setShowResult(true);
+      }
+      setCurrentQuestion(0);
+      setTimeLeft(25);
+      setMessage("");
     }
-  }, [level, currentQuestion]);;
+  };
 
   useEffect(() => {
-    if (level !== "basic" && !showResult && !message) {
-      if (timeLeft > 0) { const t = setTimeout(() => setTimeLeft(t2 => t2 - 1), 1000); return () => clearTimeout(t); }
-      else handleNextQuestion();
+    if (level !== "basic" && !showResult) {
+      if (timeLeft > 0) {
+        const t = setTimeout(() => setTimeLeft(t2 => t2 - 1), 1000);
+        return () => clearTimeout(t);
+      } else {
+        handleNextQuestion();
+      }
     }
-  }, [timeLeft, level, showResult, message, handleNextQuestion]);
+  }, [timeLeft, level, showResult]);
 
   useEffect(() => {
     if (level === "basic" && !showResult) {
       const i = setInterval(() => {
         setCurrentSlide(prev => {
           if (prev + 1 < basicSlides.length) return prev + 1;
-          setLevel("moyen"); setCurrentQuestion(0); setTimeLeft(25); return 0;
+          setLevel("moyen");
+          setCurrentQuestion(0);
+          setTimeLeft(25);
+          return 0;
         });
-      }, 20000);
+      }, 12000);
       return () => clearInterval(i);
     }
   }, [level, showResult]);
 
   const handleAnswerClick = (option) => {
-    if (message) return;
     const current = questions[level][currentQuestion];
-    if (option === current.answer) { setScores(p => ({ ...p, [level]: p[level] + 1 })); setMessage("✅ Correct !"); }
-    else { setMessage(`❌ ${current.answer}\n\nℹ️ ${current.explanation}`); }
+    if (option === current.answer) {
+      setScores(p => ({ ...p, [level]: p[level] + 1 }));
+      setMessage("✅ Correct !");
+    } else {
+      setMessage(`❌ ${current.answer}\n\nℹ️ ${current.explanation}`);
+    }
     setTimeout(handleNextQuestion, 4000);
   };
 
   return (
     <div className="qcm-container">
-      {showResult ? <Results scores={scores} /> : (
+      {showResult ? (
+        <Results scores={scores} />
+      ) : (
         <div>
-          <h4 className="subtitle" style={{ fontSize: '10px', margin: '0 0 6px 0' }}>
-            CIB REST API & Infrastructure 🔹 {level === "basic"
+          <h4 className="subtitle" style={{ fontSize: "10px", margin: "0 0 6px 0" }}>
+            C++ Entretien 🔹{" "}
+            {level === "basic"
               ? `Slide ${currentSlide + 1}/${basicSlides.length}`
               : `QCM ${level.toUpperCase()} — Q${currentQuestion + 1}/${questions[level].length}`}
           </h4>
-          {level === "basic"
-            ? <Flashcard slide={basicSlides[currentSlide]} />
-            : <QuestionCard question={questions[level][currentQuestion].question} options={questions[level][currentQuestion].options} onAnswerClick={handleAnswerClick} timeLeft={timeLeft} />}
-          {message && <p className="message" style={{ whiteSpace: 'pre-wrap', marginTop: '8px' }}>{message}</p>}
+          {level === "basic" ? (
+            <Flashcard slide={basicSlides[currentSlide]} />
+          ) : (
+            <QuestionCard
+              question={questions[level][currentQuestion].question}
+              options={questions[level][currentQuestion].options}
+              onAnswerClick={handleAnswerClick}
+              timeLeft={timeLeft}
+            />
+          )}
+          {message && (
+            <p className="message" style={{ whiteSpace: "pre-wrap", marginTop: "8px" }}>
+              {message}
+            </p>
+          )}
         </div>
       )}
     </div>
   );
 };
 
-export default CIBRestApiInfraQCM;
+export default Page7_Cpp;

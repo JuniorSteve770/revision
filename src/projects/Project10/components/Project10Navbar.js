@@ -8,7 +8,7 @@ const Project10Navbar = () => {
       <Link to="/" style={{ marginRight: '15px', fontWeight: 'bold' }}>🏡 Main</Link>
       <Link to="/project10">1. bnp</Link>
       <Link to="/project10/page2">2. bnp 2</Link>
-      <Link to="/project10/page3">3. Page 3</Link>
+      <Link to="/project10/page3">3. c++</Link>
       <Link to="/project10/page4">4. Page 4</Link>
     </nav>
   );
