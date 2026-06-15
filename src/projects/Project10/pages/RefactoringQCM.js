@@ -1,8 +1,6 @@
-// src/projects/Project3/pages/Page6_TechInterview.js
+// src/projects/RefactoringQCM/RefactoringQCM.js
 
 import React, { useState, useEffect, useCallback } from "react";
-import "./Page.css";
-
 
 const basicSlides = [
   {
@@ -448,32 +446,42 @@ const questions = {
   ],
 };
 
-
 const renderInlineTokens = (text, keyPrefix) => {
   const regex = /(\*\*.*?\*\*|`.*?`|\*.*?\*)/g;
   const parts = text.split(regex);
   return parts.map((part, idx) => {
     if (part.startsWith("**") && part.endsWith("**")) {
-      return <strong key={`${keyPrefix}-${idx}`} style={{ display: 'inline', fontWeight: 'bold' }}>{part.slice(2, -2)}</strong>;
+      return (
+        <strong key={`${keyPrefix}-${idx}`} style={{ display: "inline", fontWeight: "bold" }}>
+          {part.slice(2, -2)}
+        </strong>
+      );
     }
     if (part.startsWith("`") && part.endsWith("`")) {
       return (
-        <code key={`${keyPrefix}-${idx}`} style={{
-          display: 'inline',
-          backgroundColor: '#eef2f7',
-          padding: '1px 5px',
-          borderRadius: '3px',
-          fontFamily: 'monospace',
-          color: '#e01e5a',
-          fontWeight: 'bold',
-          fontSize: '13px'
-        }}>
+        <code
+          key={`${keyPrefix}-${idx}`}
+          style={{
+            display: "inline",
+            backgroundColor: "#eef2f7",
+            padding: "1px 5px",
+            borderRadius: "3px",
+            fontFamily: "monospace",
+            color: "#e01e5a",
+            fontWeight: "bold",
+            fontSize: "13px",
+          }}
+        >
           {part.slice(1, -1)}
         </code>
       );
     }
     if (part.startsWith("*") && part.endsWith("*")) {
-      return <em key={`${keyPrefix}-${idx}`} style={{ display: 'inline' }}>{part.slice(1, -1)}</em>;
+      return (
+        <em key={`${keyPrefix}-${idx}`} style={{ display: "inline" }}>
+          {part.slice(1, -1)}
+        </em>
+      );
     }
     return part;
   });
@@ -494,11 +502,17 @@ const renderFormattedText = (text) => {
   const segments = cleanText.split(" ◆ ");
 
   return (
-    <span style={{ display: 'block', lineHeight: '1.7' }}>
+    <span style={{ display: "block", lineHeight: "1.7" }}>
       {segments.map((segment, segIdx) => (
-        <span key={segIdx} style={{ display: 'block', marginBottom: segIdx < segments.length - 1 ? '6px' : '0' }}>
+        <span
+          key={segIdx}
+          style={{
+            display: "block",
+            marginBottom: segIdx < segments.length - 1 ? "6px" : "0",
+          }}
+        >
           {segIdx > 0 && (
-            <span style={{ color: '#1a73e8', fontWeight: 'bold', marginRight: '5px' }}>◆</span>
+            <span style={{ color: "#1a73e8", fontWeight: "bold", marginRight: "5px" }}>◆</span>
           )}
           {renderInlineTokens(segment, `seg-${segIdx}`)}
         </span>
@@ -507,134 +521,393 @@ const renderFormattedText = (text) => {
   );
 };
 
-const Timer = ({ timeLeft }) => <p className="timer">⏳ <span>{timeLeft}s</span></p>;
-
-const QuestionCard = ({ question, options, onAnswerClick, timeLeft }) => (
-  <div className="question-card">
-    <h4>💡 {question}</h4>
-    <Timer timeLeft={timeLeft} />
-    <div className="options-container">
-      {options.map((option, index) => (
-        <button key={index} onClick={() => onAnswerClick(option)} className="option-button">
-          {String.fromCharCode(65 + index)}. {option}
-        </button>
-      ))}
+const Timer = ({ timeLeft, total }) => {
+  const pct = (timeLeft / total) * 100;
+  const color = pct < 30 ? "#C00000" : pct < 60 ? "#BA7517" : "#185FA5";
+  return (
+    <div style={{ marginBottom: "8px" }}>
+      <p style={{ fontSize: "12px", color: "#595959", marginBottom: "3px" }}>{timeLeft}s</p>
+      <div style={{ height: "4px", background: "#F2F2F2", borderRadius: "2px", overflow: "hidden" }}>
+        <div
+          style={{
+            height: "4px",
+            width: pct + "%",
+            background: color,
+            borderRadius: "2px",
+            transition: "width 1s linear",
+          }}
+        />
+      </div>
     </div>
-  </div>
-);
+  );
+};
 
 const Flashcard = ({ slide }) => (
-  <div className="question-card" style={{ fontSize: '14px', margin: '0' }}>
-    <p style={{ fontWeight: 'bold', fontSize: '15px', color: '#1a73e8', margin: '0 0 10px 0' }}>{slide.question}</p>
-    <div style={{ padding: '12px 15px', background: '#f8f9fa', borderRadius: '8px', borderLeft: '4px solid #1a73e8', textAlign: 'left' }}>
+  <div
+    style={{
+      background: "#fff",
+      border: "0.5px solid #e0e0e0",
+      borderRadius: "12px",
+      padding: "16px",
+      fontSize: "14px",
+    }}
+  >
+    <p style={{ fontWeight: "bold", fontSize: "15px", color: "#1a73e8", margin: "0 0 10px 0" }}>
+      {slide.question}
+    </p>
+    <div
+      style={{
+        padding: "12px 15px",
+        background: "#f8f9fa",
+        borderRadius: "8px",
+        borderLeft: "4px solid #1a73e8",
+        textAlign: "left",
+      }}
+    >
       {renderFormattedText(slide.answer)}
     </div>
   </div>
 );
 
-const Results = ({ scores }) => {
-  const totalScore = scores.moyen + scores.avance + scores.expert;
-  const totalQuestions = questions.moyen.length + questions.avance.length + questions.expert.length;
-  return (
-    <div className="results">
-      <h3>🎯 Score : {totalScore} / {totalQuestions}</h3>
-      <p>✅ Moyen : {scores.moyen}/{questions.moyen.length} | ✅ Avancé : {scores.avance}/{questions.avance.length} | ✅ Expert : {scores.expert}/{questions.expert.length}</p>
-      {totalScore >= Math.floor(totalQuestions * 0.6)
-        ? <h3 className="success">🚀 Mission CIB Pricing Pre-Trade maîtrisée !</h3>
-        : <p className="fail">📚 Révisez C#, dérivés actions et architecture CIB.</p>
-      }
-    </div>
-  );
-};
-
-const Page6_TechInterview = () => {
-  const [level, setLevel] = useState("basic");
-  const [currentSlide, setCurrentSlide] = useState(0);
-  const [currentQuestion, setCurrentQuestion] = useState(0);
-  const [scores, setScores] = useState({ moyen: 0, avance: 0, expert: 0 });
-  const [timeLeft, setTimeLeft] = useState(25);
-  const [showResult, setShowResult] = useState(false);
-  const [message, setMessage] = useState("");
-
-  const handleNextQuestion = useCallback(() => {
-    const qs = questions[level];
-    if (currentQuestion + 1 < qs.length) {
-      setCurrentQuestion(q => q + 1);
-      setTimeLeft(25);
-      setMessage("");
-    } else {
-      if (level === "moyen") { setLevel("avance"); }
-      else if (level === "avance") { setLevel("expert"); }
-      else { setShowResult(true); }
-      setCurrentQuestion(0);
-      setTimeLeft(25);
-      setMessage("");
-    }
-  }, [level, currentQuestion]);;
-
-  useEffect(() => {
-    if (level !== "basic" && !showResult && !message) {
-      if (timeLeft > 0) {
-        const t = setTimeout(() => setTimeLeft(t2 => t2 - 1), 1000);
-        return () => clearTimeout(t);
-      } else handleNextQuestion();
-    }
-  }, [timeLeft, level, showResult, message, handleNextQuestion]);
-
-  useEffect(() => {
-    if (level === "basic" && !showResult) {
-      const i = setInterval(() => {
-        setCurrentSlide(prev => {
-          if (prev + 1 < basicSlides.length) return prev + 1;
-          setLevel("moyen");
-          setCurrentQuestion(0);
-          setTimeLeft(25);
-          return 0;
-        });
-      }, 25000);
-      return () => clearInterval(i);
-    }
-  }, [level, showResult]);
-
-  const handleAnswerClick = (option) => {
-    if (message) return;
-    const current = questions[level][currentQuestion];
-    if (option === current.answer) {
-      setScores(p => ({ ...p, [level]: p[level] + 1 }));
-      setMessage("✅ Correct !");
-    } else {
-      setMessage(`❌ ${current.answer}\n\nℹ️ ${current.explanation}`);
-    }
-    setTimeout(handleNextQuestion, 4000);
-  };
+const QuestionCard = ({ question, options, onAnswerClick, timeLeft, totalTime, level, selected, correctAnswer, explanation }) => {
+  const isExpert = level === "expert";
+  const lines = question.split("\n");
+  const qText = lines[0];
+  const codeLines = lines.slice(1).join("\n");
 
   return (
-    <div className="qcm-container">
-      {showResult ? <Results scores={scores} /> : (
-        <div>
-          <h4 className="subtitle" style={{ fontSize: '10px', margin: '0 0 6px 0' }}>
-            CIB Pricing Pre-Trade 🔹 {level === "basic"
-              ? `Slide ${currentSlide + 1}/${basicSlides.length}`
-              : `QCM ${level.toUpperCase()} — Q${currentQuestion + 1}/${questions[level].length}`
-            }
-          </h4>
-          {level === "basic" ? (
-            <Flashcard slide={basicSlides[currentSlide]} />
-          ) : (
-            <QuestionCard
-              question={questions[level][currentQuestion].question}
-              options={questions[level][currentQuestion].options}
-              onAnswerClick={handleAnswerClick}
-              timeLeft={timeLeft}
-            />
+    <div
+      style={{
+        background: "#fff",
+        border: "0.5px solid #e0e0e0",
+        borderRadius: "12px",
+        padding: "16px",
+      }}
+    >
+      <div style={{ marginBottom: "8px", display: "flex", alignItems: "center", gap: "8px" }}>
+        <span style={{ fontSize: "13px", fontWeight: "500", color: "#595959" }}>
+          {isExpert && (
+            <span
+              style={{
+                display: "inline-block",
+                fontSize: "10px",
+                fontWeight: "500",
+                background: "#FCEBEB",
+                color: "#791F1F",
+                borderRadius: "3px",
+                padding: "1px 6px",
+                marginRight: "6px",
+              }}
+            >
+              PIEGE
+            </span>
           )}
-          {message && <p className="message" style={{ whiteSpace: 'pre-wrap', marginTop: '8px' }}>{message}</p>}
+          {qText}
+        </span>
+      </div>
+      {codeLines && (
+        <pre
+          style={{
+            background: "#f8f9fa",
+            border: "0.5px solid #e0e0e0",
+            borderRadius: "8px",
+            padding: "10px 12px",
+            fontFamily: "monospace",
+            fontSize: "12px",
+            margin: "8px 0",
+            whiteSpace: "pre-wrap",
+            lineHeight: "1.6",
+            color: "#1a1a1a",
+          }}
+        >
+          {codeLines}
+        </pre>
+      )}
+      <Timer timeLeft={timeLeft} total={totalTime} />
+      <div style={{ display: "flex", flexDirection: "column", gap: "7px", marginTop: "4px" }}>
+        {options.map((option, index) => {
+          let bg = "#fff";
+          let borderColor = "#e0e0e0";
+          let color = "#1a1a1a";
+          if (selected !== null) {
+            if (option === correctAnswer) {
+              bg = "#EAF3DE"; borderColor = "#639922"; color = "#27500A";
+            } else if (option === selected) {
+              bg = "#FCEBEB"; borderColor = "#A32D2D"; color = "#791F1F";
+            }
+          }
+          return (
+            <button
+              key={index}
+              onClick={() => onAnswerClick(option)}
+              disabled={selected !== null}
+              style={{
+                textAlign: "left",
+                background: bg,
+                border: `0.5px solid ${borderColor}`,
+                borderRadius: "8px",
+                padding: "9px 13px",
+                fontSize: "13px",
+                cursor: selected !== null ? "default" : "pointer",
+                color: color,
+                lineHeight: "1.45",
+              }}
+            >
+              {String.fromCharCode(65 + index)}. {option}
+            </button>
+          );
+        })}
+      </div>
+      {selected !== null && (
+        <div
+          style={{
+            marginTop: "10px",
+            padding: "10px 13px",
+            borderRadius: "8px",
+            fontSize: "13px",
+            lineHeight: "1.6",
+            background: selected === correctAnswer ? "#EAF3DE" : "#FCEBEB",
+            color: selected === correctAnswer ? "#27500A" : "#791F1F",
+            borderLeft: `3px solid ${selected === correctAnswer ? "#639922" : "#A32D2D"}`,
+          }}
+        >
+          {selected === correctAnswer ? "✅ Correct !" : `❌ ${correctAnswer}`}
+          <br />
+          <span style={{ fontSize: "12px", marginTop: "4px", display: "block", opacity: 0.9 }}>
+            {explanation}
+          </span>
         </div>
       )}
     </div>
   );
 };
 
-export default Page6_TechInterview;
+const Results = ({ scores }) => {
+  const total = scores.moyen + scores.avance + scores.expert;
+  const max = questions.moyen.length + questions.avance.length + questions.expert.length;
+  const pct = Math.round((total / max) * 100);
+  const verdict =
+    pct >= 80
+      ? { color: "#27500A", bg: "#EAF3DE", text: "🚀 Excellent ! Niveau Senior confirmé sur le refactoring." }
+      : pct >= 60
+      ? { color: "#633806", bg: "#FAEEDA", text: "📚 Bon niveau. Retravailler les pièges et le Protocol/LSP." }
+      : { color: "#791F1F", bg: "#FCEBEB", text: "🔁 A revoir. Focus sur SOLID, composition, et les pièges frozen." };
+  return (
+    <div style={{ textAlign: "center", padding: "20px 0" }}>
+      <p style={{ fontSize: "13px", color: "#595959", marginBottom: "4px" }}>
+        Module 1 — Refactoring Finance
+      </p>
+      <p style={{ fontSize: "40px", fontWeight: "500", margin: "12px 0 4px" }}>
+        {total}{" "}
+        <span style={{ fontSize: "22px", color: "#595959" }}>/ {max}</span>
+      </p>
+      <p style={{ fontSize: "13px", color: "#595959", marginBottom: "16px" }}>{pct}% de réussite</p>
+      <div style={{ display: "grid", gridTemplateColumns: "repeat(4,1fr)", gap: "8px", margin: "14px 0" }}>
+        {[
+          { lbl: "Moyen", val: `${scores.moyen}/${questions.moyen.length}`, color: "#185FA5" },
+          { lbl: "Avancé", val: `${scores.avance}/${questions.avance.length}`, color: "#3B6D11" },
+          { lbl: "Expert", val: `${scores.expert}/${questions.expert.length}`, color: "#854F0B" },
+          { lbl: "Total", val: `${pct}%`, color: "#1a1a1a" },
+        ].map((c) => (
+          <div key={c.lbl} style={{ background: "#f8f9fa", borderRadius: "8px", padding: "10px", textAlign: "center" }}>
+            <p style={{ fontSize: "11px", color: "#595959", margin: "0 0 4px" }}>{c.lbl}</p>
+            <p style={{ fontSize: "18px", fontWeight: "500", margin: 0, color: c.color }}>{c.val}</p>
+          </div>
+        ))}
+      </div>
+      <div
+        style={{
+          fontSize: "14px",
+          padding: "12px 16px",
+          borderRadius: "8px",
+          marginTop: "12px",
+          background: verdict.bg,
+          color: verdict.color,
+        }}
+      >
+        {verdict.text}
+      </div>
+    </div>
+  );
+};
 
+const TIMER = { moyen: 25, avance: 25, expert: 20 };
+const LEVELS = ["moyen", "avance", "expert"];
 
+const RefactoringQCM = () => {
+  const [phase, setPhase] = useState("basic");
+  const [currentSlide, setCurrentSlide] = useState(0);
+  const [level, setLevel] = useState("moyen");
+  const [currentQuestion, setCurrentQuestion] = useState(0);
+  const [scores, setScores] = useState({ moyen: 0, avance: 0, expert: 0 });
+  const [timeLeft, setTimeLeft] = useState(TIMER["moyen"]);
+  const [showResult, setShowResult] = useState(false);
+  const [selected, setSelected] = useState(null);
+  const [message, setMessage] = useState("");
+
+  const handleNextQuestion = useCallback(() => {
+    const qs = questions[level];
+    if (currentQuestion + 1 < qs.length) {
+      setCurrentQuestion((q) => q + 1);
+      setTimeLeft(TIMER[level]);
+      setSelected(null);
+      setMessage("");
+    } else {
+      const li = LEVELS.indexOf(level);
+      if (li + 1 < LEVELS.length) {
+        const nextLevel = LEVELS[li + 1];
+        setLevel(nextLevel);
+        setTimeLeft(TIMER[nextLevel]);
+      } else {
+        setShowResult(true);
+      }
+      setCurrentQuestion(0);
+      setSelected(null);
+      setMessage("");
+    }
+  }, [level, currentQuestion]);
+
+  useEffect(() => {
+    if (phase !== "basic" && !showResult && !selected) {
+      if (timeLeft > 0) {
+        const t = setTimeout(() => setTimeLeft((t2) => t2 - 1), 1000);
+        return () => clearTimeout(t);
+      } else {
+        handleNextQuestion();
+      }
+    }
+  }, [timeLeft, phase, showResult, selected, handleNextQuestion]);
+
+  useEffect(() => {
+    if (phase === "basic" && !showResult) {
+      const i = setInterval(() => {
+        setCurrentSlide((prev) => {
+          if (prev + 1 < basicSlides.length) return prev + 1;
+          setPhase("qcm");
+          setCurrentQuestion(0);
+          setTimeLeft(TIMER["moyen"]);
+          return 0;
+        });
+      }, 20000);
+      return () => clearInterval(i);
+    }
+  }, [phase, showResult]);
+
+  const handleAnswerClick = (option) => {
+    if (selected !== null) return;
+    const current = questions[level][currentQuestion];
+    setSelected(option);
+    if (option === current.answer) {
+      setScores((p) => ({ ...p, [level]: p[level] + 1 }));
+      setMessage("✅ Correct !");
+    } else {
+      setMessage(`❌ ${current.answer}\n\nℹ️ ${current.explanation}`);
+    }
+    setTimeout(handleNextQuestion, 4500);
+  };
+
+  const levelLabels = { moyen: "MOYEN", avance: "AVANCÉ", expert: "EXPERT / PIÈGES" };
+  const levelColors = { moyen: "#0C447C", avance: "#27500A", expert: "#633806" };
+  const levelBg = { moyen: "#E6F1FB", avance: "#EAF3DE", expert: "#FAEEDA" };
+
+  return (
+    <div className="qcm-container">
+      {showResult ? (
+        <Results scores={scores} />
+      ) : (
+        <div>
+          <h4
+            className="subtitle"
+            style={{ fontSize: "10px", margin: "0 0 6px 0" }}
+          >
+            Refactoring Finance 🔹{" "}
+            {phase === "basic"
+              ? `Flashcard ${currentSlide + 1}/${basicSlides.length}`
+              : `QCM ${levelLabels[level]} — Q${currentQuestion + 1}/${questions[level].length}`}
+          </h4>
+          {phase === "basic" ? (
+            <div>
+              <Flashcard slide={basicSlides[currentSlide]} />
+              <div style={{ display: "flex", gap: "8px", marginTop: "10px" }}>
+                {currentSlide > 0 && (
+                  <button
+                    className="option-button"
+                    style={{ flex: "0.4" }}
+                    onClick={() => setCurrentSlide((s) => Math.max(0, s - 1))}
+                  >
+                    ← Précédente
+                  </button>
+                )}
+                <button
+                  className="option-button"
+                  style={{
+                    flex: 1,
+                    background: "#E6F1FB",
+                    color: "#0C447C",
+                    borderColor: "#B5D4F4",
+                    fontWeight: "500",
+                  }}
+                  onClick={() => {
+                    if (currentSlide + 1 < basicSlides.length) {
+                      setCurrentSlide((s) => s + 1);
+                    } else {
+                      setPhase("qcm");
+                    }
+                  }}
+                >
+                  {currentSlide + 1 < basicSlides.length ? "Suivante →" : "Commencer le QCM →"}
+                </button>
+              </div>
+            </div>
+          ) : (
+            <div>
+              <div
+                style={{
+                  display: "flex",
+                  alignItems: "center",
+                  gap: "8px",
+                  marginBottom: "6px",
+                }}
+              >
+                <span
+                  style={{
+                    fontSize: "11px",
+                    padding: "3px 10px",
+                    borderRadius: "20px",
+                    fontWeight: "500",
+                    background: levelBg[level],
+                    color: levelColors[level],
+                    border: "0.5px solid #e0e0e0",
+                  }}
+                >
+                  {levelLabels[level]}
+                </span>
+              </div>
+              <QuestionCard
+                question={questions[level][currentQuestion].question}
+                options={questions[level][currentQuestion].options}
+                onAnswerClick={handleAnswerClick}
+                timeLeft={timeLeft}
+                totalTime={TIMER[level]}
+                level={level}
+                selected={selected}
+                correctAnswer={questions[level][currentQuestion].answer}
+                explanation={questions[level][currentQuestion].explanation}
+              />
+            </div>
+          )}
+          {message && (
+            <p
+              className="message"
+              style={{ whiteSpace: "pre-wrap", marginTop: "8px" }}
+            >
+              {message}
+            </p>
+          )}
+        </div>
+      )}
+    </div>
+  );
+};
+
+export default RefactoringQCM;
