@@ -1,543 +1,453 @@
-// src/projects/CIBPricing/CIBRestApiInfraQCM.js
+// src/projects/Project3/pages/Page6_TechInterview.js
 
 import React, { useState, useEffect, useCallback } from "react";
 import "./Page.css";
 
+
 const basicSlides = [
   {
-    "question": "Pointeurs & Références — Bases absolues",
-    "answer": "**Pointeur** : variable contenant une adresse mémoire. Peut être `nullptr`, réassignable, arithmétique possible. `int* p = &x; *p = 42;` ◆ **Référence** : alias sur une variable existante. Jamais `nullptr`, non réassignable après init. `int& r = x; r = 42;` ◆ **`const T*`** : pointeur vers T immuable — on ne peut pas modifier la valeur. ◆ **`T* const`** : pointeur immuable — on ne peut pas changer où il pointe. ◆ **`const T* const`** : les deux sont figés. ◆ **Règle d'usage** : passer un gros objet en lecture → `const T&` (pas de copie, pas de nullptr). Nullable ou réassignable → pointeur. ◆ **⚠️ Piège** : `int& r;` est une erreur de compilation — une référence doit toujours être initialisée."
+    question: "Les 5 questions Senior face au code legacy",
+    answer:
+      "◆ **Responsabilité** : peut-on résumer ce que fait cette fonction/classe en une phrase ? Non → God Object ◆ **Raisons de changer** : combien de raisons indépendantes de modifier ce code ? > 1 → violation SRP ◆ **Testabilité** : peut-on tester sans base de données ou API externe ? Non → injection de dépendance manquante ◆ **Duplication** : si une règle métier change, doit-on la modifier à plusieurs endroits ? → violation DRY ◆ **Extensibilité** : ajouter un nouveau type nécessite-t-il de modifier le code existant ? → violation Open/Closed ⚠️ En entretien : toujours lister les problèmes AVANT de coder — c'est le réflexe Senior",
   },
   {
-    "question": "Stack vs Heap — Mémoire en trading",
-    "answer": "**Stack** : allocation automatique au démarrage du scope, libération automatique à la sortie. Ultra-rapide (décrément de pointeur). Taille limitée (~1–8 MB). `int x = 5;` ◆ **Heap** : `new`/`delete`. Durée de vie manuelle. Plus lent (appel malloc interne). Fragmentation possible. ◆ **Pourquoi éviter `new` en hot path** : malloc peut déclencher un appel système → jitter de latence non déterministe. Inacceptable sur un path critique à la microseconde. ◆ **Garbage-free programming** : tout alloué au démarrage (object pools, `std::array`), réutilisé pendant la session. Zéro allocation en runtime. ◆ **Memory leak** : `new` sans `delete` correspondant → mémoire jamais libérée, process grossit indéfiniment → OOM."
+    question: "Code smells Finance — reconnaître instantanément",
+    answer:
+      "◆ **God Function** : `process_trade(data, db, logger, config, api)` — trop de responsabilités ◆ **Primitive Obsession** : `compute_pnl(float, float, int, str)` au lieu d'un objet `Trade` ◆ **Long Param List** : `backtest(data, start, end, capital, commission, slippage, bench, ...)` → dataclass `BacktestConfig` ◆ **DRY Violation** : `fetch_equity()` et `fetch_bond()` avec 90% de code identique → méthode commune `_fetch(endpoint)` ◆ **Magic Numbers** : `0.001`, `0.02`, `'USD'` sans nom explicite ⚠️ Commentaire explicatif = signal que le code est mal nommé — renommer plutôt que commenter",
   },
   {
-    "question": "Règle des 5 — Copie & Move",
-    "answer": "**Copie superficielle (shallow)** : copy constructor par défaut copie les pointeurs — deux objets partagent la même mémoire = double-free à la destruction. ◆ **Copie profonde (deep)** : allouer une nouvelle zone et copier le contenu. ◆ **Règle des 5** : si tu définis un destructeur, définis aussi : copy constructor, copy assignment, move constructor, move assignment. ◆ **Move semantics (C++11)** : `std::move()` transfère la propriété sans copier. `Trade(Trade&& o) noexcept` — move constructor. L'objet source est laissé vide mais valide. ◆ **Quand move > copy** : retourner un `vector<Quote>` d'une fonction — move = O(1), copy = O(n). ◆ **RVO** : le compilateur évite souvent la copie/move automatiquement (Return Value Optimization)."
+    question: "SRP — Single Responsibility Principle",
+    answer:
+      "◆ **Principe** : une classe/fonction a une seule raison de changer ◆ **Mauvais** : `class TradeProcessor` qui valide + calcule + sauvegarde + envoie alertes ◆ **Bon** : `TradeValidator`, `PnlCalculator`, `TradeRepository`, `AlertService` — 4 classes, 4 responsabilités ◆ **Test rapide** : si on change la base de données, doit-on toucher à la logique de calcul ? Oui → SRP violé ◆ **Contexte finance** : `MarketDataPipeline` ne doit pas savoir comment les données sont stockées ⚠️ Une classe qui a besoin de 5 paramètres dans `__init__` est souvent un God Object déguisé",
   },
   {
-    "question": "Smart Pointers — unique_ptr / shared_ptr / weak_ptr",
-    "answer": "**`unique_ptr<T>`** : propriété exclusive. Détruit à la sortie du scope. Pas de copie, seulement `std::move`. Zéro overhead. À préférer par défaut. ◆ **`shared_ptr<T>`** : propriété partagée via compteur de références atomique. Détruit quand compteur = 0. ◆ **`weak_ptr<T>`** : observe sans posséder — ne prévient pas la destruction. `lock()` retourne un `shared_ptr` si l'objet existe encore. ◆ **Cycle A → B → A** : les deux shared_ptr ne tombent jamais à 0 = memory leak silencieux. Casser avec `weak_ptr`. ◆ **En hot path** : éviter `shared_ptr` (incrément atomique du compteur = coût). Préférer `unique_ptr` ou ownership manuel avec pool. ◆ **`make_unique` / `make_shared`** : toujours préférer à `new` direct — exception-safe."
+    question: "Open/Closed — Registry Pattern (clé en entretien)",
+    answer:
+      "◆ **Principe** : ouvert à l'extension, fermé à la modification ◆ **Mauvais** : `if strat=='mean_rev': ... elif strat=='momentum': ...` → ajouter = modifier ◆ **Bon** : `@StrategyFactory.register('mean_reversion')` — ajouter = créer une nouvelle classe + `@register` ◆ **Registry Pattern** : `_registry: dict[str, type] = {}` + `@classmethod register` + `create(**kwargs)` ◆ **Contexte finance** : nouveau type de commission → `@CommissionRegistry.register('crypto')` — zéro if/elif ⚠️ Zéro modification du code existant = zéro risque de régression",
   },
   {
-    "question": "const Correctness — Indispensable en production",
-    "answer": "**`const` après une méthode** : `double getBid() const;` → la méthode ne modifie pas l'état de l'objet. Appelable sur un objet `const` ou une `const&`. ◆ **Règle** : tout getter doit être `const`. Si la méthode ne modifie rien, elle doit être `const`. ◆ **Avantages** : interface auto-documentée (lecture vs écriture), erreurs détectées à la compilation, permet le passage en `const&`. ◆ **`mutable`** : exception — un membre `mutable` peut être modifié dans une méthode `const` (ex: cache interne, mutex). ◆ **`constexpr`** : évaluation garantie à la compilation. `constexpr int POOL_SIZE = 10000;` → taille d'un pool allouée à la compile, pas au runtime. ◆ **⚠️ Erreur classique** : oublier `const` sur les getters empêche de passer l'objet en `const&` à une fonction."
+    question: "Dependency Inversion — Protocol vs ABC",
+    answer:
+      "◆ **Principe** : dépendre des abstractions, jamais des implémentations concrètes ◆ **Mauvais** : `self.db = PostgresDB()` dans `__init__` — impossible à tester ◆ **Bon** : `def __init__(self, repo: SignalRepository)` — injection de l'abstraction ◆ **Protocol** (duck typing) : pour les dépendances externes — aucun héritage requis ◆ **ABC** : pour les hiérarchies internes avec comportement partagé (Template Method) ⚠️ Protocol = testabilité maximale : `MockDataSource` n'a pas besoin d'hériter de quoi que ce soit",
   },
   {
-    "question": "Multithreading — mutex, atomic, race condition",
-    "answer": "**Race condition** : deux threads accèdent au même objet, au moins un en écriture, sans synchronisation → undefined behavior. ◆ **`std::mutex`** : verrou exclusif. `lock()` / `unlock()`. ◆ **`std::lock_guard<std::mutex>`** : RAII wrapper — déverrouille automatiquement à la sortie du scope, même si exception. ◆ **`std::atomic<T>`** : opération atomique sans verrou pour les types simples (int, bool, pointer). Plus léger qu'un mutex. ◆ **Mutex vs atomic** : atomic pour un compteur/flag simple. Mutex quand plusieurs variables doivent être modifiées ensemble de façon cohérente. ◆ **Deadlock** : thread A attend mutex de B, thread B attend mutex de A → blocage infini. Prévention : toujours acquérir les mutex dans le même ordre. ◆ **`std::lock(m1, m2)`** : acquisition atomique de deux mutex sans deadlock."
+    question: "Héritage vs Composition — la règle d'or",
+    answer:
+      "◆ **Héritage** justifié : relation is-a réelle + comportement partagé massif (Template Method Pattern) ◆ **Composition** : features orthogonales — logging, cache, circuit breaker sur une stratégie ◆ **Mauvais** : `LoggedCachedStrategy(CachedStrategy(LoggedStrategy(BaseStrategy)))` — 3 niveaux pour 3 features ◆ **Bon** : `StrategyRunner(strategy, enable_log=True, enable_cache=True)` — composition libre ◆ **Contexte finance** : ajouter un circuit breaker à une `MeanReversionStrategy` → composition, pas héritage ⚠️ Si les features peuvent exister seules et sont indépendantes → composition systématiquement",
   },
   {
-    "question": "STL Containers — Complexités clés",
-    "answer": "**`std::vector`** : tableau contigu. `push_back` O(1) amorti. `operator[]` O(1). `find` O(n). Meilleure cache locality de tous les containers. ◆ **`std::map`** : arbre rouge-noir trié. `find` / `insert` / `erase` O(log n). Clés toujours triées. ◆ **`std::unordered_map`** : hash table. `find` / `insert` O(1) moyen, O(n) pire cas. Pas d'ordre. ◆ **`std::list`** : doublement chaîné. `insert`/`erase` O(1) si iterator. `find` O(n). Mauvais cache (nœuds épars). Rarement justifié en practice. ◆ **`std::deque`** : push_front/push_back O(1). Accès O(1). ◆ **Règle pratique** : préférer `vector` par défaut. `unordered_map` pour le lookup rapide par clé. `map` si l'ordre trié est nécessaire (order book par prix)."
+    question: "Dataclass frozen=True — pattern clé ABC Arbitrage",
+    answer:
+      "◆ **frozen=True** : immutabilité + hashabilité + thread-safety implicite ◆ **replace()** : `replace(trade, net=trade.gross*(1-rate))` — copie modifiée, original inchangé ◆ **field(default_factory=list)** : jamais `tags: list = []` — bug partagé entre toutes les instances ◆ **__post_init__** + `object.__setattr__` : validation à la construction sur objet frozen ◆ **Hashable** : `{Instrument('AAPL','NASDAQ','equity'): 150.0}` — utilisable comme clé de dict ⚠️ frozen=True → partageable entre threads sans lock — argument fort en entretien Senior",
   },
   {
-    "question": "Polymorphisme — virtual, vtable, RAII",
-    "answer": "**`virtual`** : méthode surchargeable dans les classes dérivées. Résolu au runtime via vtable. ◆ **vtable** : table de pointeurs de fonctions, une par classe. Chaque objet a un vptr. Appel virtuel = déréférence vptr + lecture vtable + call indirect = 2 accès mémoire. ◆ **Coût** : cache miss potentiel. Éviter dans les hot paths critiques. ◆ **Destructeur virtuel** : **obligatoire** dans toute classe de base si destruction via pointeur de base. Sans `virtual ~Base()`, `delete base_ptr` n'appelle que `~Base()` → les membres de Derived sont leakés. ◆ **`override`** (C++11) : vérifie à la compile que la méthode surcharge bien une virtuelle. ◆ **Classe abstraite** : contient au moins une pure virtual `= 0`. Non instanciable directement. ◆ **Polymorphisme statique (templates/CRTP)** : résolu à la compile, zéro overhead vtable — préférer pour les hot paths."
+    question: "Procédure de refactoring en 4 étapes",
+    answer:
+      "◆ **Étape 1 — Comprendre** : lire le code entier, identifier l'intention, ne rien toucher encore ◆ **Étape 2 — Identifier** : lister TOUS les code smells avec leur localisation précise ◆ **Étape 3 — Prioriser** : commencer par ce qui rend le code non-testable (dépendances hardcodées, état global) ◆ **Étape 4 — Refactoriser par petits pas** : une transformation à la fois, tester après chaque étape ◆ **Formule entretien** : 'Je commence par lister les problèmes avant de coder' ⚠️ Ne jamais refactoriser à l'aveugle — chaque changement doit avoir une justification explicite",
   },
-  {
-    "question": "Templates & Move — Programmation générique",
-    "answer": "**Template de fonction** : `template<typename T> T max(T a, T b)` — une définition, code généré par type à la compilation. Zéro overhead runtime. ◆ **Template de classe** : `template<typename T, size_t N> class RingBuffer` — buffer circulaire de taille fixe, allouable sur stack. ◆ **`noexcept`** : indique que la fonction ne lève pas d'exception. Requis par la STL pour utiliser le move constructor lors du redimensionnement d'un vector (sinon copy). Performance critique. ◆ **SFINAE / `if constexpr`** : code conditionnel à la compilation selon le type. ◆ **`std::forward<T>`** : perfect forwarding — transmet un argument comme lvalue ou rvalue selon son type original. ◆ **`auto`** : déduction de type à la compilation. `auto it = map.find(key);` — lisible et correct sans redondance."
-  },
-  {
-    "question": "RAII & Undefined Behavior — Pièges d'entretien",
-    "answer": "**RAII** (Resource Acquisition Is Initialization) : lier la durée de vie d'une ressource à un objet. Destructeur toujours appelé → pas de ressource orpheline même en cas d'exception. `lock_guard`, `unique_ptr`, `fstream` sont tous RAII. ◆ **Undefined Behavior (UB)** : le standard ne définit pas le comportement. Peut crasher, corrompre silencieusement, ou sembler fonctionner. UB classiques : déréférence nullptr, accès hors bornes, integer overflow signé, data race, utilisation après free. ◆ **Tools de détection** : `valgrind --leak-check=full` (leaks), `AddressSanitizer -fsanitize=address` (out-of-bounds, use-after-free), `ThreadSanitizer -fsanitize=thread` (data races), `UBSan -fsanitize=undefined`. ◆ **False sharing** : deux threads accèdent à des variables différentes sur la même cache line → invalidation croisée. Fix : `alignas(64)`."
-  }
 ];
 
 const questions = {
   moyen: [
     {
-      "question": "[Pointeurs] Peut-on avoir une référence nulle en C++ ?",
-      "options": [
-        "Oui, en faisant `int& r = *((int*)nullptr);`",
-        "Non — une référence doit toujours être initialisée avec un objet valide. Une référence nulle est undefined behavior.",
-        "Oui, en déclarant `int& r = nullptr;`",
-        "Non, mais on peut créer une référence à 0 avec `int& r = 0;`"
+      question:
+        "[SRP] Quelle est la violation principale dans ce code de traitement d'ordres ?\n\ndef process_order(order, db, logger, config, api):\n    if order['qty'] <= 0: return None\n    price = api.get_price(order['symbol'])\n    pnl = (price - order['cost']) * order['qty']\n    db.execute('INSERT INTO trades VALUES (?)', (pnl,))\n    if pnl > config['alert_threshold']:\n        logger.warning(f'PnL spike: {pnl}')\n    return pnl",
+      options: [
+        "La fonction ne gère pas les erreurs réseau de l'API",
+        "La fonction mélange validation, calcul, persistance et alertes — 4 responsabilités dans une seule fonction",
+        "Il faudrait utiliser une classe plutôt qu'une fonction",
+        "La fonction est trop courte pour être utile",
       ],
-      "answer": "Non — une référence doit toujours être initialisée avec un objet valide. Une référence nulle est undefined behavior.",
-      "explanation": "Par définition, une référence en C++ est un alias vers un objet existant. Techniquement `int& r = *((int*)nullptr)` compile mais est UB dès qu'on utilise r. Pour représenter l'absence de valeur, utiliser `int*` (nullable) ou `std::optional<int>` (C++17). C'est pourquoi en entretien : pointeur quand nullité possible, référence quand l'objet est garanti de ne pas être null."
+      answer:
+        "La fonction mélange validation, calcul, persistance et alertes — 4 responsabilités dans une seule fonction",
+      explanation:
+        "SRP : une fonction/classe doit avoir une seule raison de changer. Ici, si on change la base de données, la logique de calcul, le format d'alerte, ou la règle de validation — on touche toujours à la même fonction. Solution : OrderValidator, PnlCalculator, TradeRepository, AlertService.",
     },
     {
-      "question": "[Const] Quelle est la différence entre `const int*` et `int* const` ?",
-      "options": [
-        "Il n'y a pas de différence.",
-        "`const int*` : pointeur vers entier immuable (on ne peut pas modifier *p). `int* const` : pointeur immuable (on ne peut pas changer p), mais *p est modifiable.",
-        "`const int*` : pointeur immuable. `int* const` : valeur immuable.",
-        "Seul `int* const` est valide en C++ moderne."
+      question:
+        "[DRY] Quel problème identifies-tu immédiatement dans ce code de fetch de données marché ?\n\ndef fetch_equity(ticker, start, end):\n    url = f'https://api.market.com/equity/{ticker}?s={start}&e={end}'\n    r = requests.get(url, timeout=10)\n    r.raise_for_status()\n    return r.json()\n\ndef fetch_bond(isin, start, end):\n    url = f'https://api.market.com/bond/{isin}?s={start}&e={end}'\n    r = requests.get(url, timeout=10)\n    r.raise_for_status()\n    return r.json()",
+      options: [
+        "Il manque une gestion du retry en cas d'échec réseau",
+        "Les paramètres start et end devraient être des datetime",
+        "Les deux fonctions dupliquent exactement la même logique HTTP — violation DRY : si timeout change, 2 endroits à modifier",
+        "Il faudrait une fonction asynchrone pour la performance",
       ],
-      "answer": "`const int*` : pointeur vers entier immuable (on ne peut pas modifier *p). `int* const` : pointeur immuable (on ne peut pas changer p), mais *p est modifiable.",
-      "explanation": "Règle de lecture droite-gauche : `int* const p` → p est const (pointeur fixe). `const int* p` → *p est const (valeur fixe). `const int* const p` → tout est const. En trading : `const Quote* feed` permet de changer vers quelle quote on pointe mais pas de modifier la quote. `Quote* const feed` fixe le pointeur mais permet de modifier la quote. Question très fréquente en entretien."
+      answer:
+        "Les deux fonctions dupliquent exactement la même logique HTTP — violation DRY : si timeout change, 2 endroits à modifier",
+      explanation:
+        "Violation DRY (Don't Repeat Yourself) : 90% du code est identique. Solution : extraire _fetch(endpoint, params) dans un MarketClient. Si le timeout passe de 10 à 5s, ou si on ajoute un retry, on ne modifie qu'un seul endroit.",
     },
     {
-      "question": "[Mémoire] Quelle est la différence principale entre stack et heap ?",
-      "options": [
-        "La stack est pour les types primitifs, le heap pour les objets.",
-        "Stack : allocation/libération automatique et instantanée (scope), taille limitée. Heap : `new`/`delete`, durée de vie manuelle, potentiellement lent (appel OS).",
-        "La stack est plus grande que le heap sur les serveurs modernes.",
-        "Le heap est thread-safe, la stack ne l'est pas."
+      question:
+        "[Primitive Obsession] Quelle amélioration est la plus pertinente pour ce calcul de P&L ?\n\ndef compute_pnl(price_buy: float, price_sell: float,\n                quantity: int, currency: str,\n                commission_rate: float) -> float:\n    gross = (price_sell - price_buy) * quantity\n    return gross * (1 - commission_rate)",
+      options: [
+        "Encapsuler dans des dataclasses : Price(value, currency) et Trade(buy, sell, qty, commission) — auto-documentation et validation à la construction",
+        "Ajouter un assert pour vérifier que price_sell > price_buy",
+        "Retourner un dict avec gross et net séparément",
+        "Renommer les paramètres pour plus de clarté",
       ],
-      "answer": "Stack : allocation/libération automatique et instantanée (scope), taille limitée. Heap : `new`/`delete`, durée de vie manuelle, potentiellement lent (appel OS).",
-      "explanation": "Stack : décrément/incrément du stack pointer = nanoseconde. Heap : malloc appelle éventuellement l'OS pour obtenir de la mémoire → jitter. En AMM low latency, on évite new/delete sur le hot path. Tout est pré-alloué au démarrage (object pools). `int arr[1000]` sur la stack si taille connue à la compilation. `std::array<Quote, 1024>` — stack allocation, zéro overhead."
+      answer:
+        "Encapsuler dans des dataclasses : Price(value, currency) et Trade(buy, sell, qty, commission) — auto-documentation et validation à la construction",
+      explanation:
+        "Primitive Obsession : passer 5 primitifs distincts est risqué (ordre des arguments, devise ignorée). Avec Trade(buy=Price(150,'USD'), sell=Price(155,'USD'), quantity=100), une erreur d'ordre est impossible et on peut valider price.value >= 0 dans __post_init__.",
     },
     {
-      "question": "[Copy] Qu'est-ce qu'un double-free et comment le provoquer ?",
-      "options": [
-        "Appeler `delete` deux fois sur le même pointeur — undefined behavior pouvant corrompre le heap ou crasher.",
-        "Allouer deux fois le même bloc mémoire avec `new`.",
-        "Copier un objet deux fois au lieu d'une.",
-        "Utiliser `free()` et `delete` sur le même pointeur."
+      question:
+        "[Long Param List] Comment améliorer la signature de cette fonction de backtest ?\n\ndef run_backtest(data, strategy, start_date, end_date,\n                 initial_capital, commission, slippage,\n                 benchmark, risk_free_rate, max_drawdown,\n                 rebalance_freq='monthly'):\n    ...",
+      options: [
+        "Garder la signature telle quelle — plus de paramètres = plus flexible",
+        "Utiliser *args et **kwargs pour accepter n'importe quoi",
+        "Diviser en deux fonctions setup_backtest et execute_backtest",
+        "Regrouper les paramètres dans une dataclass BacktestConfig — signature claire, extensible sans casser l'API",
       ],
-      "answer": "Appeler `delete` deux fois sur le même pointeur — undefined behavior pouvant corrompre le heap ou crasher.",
-      "explanation": "Double-free classique avec le copy constructor par défaut : `class A { int* data; };`. `A a1; A a2 = a1;` → a1.data et a2.data pointent au même bloc. À la destruction : `delete a1.data` puis `delete a2.data` = double-free = UB. Solution : copy constructor avec copie profonde, ou utiliser `unique_ptr` qui interdit la copie. Rule of 5 : si tu as un destructeur qui libère, définis les 4 autres opérations spéciales."
+      answer:
+        "Regrouper les paramètres dans une dataclass BacktestConfig — signature claire, extensible sans casser l'API",
+      explanation:
+        "Long Parameter List : 11 paramètres rendent les appels illisibles et fragiles. BacktestConfig(start_date, end_date, initial_capital, commission=0.001, ...) avec des valeurs par défaut. Si on ajoute un paramètre, la signature de run_backtest(data, strategy, config) ne change pas.",
     },
     {
-      "question": "[Smart Pointers] Que se passe-t-il si on tente de copier un `unique_ptr` ?",
-      "options": [
-        "La copie crée un second unique_ptr partageant la propriété.",
-        "Erreur de compilation — unique_ptr est non-copiable. Il faut utiliser `std::move()` pour transférer la propriété.",
-        "La copie est autorisée mais le pointeur source devient nullptr.",
-        "Le compilateur génère automatiquement un shared_ptr."
+      question:
+        "[default_factory] Quel bug silencieux contient cette dataclass ?\n\n@dataclass\nclass Portfolio:\n    name: str\n    positions: list = []\n    tags: dict = {}",
+      options: [
+        "Il manque un __str__ pour l'affichage",
+        "Les types ne sont pas assez précis — utiliser list[str] et dict[str, float]",
+        "La liste et le dict sont partagés entre TOUTES les instances — modifier p1.positions modifie aussi p2.positions",
+        "@dataclass ne supporte pas les listes comme valeur par défaut",
       ],
-      "answer": "Erreur de compilation — unique_ptr est non-copiable. Il faut utiliser `std::move()` pour transférer la propriété.",
-      "explanation": "unique_ptr a son copy constructor supprimé (`= delete`). `auto p2 = p1;` → erreur de compilation. `auto p2 = std::move(p1);` → transfert : p1 devient nullptr, p2 possède l'objet. Ce design enforcer l'unicité de propriété à la compilation. Pour partager, utiliser shared_ptr. En pratique : passer un unique_ptr à une fonction = `void f(std::unique_ptr<T> p)` → l'appelant cède la propriété explicitement via std::move."
+      answer:
+        "La liste et le dict sont partagés entre TOUTES les instances — modifier p1.positions modifie aussi p2.positions",
+      explanation:
+        "Bug classique Python : un objet mutable comme défaut est partagé entre toutes les instances. Portfolio('A').positions.append('AAPL') modifie aussi Portfolio('B').positions. Solution : positions: list = field(default_factory=list) — chaque instance obtient sa propre liste.",
     },
     {
-      "question": "[Smart Pointers] Quand `shared_ptr` peut-il causer une fuite mémoire ?",
-      "options": [
-        "Quand on l'utilise avec un tableau.",
-        "En cas de cycle de références : A contient un shared_ptr vers B, B contient un shared_ptr vers A — le compteur de référence ne tombe jamais à 0.",
-        "Quand le shared_ptr est déclaré dans un thread secondaire.",
-        "shared_ptr ne cause jamais de fuite mémoire."
+      question:
+        "[Open/Closed] Cette architecture de calcul de commission a un défaut majeur. Lequel ?\n\ndef compute_commission(instrument_type: str,\n                       notional: float) -> float:\n    if instrument_type == 'equity':\n        return notional * 0.001\n    elif instrument_type == 'fx':\n        return notional * 0.0002\n    elif instrument_type == 'option':\n        return notional * 0.005\n    # Ajouter 'crypto' → modifier ici",
+      options: [
+        "Les taux de commission devraient être dans une base de données",
+        "Il faudrait lever une exception si instrument_type est inconnu",
+        "Chaque nouvel instrument nécessite de modifier cette fonction — violation Open/Closed — risque de régression",
+        "Les magic numbers 0.001, 0.0002, 0.005 devraient être des constantes nommées",
       ],
-      "answer": "En cas de cycle de références : A contient un shared_ptr vers B, B contient un shared_ptr vers A — le compteur de référence ne tombe jamais à 0.",
-      "explanation": "Cycle A → B → A : les compteurs restent à 1 même quand tout le code utilisateur a fini. Les objets ne sont jamais détruits. Solution : briser le cycle avec `weak_ptr`. Dans un graphe de nœuds : les enfants pointent vers le parent avec weak_ptr, le parent pointe vers ses enfants avec shared_ptr. weak_ptr.lock() retourne un shared_ptr valide si l'objet existe encore, nullptr sinon."
+      answer:
+        "Chaque nouvel instrument nécessite de modifier cette fonction — violation Open/Closed — risque de régression",
+      explanation:
+        "Violation Open/Closed : chaque nouvel instrument modifie du code existant → risque de régression. Solution : Registry Pattern avec @CommissionRegistry.register('crypto') — ajouter un instrument = créer une nouvelle classe, zéro modification du code existant.",
     },
     {
-      "question": "[Multithreading] Deux threads incrémentent `int counter = 0` simultanément. Que se passe-t-il ?",
-      "options": [
-        "counter = 2 garanti car les incréments sont séquentiels.",
-        "Race condition : `counter++` est read-modify-write (non atomique). Les deux threads peuvent lire la même valeur → un incrément est perdu. Résultat indéterminé.",
-        "Le compilateur détecte automatiquement le data race et le corrige.",
-        "counter = 2 sur x86 car l'architecture garantit l'atomicité des entiers."
+      question:
+        "[Dependency Inversion] Quel est le problème de testabilité dans ce SignalEngine ?\n\nclass SignalEngine:\n    def __init__(self):\n        self.db = PostgresDB(host='prod.db.com')\n        self.cache = RedisCache(host='redis.com')\n        self.api = BloombergAPI(key='prod-key')\n\n    def compute(self, symbol: str) -> float:\n        data = self.api.get(symbol)\n        sig = self._calc(data)\n        self.cache.set(symbol, sig)\n        self.db.save(symbol, sig)\n        return sig",
+      options: [
+        "Il faut ajouter un paramètre env pour switcher entre prod et dev",
+        "Le code est trop couplé aux implémentations concrètes — impossible à tester sans accès à PostgreSQL, Redis et Bloomberg",
+        "Il faudrait utiliser des variables d'environnement pour les hosts",
+        "La méthode compute est trop courte — elle devrait faire plus de choses",
       ],
-      "answer": "Race condition : `counter++` est read-modify-write (non atomique). Les deux threads peuvent lire la même valeur → un incrément est perdu. Résultat indéterminé.",
-      "explanation": "counter++ = 3 opérations : LOAD counter → ADD 1 → STORE. Si thread A et B lisent tous les deux 0, l'un stocke 1, l'autre stocke 1 → résultat 1 au lieu de 2. Même si x86 garantit la cohérence de cache, la norme C++ dit : data race sur non-atomic = UB. Solutions : `std::atomic<int> counter` (plus léger) ou `std::mutex` + `lock_guard` (si plusieurs variables liées)."
+      answer:
+        "Le code est trop couplé aux implémentations concrètes — impossible à tester sans accès à PostgreSQL, Redis et Bloomberg",
+      explanation:
+        "Violation Dependency Inversion : PostgresDB('prod.db.com') hardcodé = impossible à tester unitairement. Solution : def __init__(self, source: DataSource, repo: SignalRepo) + injection. En test : SignalEngine(MockDataSource(), InMemoryRepo()) — zéro connexion externe.",
     },
     {
-      "question": "[Multithreading] À quoi sert `std::lock_guard` par rapport à `std::mutex` direct ?",
-      "options": [
-        "lock_guard est plus performant que le mutex direct.",
-        "lock_guard est un wrapper RAII : il verrouille le mutex dans son constructeur et le déverrouille automatiquement dans son destructeur — même en cas d'exception.",
-        "lock_guard permet de verrouiller plusieurs mutex simultanément.",
-        "lock_guard fonctionne uniquement avec les variables atomiques."
+      question:
+        "[frozen=True] Pourquoi préférer une dataclass frozen pour un MarketSnapshot en contexte multi-thread ?",
+      options: [
+        "Pour que Python puisse l'optimiser en mémoire automatiquement",
+        "Parce que frozen=True rend l'objet sérialisable en JSON",
+        "Un objet frozen est immuable → plusieurs threads peuvent le partager sans lock — aucun thread ne peut modifier les données sous les pieds d'un autre",
+        "Pour activer la comparaison automatique entre snapshots",
       ],
-      "answer": "lock_guard est un wrapper RAII : il verrouille le mutex dans son constructeur et le déverrouille automatiquement dans son destructeur — même en cas d'exception.",
-      "explanation": "Sans lock_guard : `m.lock(); doWork(); m.unlock();` → si doWork() lève une exception, unlock() n'est jamais appelé = deadlock. Avec lock_guard : `std::lock_guard<std::mutex> lg(m);` → unlock garanti à la sortie du scope. `std::unique_lock` : plus flexible (trylock, unlock/relock manuels, transfer). `std::scoped_lock` (C++17) : plusieurs mutex sans deadlock."
+      answer:
+        "Un objet frozen est immuable → plusieurs threads peuvent le partager sans lock — aucun thread ne peut modifier les données sous les pieds d'un autre",
+      explanation:
+        "Thread-safety implicite : un objet mutable partagé entre threads nécessite un Lock pour chaque accès. Un objet frozen=True ne peut jamais être modifié → on peut le passer à 100 threads sans protection. Bonus : hashable → utilisable comme clé de cache {snapshot: result}.",
     },
     {
-      "question": "[STL] Quelle est la complexité de `std::vector::push_back` ?",
-      "options": [
-        "O(n) à chaque appel car le vecteur se redimensionne.",
-        "O(1) garanti car le vecteur pré-alloue toujours assez.",
-        "O(1) amorti — O(n) lors d'un redimensionnement, mais le doublement de capacité garantit O(1) en moyenne.",
-        "O(log n) car le vecteur maintient une structure triée."
+      question:
+        "[Composition] Un StrategyRunner doit avoir logging, cache et circuit breaker. Quelle approche est correcte ?",
+      options: [
+        "Créer LoggedStrategy(CachedStrategy(CBStrategy(BaseStrategy))) — 3 niveaux d'héritage",
+        "Créer StrategyRunner(strategy, enable_log, enable_cache) qui compose les features — chaque feature testable indépendamment et combinable librement",
+        "Tout mettre dans BaseStrategy avec des flags enable_log, enable_cache, enable_cb",
+        "Créer une interface IResilientStrategy et forcer toutes les stratégies à l'implémenter",
       ],
-      "answer": "O(1) amorti — O(n) lors d'un redimensionnement, mais le doublement de capacité garantit O(1) en moyenne.",
-      "explanation": "Quand capacity est atteinte, vector alloue 2× et copie. Coût O(n) mais rare. Amorti sur n insertions : chaque élément est copié en moyenne 1 fois → O(1) par insertion. `reserve(n)` évite les réallocations si la taille est connue. En trading : `trades.reserve(100000)` au démarrage → aucune réallocation pendant la session. Sans reserve, une réallocation au milieu de la session = pause de quelques ms."
+      answer:
+        "Créer StrategyRunner(strategy, enable_log, enable_cache) qui compose les features — chaque feature testable indépendamment et combinable librement",
+      explanation:
+        "Logging, cache et circuit breaker sont des features orthogonales — aucune relation is-a avec la stratégie. La composition libère les combinaisons : log=True, cache=False ou log=False, cache=True, cb=True. L'héritage multiplié crée des classes impossibles à tester seules.",
     },
     {
-      "question": "[STL] Quand choisir `std::unordered_map` plutôt que `std::map` ?",
-      "options": [
-        "Quand les clés sont des entiers.",
-        "Quand on a besoin de lookup O(1) et que l'ordre des clés n'importe pas. map si les clés doivent être triées.",
-        "unordered_map est toujours préférable car plus rapide.",
-        "map est préférable car unordered_map peut avoir des collisions."
+      question:
+        "[replace()] Comment modifier proprement le prix d'achat d'un Trade frozen sans muter l'objet ?\n\n@dataclass(frozen=True)\nclass Trade:\n    symbol: str\n    buy_price: float\n    quantity: int",
+      options: [
+        "trade.buy_price = new_price — assignation directe",
+        "new_trade = replace(trade, buy_price=new_price) — retourne une nouvelle instance, original inchangé",
+        "trade.__dict__['buy_price'] = new_price — accès au dict interne",
+        "object.__setattr__(trade, 'buy_price', new_price) — contourne la restriction",
       ],
-      "answer": "Quand on a besoin de lookup O(1) et que l'ordre des clés n'importe pas. map si les clés doivent être triées.",
-      "explanation": "unordered_map : O(1) moyen, O(n) pire cas (collisions). map : O(log n) garanti, clés toujours triées. En trading : lookup de prix par ISIN → unordered_map (O(1) essentiel sur le hot path). Order book → map<double, vector<Order>> (prix triés pour trouver best bid/ask). Pour les clés sans hash function disponible ou pour l'itération ordonnée : map."
+      answer:
+        "new_trade = replace(trade, buy_price=new_price) — retourne une nouvelle instance, original inchangé",
+      explanation:
+        "replace() du module dataclasses crée une copie avec les champs modifiés — l'original est inchangé. C'est l'immutable update pattern : l'historique des états est préservé, thread-safe, et les autres threads qui ont une référence à l'ancien objet ne sont pas affectés.",
     },
-    {
-      "question": "[Virtual] Pourquoi un destructeur de classe de base doit-il être `virtual` ?",
-      "options": [
-        "Pour améliorer les performances de destruction.",
-        "Sans `virtual`, `delete base_ptr` sur un objet Derived n'appelle que `~Base()` — les ressources allouées par Derived ne sont jamais libérées.",
-        "C'est une convention de style, pas une obligation.",
-        "virtual destructor est nécessaire uniquement si la classe dérivée a des membres dynamiques."
-      ],
-      "answer": "Sans `virtual`, `delete base_ptr` sur un objet Derived n'appelle que `~Base()` — les ressources allouées par Derived ne sont jamais libérées.",
-      "explanation": "Classique d'entretien : `Base* p = new Derived(); delete p;`. Sans `virtual ~Base()` : seul ~Base() est appelé, ~Derived() est ignoré → si Derived alloue de la mémoire, elle n'est jamais libérée. Règle : toute classe destinée à être héritée doit avoir un destructeur virtual. Exception : si la classe n'a pas de membres virtuels et que l'héritage est purement statique (CRTP), pas nécessaire. `= default` suffit si pas de ressources manuelles."
-    },
-    {
-      "question": "[RAII] Qu'est-ce que RAII et pourquoi est-ce fondamental en C++ ?",
-      "options": [
-        "Un pattern de design pour les systèmes en temps réel.",
-        "Resource Acquisition Is Initialization : lier la durée de vie d'une ressource à un objet. Le destructeur libère toujours la ressource, même si une exception est levée.",
-        "Un acronyme pour Random Access Interface Iterator.",
-        "Une technique d'optimisation pour réduire les allocations heap."
-      ],
-      "answer": "Resource Acquisition Is Initialization : lier la durée de vie d'une ressource à un objet. Le destructeur libère toujours la ressource, même si une exception est levée.",
-      "explanation": "RAII est le pilier de la gestion des ressources en C++. Exemples : unique_ptr (mémoire), lock_guard (mutex), fstream (fichier), connection wrapper (DB). Sans RAII : si une exception est levée après `m.lock()` et avant `m.unlock()` → deadlock permanent. Avec lock_guard : unlock garanti dans le destructeur. Règle : ne jamais gérer les ressources manuellement quand un wrapper RAII existe."
-    },
-    {
-      "question": "[Move] Dans quel cas `std::move()` améliore-t-il les performances ?",
-      "options": [
-        "Quand on veut copier un objet deux fois plus vite.",
-        "Pour transférer la propriété d'une ressource (vecteur, string, unique_ptr) sans copier les données — O(1) au lieu de O(n).",
-        "std::move améliore les performances uniquement avec les smart pointers.",
-        "std::move est utile uniquement dans les move constructors."
-      ],
-      "answer": "Pour transférer la propriété d'une ressource (vecteur, string, unique_ptr) sans copier les données — O(1) au lieu de O(n).",
-      "explanation": "`vector<Quote> quotes = build_quotes();` → sans move, copie de N éléments. Avec RVO/move : le compilateur ou le move constructor transfère le buffer interne (simple échange de pointeur). `std::move(v)` caste en rvalue reference → déclenche le move constructor. L'objet source est laissé dans un état valide mais vide (empty vector). En trading : retourner de gros buffers de données de marché depuis une fonction sans copie."
-    },
-    {
-      "question": "[Undefined Behavior] Lequel de ces codes produit un undefined behavior ?",
-      "options": [
-        "`int arr[5]; arr[4] = 0;`",
-        "`int arr[5]; arr[5] = 0;`",
-        "`int* p = new int(5); delete p; p = nullptr;`",
-        "`std::vector<int> v; v.push_back(1);`"
-      ],
-      "answer": "`int arr[5]; arr[5] = 0;`",
-      "explanation": "arr[5] sur un tableau de 5 éléments (indices 0-4) = accès hors bornes = undefined behavior. Peut écraser la stack, corrompre d'autres variables, ou crasher. Le compilateur n'ajoute pas de bound check par défaut (contrairement à Java). `arr[4] = 0` : index valide (dernier élément). `delete p; p = nullptr` : bonne pratique (dangling pointer sécurisé). Utiliser `std::vector` avec `.at(i)` pour un accès avec vérification (lance `std::out_of_range`)."
-    },
-    {
-      "question": "[Templates] À quoi sert un template en C++ ?",
-      "options": [
-        "À créer des copies d'une classe pour différents fichiers du projet.",
-        "À écrire du code générique résolu à la compilation pour différents types, sans overhead runtime.",
-        "À implémenter le polymorphisme runtime sans vtable.",
-        "À automatiser la gestion mémoire pour les types génériques."
-      ],
-      "answer": "À écrire du code générique résolu à la compilation pour différents types, sans overhead runtime.",
-      "explanation": "`template<typename T> T max(T a, T b)` génère une version pour chaque type utilisé. Zéro overhead runtime contrairement aux fonctions virtuelles. `template<size_t N> class RingBuffer` — buffer de taille N fixée à la compilation, allouable sur stack. CRTP (Curiously Recurring Template Pattern) : polymorphisme statique sans vtable. En AMM : `RingBuffer<Quote, 1024>` — toute la structure sur la stack, taille déterminée à la compile, accès O(1) garanti."
-    }
   ],
   avance: [
     {
-      "question": "[Cache Locality] Pourquoi `std::vector` est-il généralement plus rapide que `std::list` même pour des insertions fréquentes ?",
-      "options": [
-        "vector utilise moins de mémoire que list.",
-        "vector est contigu en mémoire → cache locality excellente. list = nœuds épars → cache miss à chaque élément. L'overhead du cache miss dépasse souvent le coût du déplacement des éléments.",
-        "vector est thread-safe contrairement à list.",
-        "list effectue plus d'allocations dynamiques que vector."
+      question:
+        "[Open/Closed avancé] Comment implémenter un Registry Pattern pour les stratégies de trading ?",
+      options: [
+        "Un dict global STRATEGIES = {'mean_rev': MeanReversionStrategy} modifiable directement",
+        "Un switch/case sur le nom de la stratégie dans Backtester.run()",
+        "Une classe StrategyFactory avec @classmethod register(name) retournant un décorateur, et create(name, **kwargs) pour instancier — zéro if/elif",
+        "Une liste de tuples [(name, class), ...] parcourue à chaque instanciation",
       ],
-      "answer": "vector est contigu en mémoire → cache locality excellente. list = nœuds épars → cache miss à chaque élément. L'overhead du cache miss dépasse souvent le coût du déplacement des éléments.",
-      "explanation": "Cache line = 64 bytes. Un vector<int> : 16 entiers par cache line, balayage séquentiel ultra-rapide. Une list : chaque nœud alloué séparément sur le heap → chaque accès potentiellement dans une page différente → cache miss (100-200 cycles vs 4 cycles hit). Benchmarks montrent que vector::insert (O(n)) bat souvent list::insert (O(1)) sur des petites collections grâce au cache. En AMM : données de marché toujours en vector."
+      answer:
+        "Une classe StrategyFactory avec @classmethod register(name) retournant un décorateur, et create(name, **kwargs) pour instancier — zéro if/elif",
+      explanation:
+        "@StrategyFactory.register('mean_reversion') décore la classe et l'ajoute au _registry. create('mean_reversion', window=20) instancie sans if/elif. Ajouter 'pairs_trading' = créer PairsTradingStrategy + @register — aucune modification du Backtester ni du Factory.",
     },
     {
-      "question": "[False Sharing] Qu'est-ce que le false sharing et pourquoi dégrade-t-il les performances ?",
-      "options": [
-        "Deux threads partagent accidentellement des données car les noms de variables sont similaires.",
-        "Deux threads accèdent à des variables différentes situées sur la même cache line — l'invalidation de cache entre CPU cores dégrade les performances même sans vrai partage de données.",
-        "Un thread lit des données stale depuis un cache L2.",
-        "Deux shared_ptr partagent le même objet sans synchronisation."
+      question:
+        "[Liskov] Quelle implémentation de CachedDataSource viole le principe de substitution de Liskov ?\n\nclass DataSource:\n    def fetch(self, symbol: str) -> list[float]:\n        ...  # garantit toujours list[float]",
+      options: [
+        "Une CachedDataSource.fetch() qui retourne None si le symbole n'est pas en cache — le contrat parent garantit list[float]",
+        "Une CachedDataSource qui retourne list[float] depuis le cache ou depuis l'API si absent",
+        "Une CachedDataSource qui loggue chaque appel avant de déléguer au parent",
+        "Une CachedDataSource qui lève une CacheExpiredException au lieu d'une ConnectionError",
       ],
-      "answer": "Deux threads accèdent à des variables différentes situées sur la même cache line — l'invalidation de cache entre CPU cores dégrade les performances même sans vrai partage de données.",
-      "explanation": "Cache line = 64 bytes. `struct { int a; int b; }` : a et b sur la même cache line. Thread 1 écrit a, Thread 2 écrit b → invalidation mutuelle des caches même si les données sont distinctes → ping-pong de cache = dégradation sévère. Solution C++17 : `alignas(64) int a; alignas(64) int b;` — chaque variable sur sa propre cache line. En AMM : structures partagées entre thread de réception et thread de pricing doivent être alignées."
+      answer:
+        "Une CachedDataSource.fetch() qui retourne None si le symbole n'est pas en cache — le contrat parent garantit list[float]",
+      explanation:
+        "LSP : un sous-type doit pouvoir remplacer son parent sans briser le comportement. DataSource.fetch() garantit toujours list[float]. Si CachedDataSource.fetch() retourne None, tout le code qui appelle .fetch() peut planter sans avoir changé. Solution : retourner self._inner.fetch() si absent du cache.",
     },
     {
-      "question": "[Atomic] Quelle est la différence entre `memory_order_relaxed` et `memory_order_seq_cst` dans une opération atomique ?",
-      "options": [
-        "Il n'y a pas de différence fonctionnelle — c'est juste un hint au compilateur.",
-        "`relaxed` : atomicité garantie mais aucun ordre de mémoire — pas de synchronisation entre threads. `seq_cst` : ordre total séquentiel — le plus fort, mais le plus coûteux (barrière mémoire complète).",
-        "`relaxed` est plus sûr car il évite les deadlocks.",
-        "`seq_cst` est uniquement pour les architectures ARM, inutile sur x86."
+      question:
+        "[Protocol vs ABC] Dans quel cas utiliser Protocol plutôt que ABC pour une DataSource ?",
+      options: [
+        "Quand on veut forcer l'implémentation d'une méthode _validate() dans toutes les sous-classes",
+        "Quand on veut partager du comportement commun entre plusieurs implémentations via des méthodes concrètes",
+        "Protocol et ABC sont interchangeables — c'est une question de style",
+        "Pour les dépendances externes (Bloomberg, Reuters) et les mocks de test — aucun héritage requis, duck typing, BloombergClient peut satisfaire le Protocol sans l'importer",
       ],
-      "answer": "`relaxed` : atomicité garantie mais aucun ordre de mémoire — pas de synchronisation entre threads. `seq_cst` : ordre total séquentiel — le plus fort, mais le plus coûteux (barrière mémoire complète).",
-      "explanation": "Memory order : seq_cst (défaut) = barrière mémoire complète, visible de tous les threads dans le même ordre. acquire/release : synchronisation entre producteur et consommateur. relaxed : uniquement l'atomicité de l'opération, aucune garantie d'ordre. En AMM : counter de performance → `fetch_add(1, memory_order_relaxed)` (pas besoin de synchronisation inter-thread). Flag d'arrêt → `memory_order_release` en écriture, `memory_order_acquire` en lecture."
+      answer:
+        "Pour les dépendances externes (Bloomberg, Reuters) et les mocks de test — aucun héritage requis, duck typing, BloombergClient peut satisfaire le Protocol sans l'importer",
+      explanation:
+        "Protocol = duck typing : une classe satisfait le Protocol si elle a les bonnes méthodes, sans hériter. Parfait pour les dépendances externes que tu ne contrôles pas (SDK Bloomberg). ABC = pour les hiérarchies internes où tu veux partager du comportement via des méthodes concrètes (Template Method). En test : MockDataSource sans héritage.",
     },
     {
-      "question": "[Lock-Free] Qu'est-ce qu'une SPSC queue et pourquoi l'utilise-t-on en trading ?",
-      "options": [
-        "Single Process Single Core — une queue optimisée pour un seul core.",
-        "Single Producer Single Consumer — queue lock-free avec un seul thread qui écrit et un seul qui lit. Utilise un ring buffer + atomics, zéro mutex sur le hot path.",
-        "Synchronized Processor Socket Cache — cache L3 partagé entre sockets CPU.",
-        "Standard Priority Safe Container — conteneur STL thread-safe."
+      question:
+        "[Template Method] Quelle est la structure correcte d'une BaseStrategy avec Template Method ?\n\nclass BaseStrategy(ABC):\n    def run(self, data):\n        # étapes fixes\n        ...\n    \n    @abstractmethod\n    def _compute_signals(self, data): ...",
+      options: [
+        "run() dans la base avec le squelette (validate → normalize → compute → format), _compute_signals() abstract dans la sous-classe — le squelette est fixé, seul le détail variable est délégué",
+        "run() dans la sous-classe, _compute_signals() dans la base — les détails dans la base, le squelette dans la sous-classe",
+        "Toute la logique dans _compute_signals() pour que les sous-classes puissent tout surcharger",
+        "run() et _compute_signals() tous les deux abstract — chaque sous-classe définit tout",
       ],
-      "answer": "Single Producer Single Consumer — queue lock-free avec un seul thread qui écrit et un seul qui lit. Utilise un ring buffer + atomics, zéro mutex sur le hot path.",
-      "explanation": "SPSC Queue : le cas le plus simple de lock-free. Un pointeur head (lu par le consumer), un pointeur tail (écrit par le producer). Pas de contention. Implémentation : ring buffer pré-alloué + `std::atomic<size_t>` pour head et tail. En AMM : thread de réception des market data → SPSC Queue → thread de stratégie. Latence : < 100ns. Avec mutex : 1-5µs. Bibliothèques : Intel TBB, Boost.Lockfree, ou implémenter soi-même (~30 lignes)."
+      answer:
+        "run() dans la base avec le squelette (validate → normalize → compute → format), _compute_signals() abstract dans la sous-classe — le squelette est fixé, seul le détail variable est délégué",
+      explanation:
+        "Template Method : le squelette (validate → normalize → compute_signals → format_result) est dans run() de la base — il ne change jamais. Seule compute_signals() est abstraite car c'est ce qui varie entre MeanReversion et Momentum. La base garantit que toutes les stratégies passent par les mêmes étapes.",
     },
     {
-      "question": "[Memory Order] Qu'est-ce qu'un memory barrier (barrière mémoire) ?",
-      "options": [
-        "Une zone mémoire protégée par un mutex.",
-        "Une instruction qui empêche le compilateur et le CPU de réordonner les accès mémoire au-delà de ce point — garantit la visibilité des écritures passées.",
-        "Une limite de taille sur la mémoire allouable par thread.",
-        "Un mécanisme de protection contre les buffer overflows."
+      question:
+        "[Interface Segregation] Quel problème pose cette interface dans un contexte de streaming de ticks ?\n\nclass DataProcessor(ABC):\n    @abstractmethod\n    def load(self): ...\n    @abstractmethod\n    def transform(self): ...\n    @abstractmethod\n    def export_to_csv(self): ...\n    @abstractmethod\n    def send_alert_email(self): ...",
+      options: [
+        "L'interface a trop de méthodes — il faudrait une seule méthode process()",
+        "Les méthodes ne sont pas assez génériques",
+        "ABC ne supporte pas les interfaces multi-méthodes en Python",
+        "Un processor de streaming de ticks est forcé d'implémenter export_to_csv() et send_alert_email() dont il n'a pas besoin — violation Interface Segregation",
       ],
-      "answer": "Une instruction qui empêche le compilateur et le CPU de réordonner les accès mémoire au-delà de ce point — garantit la visibilité des écritures passées.",
-      "explanation": "Le CPU et le compilateur réordonnent les instructions pour optimiser les performances. Sans barrière : le thread B peut lire des données stale même après que le thread A les ait 'écrites' (car en cache L1 non propagé). `std::atomic` avec les bons memory orders insère des barrières implicites. `std::atomic_thread_fence(memory_order_seq_cst)` : barrière explicite. En low latency : choisir le memory order minimal nécessaire pour éviter les barrières inutiles."
+      answer:
+        "Un processor de streaming de ticks est forcé d'implémenter export_to_csv() et send_alert_email() dont il n'a pas besoin — violation Interface Segregation",
+      explanation:
+        "ISP : ne pas forcer les classes à implémenter des méthodes inutiles. Solution : séparer en Loadable, Transformable, CsvExportable, AlertSender. Le TickStreamProcessor implémente uniquement Loadable et Transformable. Chaque interface = une responsabilité.",
     },
     {
-      "question": "[Move Semantics] Qu'est-ce que la Perfect Forwarding et à quoi sert `std::forward` ?",
-      "options": [
-        "Une optimisation du compilateur pour éviter les copies dans les boucles.",
-        "Transmettre un argument à une autre fonction en préservant sa catégorie de valeur (lvalue ou rvalue) — `std::forward<T>(arg)` est utilisé dans les templates variadiques.",
-        "std::forward est identique à std::move.",
-        "Une technique pour forwarder des appels entre threads."
+      question:
+        "[object.__setattr__] Pourquoi utilise-t-on object.__setattr__ dans __post_init__ d'une dataclass frozen ?\n\n@dataclass(frozen=True)\nclass Instrument:\n    symbol: str\n    def __post_init__(self):\n        object.__setattr__(self, 'symbol', self.symbol.upper())",
+      options: [
+        "C'est une erreur — frozen=True interdit toute modification même dans __post_init__",
+        "Pour des raisons de performance — object.__setattr__ est plus rapide que l'assignation directe",
+        "frozen=True déclenche un __setattr__ qui lève FrozenInstanceError — object.__setattr__ bypass ce mécanisme uniquement pendant la construction, permettant la normalisation initiale",
+        "Pour contourner la validation frozen le temps de l'initialisation — __post_init__ s'exécute avant que frozen soit actif",
       ],
-      "answer": "Transmettre un argument à une autre fonction en préservant sa catégorie de valeur (lvalue ou rvalue) — `std::forward<T>(arg)` est utilisé dans les templates variadiques.",
-      "explanation": "Problème : dans un template `template<typename T> void wrapper(T&& arg) { target(arg); }`, arg est toujours une lvalue à l'intérieur. std::forward<T>(arg) transmet arg comme rvalue si T est une rvalue reference, lvalue sinon. `template<typename... Args> auto make(Args&&... args) { return T(std::forward<Args>(args)...); }` — factory parfaite. En trading : factory de messages FIX qui forward les arguments au constructeur sans copie intermédiaire."
+      answer:
+        "frozen=True déclenche un __setattr__ qui lève FrozenInstanceError — object.__setattr__ bypass ce mécanisme uniquement pendant la construction, permettant la normalisation initiale",
+      explanation:
+        "frozen=True overrides __setattr__ pour lever FrozenInstanceError. Mais object.__setattr__ appelle le __setattr__ de object directement, contournant l'override. C'est le pattern standard pour valider/normaliser dans __post_init__ d'un objet frozen. Après construction, l'objet est véritablement immutable.",
     },
     {
-      "question": "[noexcept] Pourquoi `noexcept` sur un move constructor est-il critique pour `std::vector` ?",
-      "options": [
-        "Sans noexcept, le move constructor n'est pas appelé — c'est juste une convention.",
-        "std::vector utilise le move constructor lors du redimensionnement SEULEMENT s'il est noexcept — sinon il utilise la copie (pour la strong exception guarantee). Sans noexcept, les redimensionnements sont O(n) copies.",
-        "noexcept améliore les performances du move en désactivant les vérifications.",
-        "noexcept est obligatoire uniquement sur le copy constructor."
+      question:
+        "[Observer Pattern Finance] Quel avantage a le MarketEventBus pour un système de trading ?\n\nbus = MarketEventBus()\nbus.subscribe(PriceUpdate, risk_engine.check)\nbus.subscribe(PriceUpdate, pnl_tracker.update)\nbus.publish(PriceUpdate('AAPL', 150.5, 1000))",
+      options: [
+        "Cela permet d'éviter les imports circulaires entre modules",
+        "Le producteur (publisher) ne connaît pas les consommateurs — ajouter un nouveau handler ne nécessite pas de modifier le code qui publie",
+        "C'est plus rapide qu'un appel direct aux méthodes",
+        "L'EventBus garantit l'ordre d'exécution des handlers",
       ],
-      "answer": "std::vector utilise le move constructor lors du redimensionnement SEULEMENT s'il est noexcept — sinon il utilise la copie (pour la strong exception guarantee). Sans noexcept, les redimensionnements sont O(n) copies.",
-      "explanation": "Strong exception guarantee : si une exception est levée pendant le redimensionnement, le vector doit rester dans son état original. Avec move non-noexcept : si move A réussit et move B lève, l'état original est irrémédiablement corrompu. Donc vector copie (rollbackable) quand move peut lancer. `Trade(Trade&&) noexcept = default;` → vector peut move toute la collection en O(n) moves au lieu de O(n) copies. Toujours annoter `noexcept` les move constructors et move assignments."
+      answer:
+        "Le producteur (publisher) ne connaît pas les consommateurs — ajouter un nouveau handler ne nécessite pas de modifier le code qui publie",
+      explanation:
+        "Observer Pattern : découplage total. Le code qui publie PriceUpdate ne sait pas qui l'écoute. Ajouter un PositionTracker → bus.subscribe(PriceUpdate, position_tracker.update) sans toucher au publisher. Dans un système de trading multi-composants (risk, pnl, position, alertes), c'est critique pour la maintenabilité.",
     },
     {
-      "question": "[CRTP] Qu'est-ce que le CRTP et quel problème résout-il ?",
-      "options": [
-        "Curiously Recurring Template Pattern : une classe hérite d'un template paramétré par elle-même — permet le polymorphisme statique sans vtable, résolu à la compilation.",
-        "Common Runtime Type Pattern : un mécanisme de reflection en C++.",
-        "Cached Runtime Template Pattern : mise en cache des instanciations de templates.",
-        "CRTP est un anti-pattern à éviter en C++ moderne."
+      question:
+        "[Circuit Breaker] Dans une composition StrategyRunner, quand le circuit breaker doit-il s'ouvrir ?\n\n@dataclass\nclass CircuitBreaker:\n    max_failures: int = 3\n    reset_timeout: float = 60.0\n    _failures: int = field(default=0, init=False)\n    _last_fail: float = field(default=0.0, init=False)",
+      options: [
+        "Dès la première erreur — pour maximiser la sécurité du système",
+        "Après max_failures erreurs consécutives — puis se referme automatiquement après reset_timeout secondes sans appel",
+        "Seulement si l'erreur est une TimeoutError — pas pour les autres types d'erreurs",
+        "Le circuit ne doit jamais se refermer automatiquement — intervention humaine requise",
       ],
-      "answer": "Curiously Recurring Template Pattern : une classe hérite d'un template paramétré par elle-même — permet le polymorphisme statique sans vtable, résolu à la compilation.",
-      "explanation": "`template<typename Derived> class Strategy { void execute() { static_cast<Derived*>(this)->execute_impl(); } }` puis `class MarketMaker : public Strategy<MarketMaker>`. L'appel est résolu à la compilation → zéro indirection vtable → inlinable. Comparaison : virtual function = 2 indirections mémoire (vptr + vtable). CRTP = 0 indirection. En AMM hot path : stratégies de pricing comme CRTP. Utilisé dans Eigen (algèbre linéaire), Boost.Spirit. Trade-off : code plus complexe, temps de compilation plus long."
+      answer:
+        "Après max_failures erreurs consécutives — puis se referme automatiquement après reset_timeout secondes sans appel",
+      explanation:
+        "Circuit Breaker pattern : après max_failures erreurs consécutives, le circuit s'ouvre et toute tentative lève une RuntimeError immédiate (fail-fast). Après reset_timeout secondes, il se referme en half-open pour tenter de nouvelles requêtes. En finance : évite de spammer une API de marché en panne et de générer de faux signaux.",
     },
     {
-      "question": "[Placement new] À quoi sert le placement new et dans quel contexte l'utilise-t-on ?",
-      "options": [
-        "À placer un objet sur la stack au lieu du heap.",
-        "À construire un objet dans une zone mémoire déjà allouée — utilisé dans les object pools pour réutiliser la mémoire sans malloc/free.",
-        "À créer plusieurs copies d'un objet à des adresses consécutives.",
-        "Un alias pour `new` avec une adresse spécifique, sans usage pratique."
+      question:
+        "[DRY + Open/Closed combinés] Ce code viole deux principes simultanément. Lesquels ?\n\ndef calc_equity_fee(notional, qty):\n    return notional * 0.001 * qty\n\ndef calc_bond_fee(notional, qty):\n    return notional * 0.001 * qty  # copié-collé\n\ndef calc_crypto_fee(notional, qty):\n    return notional * 0.003 * qty  # taux différent",
+      options: [
+        "SRP et Liskov — les fonctions font trop et ne respectent pas le contrat",
+        "Interface Segregation et Dependency Inversion — les fonctions sont trop couplées",
+        "Uniquement DRY — Open/Closed n'est pas pertinent ici",
+        "DRY (calc_equity et calc_bond sont identiques) ET Open/Closed (ajouter un instrument = créer une nouvelle fonction globale, aucune encapsulation)",
       ],
-      "answer": "À construire un objet dans une zone mémoire déjà allouée — utilisé dans les object pools pour réutiliser la mémoire sans malloc/free.",
-      "explanation": "`new (ptr) T(args)` : construit T à l'adresse ptr sans allocation. Destruction explicite : `ptr->~T()`. Object pool : `alignas(T) char buf[N * sizeof(T)];` → `new (buf + i*sizeof(T)) T(args)`. En AMM : pool de messages FIX pré-alloués au démarrage. Recevoir un message → prendre un slot du pool, `new (slot) FIXMessage(data)`. Libérer → `msg->~FIXMessage()`, retourner le slot au pool. Zéro malloc/free sur le hot path."
+      answer:
+        "DRY (calc_equity et calc_bond sont identiques) ET Open/Closed (ajouter un instrument = créer une nouvelle fonction globale, aucune encapsulation)",
+      explanation:
+        "Double violation : DRY car equity et bond sont strictement identiques, et Open/Closed car ajouter 'futures' nécessite d'écrire une nouvelle fonction sans encapsulation. Solution : FeeCalculator avec Registry Pattern — @register('equity'), @register('bond') avec un taux paramétré, et la logique commune dans _base_fee(notional, qty, rate).",
     },
     {
-      "question": "[Template Metaprogramming] Qu'est-ce que `if constexpr` (C++17) et pourquoi est-ce utile ?",
-      "options": [
-        "Une condition vérifiée à l'exécution dans un template.",
-        "Une branche conditionnelle évaluée à la compilation dans un template — permet d'avoir des comportements différents selon le type sans instancier les branches invalides.",
-        "Un équivalent de `#ifdef` pour les templates.",
-        "Une façon de désactiver des assertions en release."
+      question:
+        "[Factory + Protocol] Comment créer une stratégie depuis une config YAML sans if/elif ?\n\n# config.yaml\n# strategy:\n#   type: mean_reversion\n#   window: 20\n#   z_threshold: 2.5",
+      options: [
+        "StrategyFactory.create(config['type'], **config['params']) — le Factory cherche dans son registry, lève une ValueError claire si inconnu",
+        "if config['type'] == 'mean_reversion': return MeanReversionStrategy(**params) — clair et direct",
+        "Importer dynamiquement le module : importlib.import_module(config['type'])()",
+        "Eval de la string : eval(config['type'])(**params) — dynamique et sans if/elif",
       ],
-      "answer": "Une branche conditionnelle évaluée à la compilation dans un template — permet d'avoir des comportements différents selon le type sans instancier les branches invalides.",
-      "explanation": "`template<typename T> void serialize(T val) { if constexpr (std::is_integral_v<T>) { write_int(val); } else { write_float(val); } }`. Sans `if constexpr`, les deux branches doivent compiler pour tout T. Avec `if constexpr`, seule la branche sélectionnée est compilée. Remplace SFINAE dans beaucoup de cas — plus lisible. En trading : sérialisation de messages FIX avec types variés, optimisations spécifiques selon le type de données de marché."
+      answer:
+        "StrategyFactory.create(config['type'], **config['params']) — le Factory cherche dans son registry, lève une ValueError claire si inconnu",
+      explanation:
+        "StrategyFactory.create() consulte _registry[name] et instancie avec **kwargs. Zéro if/elif, zéro eval() (sécurité), erreur explicite si le type est inconnu. Les stratégies s'enregistrent elles-mêmes via @StrategyFactory.register('mean_reversion') — le Factory n'a jamais besoin d'être modifié.",
     },
-    {
-      "question": "[Undefined Behavior] Un ingénieur senior dit 'ça marche chez moi en debug, mais crash en release'. Quelle est la cause probable ?",
-      "options": [
-        "Le mode release compile pour un OS différent.",
-        "Undefined behavior — en debug, le compilateur est moins agressif. En release (-O2/-O3), il optimise en supposant qu'il n'y a pas d'UB, ce qui peut transformer un UB 'silencieux' en comportement inattendu ou crash.",
-        "Le mode release active les exceptions que le debug désactive.",
-        "C'est une différence de version de compilateur entre debug et release."
-      ],
-      "answer": "Undefined behavior — en debug, le compilateur est moins agressif. En release (-O2/-O3), il optimise en supposant qu'il n'y a pas d'UB, ce qui peut transformer un UB 'silencieux' en comportement inattendu ou crash.",
-      "explanation": "L'optimiseur peut supprimer des boucles entières si leurs effets sont UB, éliminer des null checks jugés 'impossibles', réordonner des accès mémoire. Exemple classique : accès à un pointeur après free → en debug, la mémoire est souvent encore accessible → marche. En release, le compilateur réutilise le registre → crash. Solution : AddressSanitizer (`-fsanitize=address`) tourne en release-like avec détection UB. Toujours tester avec les sanitizers avant prod."
-    },
-    {
-      "question": "[Memory Model] En C++, qu'est-ce que le 'sequence point' et pourquoi `a[i] = i++` est-il UB ?",
-      "options": [
-        "C'est une règle de style sans impact réel.",
-        "Un sequence point délimite l'ordre d'évaluation. `a[i] = i++` modifie i et l'utilise dans la même expression sans sequence point entre eux — l'ordre d'évaluation est indéterminé = UB.",
-        "i++ est une opération atomique donc il n'y a pas de problème.",
-        "C'est UB uniquement si i et a sont dans des threads différents."
-      ],
-      "answer": "Un sequence point délimite l'ordre d'évaluation. `a[i] = i++` modifie i et l'utilise dans la même expression sans sequence point entre eux — l'ordre d'évaluation est indéterminé = UB.",
-      "explanation": "En C++17, les règles d'évaluation ont été clarifiées mais beaucoup d'expressions restent UB. `a[i] = i++` : i est lu pour l'index ET modifié par ++ dans la même expression. Le compilateur peut évaluer dans n'importe quel ordre. Même problème : `f(i++, i++)` — UB car deux modifications de i entre sequence points. Règle simple : ne modifier une variable qu'une seule fois par expression, et ne pas l'utiliser ailleurs dans la même expression."
-    },
-    {
-      "question": "[Concurrence] Qu'est-ce qu'un spin-lock et quand l'utiliser par rapport à un mutex ?",
-      "options": [
-        "Un spin-lock est plus sûr qu'un mutex car il ne peut pas causer de deadlock.",
-        "Un spin-lock tourne activement en boucle tant que le lock est pris (busy-wait) — pas de context switch. Utile pour des sections critiques très courtes en low-latency. Mutex met le thread en sleep (context switch coûteux).",
-        "Un spin-lock est identique à un mutex mais consomme moins de mémoire.",
-        "Les spin-locks ne sont utilisables qu'en kernel space."
-      ],
-      "answer": "Un spin-lock tourne activement en boucle tant que le lock est pris (busy-wait) — pas de context switch. Utile pour des sections critiques très courtes en low-latency. Mutex met le thread en sleep (context switch coûteux).",
-      "explanation": "Spin-lock : `while(flag.test_and_set(memory_order_acquire)) {}` — CPU tourne à 100% mais latence de prise minimale (~10-30 ns). Mutex : si pris, le thread est mis en sleep par l'OS (context switch ~1-5µs). En AMM : spin-lock pour protéger la mise à jour de prix (section critique < 100ns). Mutex pour les opérations plus longues. Attention : spin-lock sur single-core = livelock. `_mm_pause()` entre tentatives pour réduire la consommation d'énergie et améliorer l'hyperthreading."
-    },
-    {
-      "question": "[Debug Prod] Comment investiguer une fuite mémoire en production sur un engine de trading C++ ?",
-      "options": [
-        "Redémarrer le serveur toutes les heures.",
-        "Surveiller l'évolution de la RSS (Resident Set Size) avec `top`/`/proc/PID/status`. Reproduire avec `valgrind --leak-check=full` sur un environnement de staging. Utiliser `AddressSanitizer` en pre-prod. Analyser avec `heaptrack` ou `gperftools`.",
-        "Activer le mode debug et chercher les `new` sans `delete` dans le code.",
-        "Les leaks se corrigent automatiquement quand le processus se termine."
-      ],
-      "answer": "Surveiller l'évolution de la RSS (Resident Set Size) avec `top`/`/proc/PID/status`. Reproduire avec `valgrind --leak-check=full` sur un environnement de staging. Utiliser `AddressSanitizer` en pre-prod. Analyser avec `heaptrack` ou `gperftools`.",
-      "explanation": "Approche méthodique : 1) Confirmer le leak en graphant la RSS au cours du temps — croissance linéaire = leak. 2) valgrind en staging : trace chaque malloc sans free correspondant. 3) AddressSanitizer (-fsanitize=address) : overhead x2 mais utilisable en pre-prod. 4) heaptrack : profiling heap à faible overhead. 5) Review du code : chercher les raw pointers, les shared_ptr cycliques, les static containers qui grossissent. En trading : les leaks qui crashent pendant la session = incident critique."
-    },
-    {
-      "question": "[Performance] Qu'est-ce que le branch misprediction et comment l'éviter ?",
-      "options": [
-        "Une erreur de compilation quand les branches d'un if/else sont mal typées.",
-        "Quand le CPU prédit incorrectement la branche d'un if et doit annuler le travail pré-exécuté — coût ~15-20 cycles. Éviter avec data-driven design, branchless code (`?:`, cmov), ou `[[likely]]`/`[[unlikely]]` (C++20).",
-        "Un bug dans les instructions de saut du code assembleur.",
-        "Branch misprediction est uniquement un problème sur ARM, pas sur x86."
-      ],
-      "answer": "Quand le CPU prédit incorrectement la branche d'un if et doit annuler le travail pré-exécuté — coût ~15-20 cycles. Éviter avec data-driven design, branchless code (`?:`, cmov), ou `[[likely]]`/`[[unlikely]]` (C++20).",
-      "explanation": "Modern CPU = pipeline profond. Il prédit la branche et exécute en avance (speculative execution). Si mauvaise prédiction : flush du pipeline = ~15-20 cycles perdus. En AMM : `if (price > threshold) buy() else sell()` avec des données aléatoires = 50% de mauvaises prédictions. Solutions : 1) Trier les données pour rendre les branches prévisibles. 2) Branchless : `int sign = (price > threshold) - (price <= threshold)`. 3) `[[likely]]` hint au compilateur. 4) Lookup table."
-    },
-    {
-      "question": "[C++ vs Python] Pourquoi C++ et pas Python pour le core engine de trading AMM ?",
-      "options": [
-        "Python n'existe pas sur les serveurs Linux.",
-        "C++ : exécution directe (nanoseconde), contrôle mémoire total, pas de GIL, latence déterministe. Python : interpréteur (~100x plus lent en boucles), GIL limite le parallélisme CPU, GC imprévisible.",
-        "Python ne supporte pas les classes ni l'héritage.",
-        "Les régulateurs imposent C++ pour les systèmes de trading."
-      ],
-      "answer": "C++ : exécution directe (nanoseconde), contrôle mémoire total, pas de GIL, latence déterministe. Python : interpréteur (~100x plus lent en boucles), GIL limite le parallélisme CPU, GC imprévisible.",
-      "explanation": "Question piège classique d'entretien AMM. Path critique AMM : réception market data → décision → envoi ordre < 10µs. Python ne peut pas atteindre ces latences. GIL Python : un seul thread exécute du bytecode à la fois → pas de vrai parallélisme CPU. GC Python : pauses imprévisibles. Architecture réelle : C++ pour tout ce qui est temps réel (hot path). Python pour backtesting, analyse alpha, reporting, scripts de gestion. R ou Python pour la modélisation quantitative."
-    },
-    {
-      "question": "[Concurrence] Quelle est la différence entre `std::mutex`, `std::shared_mutex` et `std::recursive_mutex` ?",
-      "options": [
-        "Ce sont trois noms différents pour la même implémentation.",
-        "`mutex` : exclusif (un seul thread). `shared_mutex` : lecture concurrente (plusieurs readers) OU écriture exclusive (un writer). `recursive_mutex` : le même thread peut le verrouiller plusieurs fois sans deadlock.",
-        "`shared_mutex` est partagé entre plusieurs processus.",
-        "`recursive_mutex` permet de verrouiller depuis plusieurs threads simultanément."
-      ],
-      "answer": "`mutex` : exclusif (un seul thread). `shared_mutex` : lecture concurrente (plusieurs readers) OU écriture exclusive (un writer). `recursive_mutex` : le même thread peut le verrouiller plusieurs fois sans deadlock.",
-      "explanation": "shared_mutex (readers-writer lock) : `shared_lock<shared_mutex>` pour la lecture (concurrent). `unique_lock<shared_mutex>` pour l'écriture (exclusif). Idéal pour une structure lue très souvent, rarement écrite (order book lu par 10 threads de stratégie, écrit par 1 thread de reception). recursive_mutex : utile quand une fonction verrouillée appelle une autre fonction qui verrouille le même mutex. Plus lent que mutex normal → éviter si possible (signe d'un design à revoir)."
-    },
-    {
-      "question": "[Optimisation] Qu'est-ce que l'inlining et pourquoi est-il important en low latency ?",
-      "options": [
-        "Inlining = inclure un header dans plusieurs fichiers .cpp.",
-        "Inlining = copier le corps d'une fonction à l'endroit de l'appel — élimine le overhead de l'appel (setup/teardown du stack frame), permet à l'optimiseur de voir le contexte complet.",
-        "Inlining est uniquement possible sur les fonctions template.",
-        "Inlining augmente les performances en réduisant la taille de l'exécutable."
-      ],
-      "answer": "Inlining = copier le corps d'une fonction à l'endroit de l'appel — élimine le overhead de l'appel (setup/teardown du stack frame), permet à l'optimiseur de voir le contexte complet.",
-      "explanation": "Appel de fonction non-inline : push arguments, call, setup stack frame, return = ~5-10 instructions overhead. Inliné : zéro overhead, et le compilateur peut further optimiser (constante folding, dead code elimination). `inline` : hint au compilateur (peut ignorer). `__attribute__((always_inline))` / `__forceinline` : force l'inline. `-O2` / `-O3` : le compilateur inline automatiquement les petites fonctions. Virtual functions ne peuvent pas être inlinées (call indirect). CRTP : appels inlinables = avantage majeur."
-    },
-    {
-      "question": "[Design] Comment implémenter un object pool en C++ pour un système low-latency ?",
-      "options": [
-        "Utiliser `std::allocator` directement.",
-        "Pré-allouer un tableau d'objets au démarrage. Maintenir une free list (stack de slots disponibles). `acquire()` : pop de la free list + placement new. `release()` : destructeur explicite + push sur la free list. Zéro malloc/free pendant la session.",
-        "Hériter de `std::allocator` et surcharger `allocate()`.",
-        "Utiliser `std::pmr::memory_resource` avec un buffer statique."
-      ],
-      "answer": "Pré-allouer un tableau d'objets au démarrage. Maintenir une free list (stack de slots disponibles). `acquire()` : pop de la free list + placement new. `release()` : destructeur explicite + push sur la free list. Zéro malloc/free pendant la session.",
-      "explanation": "Object pool pattern : `alignas(T) char storage[N * sizeof(T)]` — mémoire brute. `std::array<T*, N> free_list` — pointeurs vers les slots libres. `T* acquire(Args&&... args) { T* slot = free_list[--top]; return new(slot) T(std::forward<Args>(args)...); }`. `void release(T* obj) { obj->~T(); free_list[top++] = obj; }`. En AMM : pool de messages FIX (taille fixe connue), pool d'ordres, pool de quotes. Bénéfice : latence de acquire() = quelques nanosecondes vs malloc = plusieurs centaines."
-    },
-    {
-      "question": "[Compilation] Quelle est la différence entre compilation, linkage et chargement (loading) ?",
-      "options": [
-        "Ce sont trois termes pour la même étape dans le processus de build.",
-        "Compilation : .cpp → .o (code objet). Linkage : .o + libs → exécutable (résout les symboles externes). Loading : l'OS charge l'exécutable en mémoire et résout les libs dynamiques (.so).",
-        "Linkage est uniquement nécessaire pour les librairies dynamiques.",
-        "Le loading est effectué par le compilateur, pas l'OS."
-      ],
-      "answer": "Compilation : .cpp → .o (code objet). Linkage : .o + libs → exécutable (résout les symboles externes). Loading : l'OS charge l'exécutable en mémoire et résout les libs dynamiques (.so).",
-      "explanation": "Compilation (g++ -c) : preprocessing → AST → IR → code objet (.o). Chaque .cpp = un .o. Linkage (g++) : combine les .o, résout les symboles (définitions des fonctions déclarées ailleurs), produit l'exécutable. Static linkage (.a) : code inclus dans l'exe. Dynamic linkage (.so/.dll) : résolu au chargement ou à l'appel. ODR (One Definition Rule) : chaque symbole doit avoir exactement une définition dans le programme. Erreur 'undefined reference' = symbole non trouvé au linkage."
-    },
-    {
-      "question": "[Robustesse] Que fais-tu si ton engine C++ crash en pleine session de trading ?",
-      "options": [
-        "Redémarrer manuellement et espérer que ça repart.",
-        "Système de supervision (watchdog) redémarre l'engine automatiquement. Logs de crash analysés (coredump + `gdb`, `addr2line`). Position snapshot régulier pour recovery. Circuit breaker coupe les ordres en attente. Post-mortem: reproduire le bug en staging avec les logs.",
-        "Activer le mode debug et relancer en production.",
-        "Chercher le bug dans le code avant de redémarrer."
-      ],
-      "answer": "Système de supervision (watchdog) redémarre l'engine automatiquement. Logs de crash analysés (coredump + `gdb`, `addr2line`). Position snapshot régulier pour recovery. Circuit breaker coupe les ordres en attente. Post-mortem: reproduire le bug en staging avec les logs.",
-      "explanation": "Question de maturité production très fréquente. Watchdog : processus qui surveille l'engine et le redémarre si il ne répond plus. Core dump : `ulimit -c unlimited` pour activer. `gdb ./engine core` pour analyser la stack trace. `addr2line -e engine 0xADDR` pour retrouver la ligne de code. Position snapshot : sauvegarder l'état toutes les N secondes → recovery possible. Circuit breaker : annuler automatiquement les ordres en attente si l'engine ne confirme pas. Alertes ops : PagerDuty / Slack."
-    },
-    {
-      "question": "[const] Qu'est-ce que `constexpr` et en quoi diffère-t-il de `const` ?",
-      "options": [
-        "constexpr et const sont identiques depuis C++11.",
-        "`const` : valeur immuable, initialisée au runtime possible. `constexpr` : valeur garantie évaluée à la compilation — permet des tailles de tableaux, template parameters, et optimisations zero-cost.",
-        "`constexpr` est uniquement pour les fonctions, `const` pour les variables.",
-        "`constexpr` remplace `#define` uniquement pour les entiers."
-      ],
-      "answer": "`const` : valeur immuable, initialisée au runtime possible. `constexpr` : valeur garantie évaluée à la compilation — permet des tailles de tableaux, template parameters, et optimisations zero-cost.",
-      "explanation": "`const int n = getSize();` : n est const mais initialisé au runtime. `constexpr int N = 1024;` : N est évalué à la compilation. `std::array<Quote, N>` : N doit être constexpr. `constexpr double PI = 3.14159;` vs `#define PI 3.14159` : constexpr est typé, scopé, debuggable. `constexpr` function : peut être évaluée à la compile si les arguments sont constexpr. En AMM : tailles des pools, ring buffers, constantes de pricing — tout en constexpr pour des allocations stack et zéro overhead."
-    },
-    {
-      "question": "[STL] Quelle est la différence entre `std::array` et `std::vector` ?",
-      "options": [
-        "std::array est plus lent car il vérifie les bounds automatiquement.",
-        "`std::array<T,N>` : taille fixe connue à la compilation, alloué sur la stack (ou inline), zéro overhead. `std::vector<T>` : taille dynamique, alloué sur le heap, gestion de capacité automatique.",
-        "std::vector est toujours préférable à std::array.",
-        "std::array ne supporte pas les itérateurs STL."
-      ],
-      "answer": "`std::array<T,N>` : taille fixe connue à la compilation, alloué sur la stack (ou inline), zéro overhead. `std::vector<T>` : taille dynamique, alloué sur le heap, gestion de capacité automatique.",
-      "explanation": "std::array<Quote, 256> : N connu à la compile. Mémoire contiguë sur la stack. Pas d'allocation dynamique. Taille immuable. std::vector<Quote> : peut grandir. Heap allocation. Meilleur pour les tailles inconnues à la compilation. En AMM low latency : `std::array<Level, 10> bid_levels` pour les 10 meilleurs niveaux du carnet (taille connue). `std::vector<Trade>` pour les trades de la journée (taille variable). std::array supporte les algorithmes STL et les range-for comme vector."
-    },
-    {
-      "question": "[Move] Qu'est-ce que la RVO (Return Value Optimization) ?",
-      "options": [
-        "Une optimisation qui réduit la valeur de retour d'une fonction.",
-        "Une optimisation du compilateur qui construit l'objet de retour directement dans l'espace de l'appelant — élimine la copie/move même sans std::move.",
-        "Une règle qui force l'utilisation de références pour les valeurs de retour.",
-        "RVO est uniquement applicable aux types primitifs (int, double)."
-      ],
-      "answer": "Une optimisation du compilateur qui construit l'objet de retour directement dans l'espace de l'appelant — élimine la copie/move même sans std::move.",
-      "explanation": "RVO (copy elision) : `vector<Quote> buildQuotes() { vector<Quote> v; ...; return v; }` — sans RVO : v est construit localement, puis move/copié vers l'appelant. Avec RVO (garanti depuis C++17 pour les cas simples) : v est construit directement dans l'espace de l'appelant = zéro copie/move. NRVO (Named RVO) : même chose pour les variables nommées — non garanti mais appliqué par la plupart des compilateurs. Conséquence : ne pas écrire `return std::move(v)` — ça désactive RVO en forçant un move."
-    }
   ],
   expert: [
     {
-      "options": [
-        "Ce sont trois syntaxes identiques pour initialiser un objet.",
-        "Par valeur `T()` : zero-init pour les scalaires + init par défaut. Par défaut : appel du constructeur sans arguments. Par liste `T{a, b}` : aggregate init ou std::initializer_list — interdit le narrowing.",
-        "L'initialisation par liste est uniquement pour les conteneurs STL.",
-        "Par valeur appelle le copy constructor, par liste appelle le move constructor."
+      question:
+        "[PIEGE — LSP subtil] Ce code semble correct. Quelle violation de Liskov se cache ici ?\n\nclass PriceRepository:\n    def get_prices(self, symbol: str,\n                  days: int) -> list[float]:\n        ...  # toujours list[float], jamais vide\n\nclass CachedPriceRepo(PriceRepository):\n    def get_prices(self, symbol: str,\n                  days: int = 30) -> list[float]:\n        if symbol in self._cache:\n            return self._cache[symbol]\n        return super().get_prices(symbol, days)",
+      options: [
+        "Il n'y a pas de violation — CachedPriceRepo retourne toujours list[float]",
+        "Le cache devrait être un argument du constructeur, pas un attribut d'instance",
+        "La valeur par défaut days=30 dans la sous-classe viole LSP car le parent n'a pas de défaut — un appel repo.get_prices('AAPL') est valide via la sous-classe mais pas via le parent",
+        "La sous-classe devrait surcharger __init__ pour initialiser le cache",
       ],
-      "answer": "Par valeur `T()` : zero-init pour les scalaires + init par défaut. Par défaut : appel du constructeur sans arguments. Par liste `T{a, b}` : aggregate init ou std::initializer_list — interdit le narrowing.",
-      "explanation": "`int x;` : valeur indéterminée (UB si lue). `int x = 0;` ou `int x{}` : zero-init. `int x(5.5)` : narrowing silencieux. `int x{5.5}` : erreur de compilation (narrowing interdit). `vector<int>{1,2,3}` → std::initializer_list. `Widget w{arg1, arg2}` → aggregate init si pas de constructeur user-defined. Préférer `{}` en C++ moderne — plus sûr (no narrowing), plus uniforme. Piège : `vector<int>(5)` = 5 zéros. `vector<int>{5}` = un élément valant 5."
-     },
-     {
-      "question": "[C++] Pourquoi C++ et pas Python pour le moteur de trading en production ?",
-      "options": [
-        "Python n'existe pas sur Linux.",
-        "C++ compilé = exécution directe, latence microseconde prévisible, contrôle mémoire total, pas de GIL. Python = overhead interpréteur, GIL limite le parallélisme CPU, GC imprévisible.",
-        "Python ne supporte pas le multithreading.",
-        "C++ est plus facile à déboguer que Python."
-      ],
-      "answer": "C++ compilé = exécution directe, latence microseconde prévisible, contrôle mémoire total, pas de GIL. Python = overhead interpréteur, GIL limite le parallélisme CPU, GC imprévisible.",
-      "explanation": "Question piège classique en entretien AMM. C++ hot path : réception FIX → parsing → décision → envoi ordre en < 10µs. Python ne peut pas atteindre ces latences (interpréteur Python = ~100x plus lent sur les boucles). GIL Python empêche le vrai parallélisme CPU. GC Python = pauses imprévisibles. Répartition réelle : C++ pour tout ce qui est temps réel. Python pour backtesting, analyse, reporting, scripts de configuration."
+      answer:
+        "La valeur par défaut days=30 dans la sous-classe viole LSP car le parent n'a pas de défaut — un appel repo.get_prices('AAPL') est valide via la sous-classe mais pas via le parent",
+      explanation:
+        "Piège subtil : la sous-classe ajoute days=30 comme défaut, permettant repo.get_prices('AAPL') sans le second argument. Si du code polymorphique appelle get_prices(symbol) via une référence typée PriceRepository, il fonctionne seulement avec CachedPriceRepo — comportement non garanti par le parent. LSP exige que la sous-classe ne soit PAS plus permissive dans son interface.",
     },
     {
-      "question": "[C++ Trading] Comment diagnostiquer un programme C++ qui consomme trop de CPU en production ?",
-      "options": [
-        "Ajouter des `printf` partout dans le code.",
-        "Utiliser `perf stat`/`perf record` + `perf report` pour profiler les fonctions les plus coûteuses, ou `valgrind --callgrind` pour l'analyse de cache.",
-        "Compiler en mode Debug et relancer en production.",
-        "Ajouter `sleep(1)` pour réduire la consommation CPU."
+      question:
+        "[PIEGE — default mutable héritage] Quel est le bug potentiel dans cette hiérarchie ?\n\n@dataclass\nclass BasePortfolio:\n    positions: list[str] = field(default_factory=list)\n\n@dataclass\nclass ManagedPortfolio(BasePortfolio):\n    strategy: str = 'passive'\n    # hérite positions",
+      options: [
+        "Il n'y a pas de bug — field(default_factory=list) est correct",
+        "ManagedPortfolio devrait redéfinir positions avec son propre default_factory",
+        "Le vrai bug : si on ajoute positions: list = [] dans ManagedPortfolio sans field(), cela override le default_factory du parent et réintroduit le bug de partage",
+        "L'héritage de dataclasses ne supporte pas field(default_factory=list)",
       ],
-      "answer": "Utiliser `perf stat`/`perf record` + `perf report` pour profiler les fonctions les plus coûteuses, ou `valgrind --callgrind` pour l'analyse de cache.",
-      "explanation": "Profiling C++ en production : `perf stat ./trading_engine` donne les statistiques globales (instructions, cache misses, branches). `perf record -g ./engine && perf report` : flame graph des fonctions les plus coûteuses. `valgrind --tool=callgrind --cache-sim=yes` : analyse les cache miss. `gprof` : profiling basique avec instrumentation à la compilation. En trading : identifier si le bottleneck est dans le parsing des messages FIX, le calcul de pricing, ou les I/O réseau."
+      answer:
+        "Le vrai bug : si on ajoute positions: list = [] dans ManagedPortfolio sans field(), cela override le default_factory du parent et réintroduit le bug de partage",
+      explanation:
+        "Piège héritage dataclass : si un développeur 'améliore' ManagedPortfolio en réécrivant positions: list = [], cela override le field() du parent et tous les ManagedPortfolio partagent la même liste. Le code de base est correct — le piège est que l'erreur peut être introduite plus tard par quelqu'un qui ne sait pas que BasePortfolio a déjà le bon défaut.",
     },
     {
-      "question": "[C++ Memory] Qu'est-ce qu'un memory leak et comment le détecter ?",
-      "options": [
-        "Un bug qui fait que le programme écrit en dehors des bornes d'un tableau.",
-        "Mémoire allouée dynamiquement (new/malloc) qui n'est jamais libérée (delete/free) — la mémoire du processus croît indéfiniment. Détection : valgrind --leak-check=full ou AddressSanitizer.",
-        "Un bug qui fait que deux pointeurs pointent vers la même zone mémoire.",
-        "Un buffer trop petit pour contenir les données reçues."
+      question:
+        "[PIEGE — is-a vs has-a] Cette hiérarchie est-elle correcte pour modéliser un HedgedPortfolio ?\n\nclass Portfolio:\n    def add_position(self, pos): ...\n    def get_value(self) -> float: ...\n\nclass HedgedPortfolio(Portfolio):\n    def add_position(self, pos):\n        super().add_position(pos)\n        super().add_position(self._hedge(pos))  # hedge auto",
+      options: [
+        "Oui — HedgedPortfolio IS-A Portfolio, l'héritage est justifié",
+        "Oui — surcharger add_position est une bonne pratique pour étendre le comportement",
+        "Non — HedgedPortfolio change le comportement de add_position de manière inattendue : code qui appelle add_position sur un Portfolio attend 1 position ajoutée, pas 2 — violation LSP",
+        "Non — le problème est uniquement que _hedge() n'est pas définie dans la base",
       ],
-      "answer": "Mémoire allouée dynamiquement (new/malloc) qui n'est jamais libérée (delete/free) — la mémoire du processus croît indéfiniment. Détection : valgrind --leak-check=full ou AddressSanitizer.",
-      "explanation": "Memory leak : `void tick() { auto* msg = new Message(data); process(msg); /* oubli delete msg */ }` appelé des milliers de fois/seconde → OOM (Out Of Memory) progressif. Détection : valgrind --leak-check=full trace chaque allocation non libérée. AddressSanitizer (ASan) : `-fsanitize=address` à la compilation, détecte au runtime avec overhead. En production : smart pointers (unique_ptr) éliminent les leaks par design — RAII garantit la libération."
+      answer:
+        "Non — HedgedPortfolio change le comportement de add_position de manière inattendue : code qui appelle add_position sur un Portfolio attend 1 position ajoutée, pas 2 — violation LSP",
+      explanation:
+        "Violation LSP subtile : tout code qui utilise Portfolio.add_position() attend qu'une seule position soit ajoutée. HedgedPortfolio en ajoute silencieusement 2. Si du code boucle sur [add_position(p) for p in positions] avec un HedgedPortfolio, les positions sont doublées. Solution : HedgedPortfolio HAS-A Portfolio (composition) + add_hedged_position() distinct.",
     },
     {
-      "question": "[C++ Undefined Behavior] Parmi ces opérations, laquelle est un undefined behavior en C++ ?",
-      "options": [
-        "Déclarer deux variables avec le même nom dans des scopes différents.",
-        "Déréférencer un pointeur null (`*ptr` quand ptr == nullptr) ou accéder à un index hors bornes d'un array (`arr[size]`).",
-        "Appeler une méthode virtuelle dans le destructeur.",
-        "Créer un objet sur le stack dans une fonction qui retourne void."
+      question:
+        "[PIEGE — Protocol silencieux] Quel bug silencieux se cache dans ce code au runtime ?\n\nfrom typing import Protocol\n\nclass DataSource(Protocol):\n    def fetch(self, symbol: str) -> list[float]: ...\n    def get_metadata(self, symbol: str) -> dict: ...\n\nclass CSVDataSource:\n    def fetch(self, symbol: str) -> list[float]:\n        return [100.0, 101.0, 99.5]\n    # get_metadata() manquante !",
+      options: [
+        "Python lève une TypeError à l'import si get_metadata() est absente",
+        "Python lève une TypeError à l'instantiation de CSVDataSource",
+        "mypy détecte toujours cette erreur au moment de la définition de classe",
+        "Aucune erreur à l'instanciation ni à l'annotation — l'erreur n'apparaît qu'au runtime si get_metadata() est appelée sur un objet CSVDataSource typé DataSource",
       ],
-      "answer": "Déréférencer un pointeur null (`*ptr` quand ptr == nullptr) ou accéder à un index hors bornes d'un array (`arr[size]`).",
-      "explanation": "Undefined behavior (UB) en C++ = le standard ne définit pas le comportement. Le programme peut crasher, retourner des données corrompues, ou sembler fonctionner (le pire cas). UB classiques : déréférence nullptr, accès hors bornes, integer overflow signé, data race, utilisation après free. En trading : UB intermittent peut corrompre les prix ou les positions sans crash visible — catastrophique. Détecter avec UBSan (`-fsanitize=undefined`)."
+      answer:
+        "Aucune erreur à l'instanciation ni à l'annotation — l'erreur n'apparaît qu'au runtime si get_metadata() est appelée sur un objet CSVDataSource typé DataSource",
+      explanation:
+        "Piège Protocol : contrairement à ABC, Protocol ne vérifie PAS l'implémentation des méthodes à la construction. source: DataSource = CSVDataSource() passe sans erreur. L'erreur arrive au runtime uniquement si source.get_metadata('AAPL') est appelée. Solution : activer mypy avec --strict pour détecter les violations Protocol statiquement.",
     },
-
-  ]
+    {
+      question:
+        "[PIEGE — DRY mal appliqué] Ce refactoring DRY est-il toujours une amélioration ?\n\n# Avant\ndef validate_trade_buy(trade):\n    assert trade.qty > 0\n    assert trade.price > 0\n    assert trade.symbol in ALLOWED_SYMBOLS\n\ndef validate_trade_sell(trade):\n    assert trade.qty > 0\n    assert trade.price > 0\n    assert trade.symbol in ALLOWED_SYMBOLS\n\n# Apres (DRY 'corrige')\ndef validate_trade(trade, side):\n    assert trade.qty > 0\n    if side == 'buy':\n        assert trade.price > 0\n    elif side == 'sell':\n        assert trade.price > 0\n    assert trade.symbol in ALLOWED_SYMBOLS",
+      options: [
+        "Oui — moins de code = meilleur, toujours éliminer la duplication",
+        "Oui — la version after est plus maintenable car un seul point de modification",
+        "Non — la 'correction' DRY n'a fait qu'introduire un paramètre side inutile avec des if/elif redondants — les deux fonctions originales étaient identiques donc à fusionner, mais pas de cette manière",
+        "Non — on ne devrait jamais refactoriser des fonctions de validation",
+      ],
+      answer:
+        "Non — la 'correction' DRY n'a fait qu'introduire un paramètre side inutile avec des if/elif redondants — les deux fonctions originales étaient identiques donc à fusionner, mais pas de cette manière",
+      explanation:
+        "Piège DRY : les deux fonctions sont identiques → les fusionner en validate_trade(trade) est correct. Mais la version 'après' ajoute un paramètre side inutile avec des if/elif qui font exactement la même chose — le code est plus compliqué sans gain. La bonne correction : def validate_trade(trade): assert trade.qty > 0 and trade.price > 0 and trade.symbol in ALLOWED_SYMBOLS.",
+    },
+    {
+      question:
+        "[PIEGE — __slots__ + héritage] Quel est le comportement inattendu de ce code ?\n\nclass Tick:\n    __slots__ = ('symbol', 'price', 'volume')\n    def __init__(self, sym, p, v):\n        self.symbol=sym; self.price=p; self.volume=v\n\nclass EnrichedTick(Tick):\n    # Pas de __slots__ défini\n    def __init__(self, sym, p, v, sector):\n        super().__init__(sym, p, v)\n        self.sector = sector",
+      options: [
+        "EnrichedTick hérite des __slots__ de Tick — tout fonctionne comme prévu",
+        "EnrichedTick ne peut pas ajouter d'attributs car __slots__ est hérité et verrouillé",
+        "EnrichedTick a un __dict__ car elle ne définit pas ses propres __slots__ — elle peut avoir des attributs dynamiques MAIS les instances ont à la fois __slots__ (de Tick) ET __dict__ (d'EnrichedTick), annulant l'économie mémoire de __slots__",
+        "Python lève une TypeError à la définition de EnrichedTick car on ne peut pas hériter d'une classe avec __slots__",
+      ],
+      answer:
+        "EnrichedTick a un __dict__ car elle ne définit pas ses propres __slots__ — elle peut avoir des attributs dynamiques MAIS les instances ont à la fois __slots__ (de Tick) ET __dict__ (d'EnrichedTick), annulant l'économie mémoire de __slots__",
+      explanation:
+        "Piège __slots__ + héritage : si la sous-classe ne définit pas ses propres __slots__, elle obtient un __dict__ automatiquement. Les instances ont alors les slots du parent ET un dict — l'économie mémoire de __slots__ est annulée. Solution : class EnrichedTick(Tick): __slots__ = ('sector',) — seul le nouveau champ dans les slots de la sous-classe.",
+    },
+    {
+      question:
+        "[PIEGE — frozen + dict mutable] Ce dataclass frozen est-il vraiment immutable ?\n\n@dataclass(frozen=True)\nclass Portfolio:\n    name: str\n    positions: dict[str, int]  # symbol -> quantity\n\np = Portfolio('Fund A', {'AAPL': 100, 'GOOGL': 50})\np.positions['TSLA'] = 200  # ?",
+      options: [
+        "Lève une FrozenInstanceError — frozen=True interdit toute modification",
+        "Lève un TypeError car un dict ne peut pas être dans un frozen dataclass",
+        "Le dict devient automatiquement immutable quand il est dans un frozen dataclass",
+        "Fonctionne sans erreur — le dict est mutable même si Portfolio est frozen",
+      ],
+      answer:
+        "Fonctionne sans erreur — le dict est mutable même si Portfolio est frozen",
+      explanation:
+        "Piège frozen : frozen=True empêche uniquement la réassignation des attributs (p.positions = {} → FrozenInstanceError). Mais le contenu d'un dict reste mutable — p.positions['TSLA'] = 200 fonctionne. Solution : utiliser types.MappingProxyType({'AAPL': 100}) pour un dict vraiment en lecture seule, ou convertir en tuple[tuple[str,int],...].",
+    },
+    {
+      question:
+        "[PIEGE — composition vs héritage ambigu] Lequel de ces cas justifie réellement l'héritage ?",
+      options: [
+        "Un LoggedOrderBook qui loggue chaque ordre — logging est orthogonal à OrderBook",
+        "Un EquityStrategy(TradingStrategy) qui implémente compute_signals() — is-a réel, comportement partagé via Template Method dans TradingStrategy",
+        "Un RealTimePortfolio(Portfolio) qui met à jour les prix en temps réel — feature orthogonale, HAS-A DataStream",
+        "Un CachedBacktester(Backtester) qui cache les résultats — caching est orthogonal",
+      ],
+      answer:
+        "Un EquityStrategy(TradingStrategy) qui implémente compute_signals() — is-a réel, comportement partagé via Template Method dans TradingStrategy",
+      explanation:
+        "Seul EquityStrategy justifie l'héritage : is-a réel (une EquityStrategy EST une TradingStrategy), comportement partagé massif via Template Method (validate, normalize, format partagés), et la hiérarchie n'explosera pas. Les autres cas (logging, real-time updates, caching) sont des features orthogonales → composition avec enable_log, DataStream injecté, cache injecté.",
+    },
+  ],
 };
+
 
 const renderInlineTokens = (text, keyPrefix) => {
   const regex = /(\*\*.*?\*\*|`.*?`|\*.*?\*)/g;
@@ -549,9 +459,14 @@ const renderInlineTokens = (text, keyPrefix) => {
     if (part.startsWith("`") && part.endsWith("`")) {
       return (
         <code key={`${keyPrefix}-${idx}`} style={{
-          display: 'inline', backgroundColor: '#eef2f7', padding: '1px 5px',
-          borderRadius: '3px', fontFamily: 'monospace', color: '#e01e5a',
-          fontWeight: 'bold', fontSize: '13px'
+          display: 'inline',
+          backgroundColor: '#eef2f7',
+          padding: '1px 5px',
+          borderRadius: '3px',
+          fontFamily: 'monospace',
+          color: '#e01e5a',
+          fontWeight: 'bold',
+          fontSize: '13px'
         }}>
           {part.slice(1, -1)}
         </code>
@@ -567,16 +482,24 @@ const renderInlineTokens = (text, keyPrefix) => {
 const renderFormattedText = (text) => {
   if (!text) return null;
   let cleanText = text
-    .replace(/\r?\n- /g, " ◆ ").replace(/\r?\n• /g, " ◆ ").replace(/\r?\n/g, " ")
-    .replace(/\.-\s*\*\*/g, " ◆ **").replace(/-\s*\*\*/g, " ◆ **");
+    .replace(/\r?\n- /g, " ◆ ")
+    .replace(/\r?\n• /g, " ◆ ")
+    .replace(/\r?\n/g, " ")
+    .replace(/\.-\s*\*\*/g, " ◆ **")
+    .replace(/-\s*\*\*/g, " ◆ **");
+
   if (cleanText.startsWith(" ◆ ")) cleanText = cleanText.substring(3);
   if (cleanText.startsWith("- ")) cleanText = cleanText.substring(2);
+
   const segments = cleanText.split(" ◆ ");
+
   return (
     <span style={{ display: 'block', lineHeight: '1.7' }}>
       {segments.map((segment, segIdx) => (
         <span key={segIdx} style={{ display: 'block', marginBottom: segIdx < segments.length - 1 ? '6px' : '0' }}>
-          {segIdx > 0 && <span style={{ color: '#1a73e8', fontWeight: 'bold', marginRight: '5px' }}>◆</span>}
+          {segIdx > 0 && (
+            <span style={{ color: '#1a73e8', fontWeight: 'bold', marginRight: '5px' }}>◆</span>
+          )}
           {renderInlineTokens(segment, `seg-${segIdx}`)}
         </span>
       ))}
@@ -617,13 +540,14 @@ const Results = ({ scores }) => {
       <h3>🎯 Score : {totalScore} / {totalQuestions}</h3>
       <p>✅ Moyen : {scores.moyen}/{questions.moyen.length} | ✅ Avancé : {scores.avance}/{questions.avance.length} | ✅ Expert : {scores.expert}/{questions.expert.length}</p>
       {totalScore >= Math.floor(totalQuestions * 0.6)
-        ? <h3 className="success">🚀 Infrastructure REST API CIB maîtrisée — Mission MAPS prête !</h3>
-        : <p className="fail">📚 Révisez l'API REST, le multithreading C# et l'architecture microservices CIB.</p>}
+        ? <h3 className="success">🚀 Mission CIB Pricing Pre-Trade maîtrisée !</h3>
+        : <p className="fail">📚 Révisez C#, dérivés actions et architecture CIB.</p>
+      }
     </div>
   );
 };
 
-const CIBRestApiInfraQCM = () => {
+const Page6_TechInterview = () => {
   const [level, setLevel] = useState("basic");
   const [currentSlide, setCurrentSlide] = useState(0);
   const [currentQuestion, setCurrentQuestion] = useState(0);
@@ -634,19 +558,26 @@ const CIBRestApiInfraQCM = () => {
 
   const handleNextQuestion = useCallback(() => {
     const qs = questions[level];
-    if (currentQuestion + 1 < qs.length) { setCurrentQuestion(q => q + 1); setTimeLeft(25); setMessage(""); }
-    else {
-      if (level === "moyen") setLevel("avance");
-      else if (level === "avance") setLevel("expert");
-      else setShowResult(true);
-      setCurrentQuestion(0); setTimeLeft(25); setMessage("");
+    if (currentQuestion + 1 < qs.length) {
+      setCurrentQuestion(q => q + 1);
+      setTimeLeft(25);
+      setMessage("");
+    } else {
+      if (level === "moyen") { setLevel("avance"); }
+      else if (level === "avance") { setLevel("expert"); }
+      else { setShowResult(true); }
+      setCurrentQuestion(0);
+      setTimeLeft(25);
+      setMessage("");
     }
   }, [level, currentQuestion]);;
 
   useEffect(() => {
     if (level !== "basic" && !showResult && !message) {
-      if (timeLeft > 0) { const t = setTimeout(() => setTimeLeft(t2 => t2 - 1), 1000); return () => clearTimeout(t); }
-      else handleNextQuestion();
+      if (timeLeft > 0) {
+        const t = setTimeout(() => setTimeLeft(t2 => t2 - 1), 1000);
+        return () => clearTimeout(t);
+      } else handleNextQuestion();
     }
   }, [timeLeft, level, showResult, message, handleNextQuestion]);
 
@@ -655,9 +586,12 @@ const CIBRestApiInfraQCM = () => {
       const i = setInterval(() => {
         setCurrentSlide(prev => {
           if (prev + 1 < basicSlides.length) return prev + 1;
-          setLevel("moyen"); setCurrentQuestion(0); setTimeLeft(25); return 0;
+          setLevel("moyen");
+          setCurrentQuestion(0);
+          setTimeLeft(25);
+          return 0;
         });
-      }, 20000);
+      }, 25000);
       return () => clearInterval(i);
     }
   }, [level, showResult]);
@@ -665,8 +599,12 @@ const CIBRestApiInfraQCM = () => {
   const handleAnswerClick = (option) => {
     if (message) return;
     const current = questions[level][currentQuestion];
-    if (option === current.answer) { setScores(p => ({ ...p, [level]: p[level] + 1 })); setMessage("✅ Correct !"); }
-    else { setMessage(`❌ ${current.answer}\n\nℹ️ ${current.explanation}`); }
+    if (option === current.answer) {
+      setScores(p => ({ ...p, [level]: p[level] + 1 }));
+      setMessage("✅ Correct !");
+    } else {
+      setMessage(`❌ ${current.answer}\n\nℹ️ ${current.explanation}`);
+    }
     setTimeout(handleNextQuestion, 4000);
   };
 
@@ -675,13 +613,21 @@ const CIBRestApiInfraQCM = () => {
       {showResult ? <Results scores={scores} /> : (
         <div>
           <h4 className="subtitle" style={{ fontSize: '10px', margin: '0 0 6px 0' }}>
-            CIB REST API & Infrastructure 🔹 {level === "basic"
+            CIB Pricing Pre-Trade 🔹 {level === "basic"
               ? `Slide ${currentSlide + 1}/${basicSlides.length}`
-              : `QCM ${level.toUpperCase()} — Q${currentQuestion + 1}/${questions[level].length}`}
+              : `QCM ${level.toUpperCase()} — Q${currentQuestion + 1}/${questions[level].length}`
+            }
           </h4>
-          {level === "basic"
-            ? <Flashcard slide={basicSlides[currentSlide]} />
-            : <QuestionCard question={questions[level][currentQuestion].question} options={questions[level][currentQuestion].options} onAnswerClick={handleAnswerClick} timeLeft={timeLeft} />}
+          {level === "basic" ? (
+            <Flashcard slide={basicSlides[currentSlide]} />
+          ) : (
+            <QuestionCard
+              question={questions[level][currentQuestion].question}
+              options={questions[level][currentQuestion].options}
+              onAnswerClick={handleAnswerClick}
+              timeLeft={timeLeft}
+            />
+          )}
           {message && <p className="message" style={{ whiteSpace: 'pre-wrap', marginTop: '8px' }}>{message}</p>}
         </div>
       )}
@@ -689,4 +635,6 @@ const CIBRestApiInfraQCM = () => {
   );
 };
 
-export default CIBRestApiInfraQCM;
+export default Page6_TechInterview;
+
+

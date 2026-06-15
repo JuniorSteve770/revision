@@ -6,44 +6,19 @@ import "./Page.css";
 
 const basicSlides = [
   {
-    question: "Les 5 questions Senior face au code legacy",
+    question: "Les 5 principes SOLID — vue d'ensemble",
     answer:
-      "◆ **Responsabilité** : peut-on résumer ce que fait cette fonction/classe en une phrase ? Non → God Object ◆ **Raisons de changer** : combien de raisons indépendantes de modifier ce code ? > 1 → violation SRP ◆ **Testabilité** : peut-on tester sans base de données ou API externe ? Non → injection de dépendance manquante ◆ **Duplication** : si une règle métier change, doit-on la modifier à plusieurs endroits ? → violation DRY ◆ **Extensibilité** : ajouter un nouveau type nécessite-t-il de modifier le code existant ? → violation Open/Closed ⚠️ En entretien : toujours lister les problèmes AVANT de coder — c'est le réflexe Senior",
+      "◆ **S - SRP** : Une classe = une seule raison de changer ◆ **O - OCP** : Ouvert à l'extension, fermé à la modification ◆ **L - LSP** : Un sous-type doit pouvoir remplacer son parent ◆ **I - ISP** : Ne pas forcer des méthodes inutiles ◆ **D - DIP** : Dépendre des abstractions, pas des implémentations ⚠️ Mnémotechnique : 'SOLID = code qui tient debout'",
   },
   {
-    question: "Code smells Finance — reconnaître instantanément",
+    question: "Les mots-clés Python par principe SOLID",
     answer:
-      "◆ **God Function** : `process_trade(data, db, logger, config, api)` — trop de responsabilités ◆ **Primitive Obsession** : `compute_pnl(float, float, int, str)` au lieu d'un objet `Trade` ◆ **Long Param List** : `backtest(data, start, end, capital, commission, slippage, bench, ...)` → dataclass `BacktestConfig` ◆ **DRY Violation** : `fetch_equity()` et `fetch_bond()` avec 90% de code identique → méthode commune `_fetch(endpoint)` ◆ **Magic Numbers** : `0.001`, `0.02`, `'USD'` sans nom explicite ⚠️ Commentaire explicatif = signal que le code est mal nommé — renommer plutôt que commenter",
+      "◆ **SRP** : `Validator`, `Repository`, `Service` — responsabilités séparées ◆ **OCP** : `ABC`, `@abstractmethod`, Strategy Pattern — ajouter sans modifier ◆ **LSP** : `super().__init__()`, héritage cohérent — remplacer sans casser ◆ **ISP** : `Protocol`, Mixin, interfaces multiples — petites interfaces spécialisées ◆ **DIP** : injection constructeur, `Mock`, dépendre de l'abstrait ⚠️ En entretien : savoir citer 2 mots-clés par principe",
   },
   {
-    question: "SRP — Single Responsibility Principle",
+    question: "Code smells SOLID — les reconnaître instantanément",
     answer:
-      "◆ **Principe** : une classe/fonction a une seule raison de changer ◆ **Mauvais** : `class TradeProcessor` qui valide + calcule + sauvegarde + envoie alertes ◆ **Bon** : `TradeValidator`, `PnlCalculator`, `TradeRepository`, `AlertService` — 4 classes, 4 responsabilités ◆ **Test rapide** : si on change la base de données, doit-on toucher à la logique de calcul ? Oui → SRP violé ◆ **Contexte finance** : `MarketDataPipeline` ne doit pas savoir comment les données sont stockées ⚠️ Une classe qui a besoin de 5 paramètres dans `__init__` est souvent un God Object déguisé",
-  },
-  {
-    question: "Open/Closed — Registry Pattern (clé en entretien)",
-    answer:
-      "◆ **Principe** : ouvert à l'extension, fermé à la modification ◆ **Mauvais** : `if strat=='mean_rev': ... elif strat=='momentum': ...` → ajouter = modifier ◆ **Bon** : `@StrategyFactory.register('mean_reversion')` — ajouter = créer une nouvelle classe + `@register` ◆ **Registry Pattern** : `_registry: dict[str, type] = {}` + `@classmethod register` + `create(**kwargs)` ◆ **Contexte finance** : nouveau type de commission → `@CommissionRegistry.register('crypto')` — zéro if/elif ⚠️ Zéro modification du code existant = zéro risque de régression",
-  },
-  {
-    question: "Dependency Inversion — Protocol vs ABC",
-    answer:
-      "◆ **Principe** : dépendre des abstractions, jamais des implémentations concrètes ◆ **Mauvais** : `self.db = PostgresDB()` dans `__init__` — impossible à tester ◆ **Bon** : `def __init__(self, repo: SignalRepository)` — injection de l'abstraction ◆ **Protocol** (duck typing) : pour les dépendances externes — aucun héritage requis ◆ **ABC** : pour les hiérarchies internes avec comportement partagé (Template Method) ⚠️ Protocol = testabilité maximale : `MockDataSource` n'a pas besoin d'hériter de quoi que ce soit",
-  },
-  {
-    question: "Héritage vs Composition — la règle d'or",
-    answer:
-      "◆ **Héritage** justifié : relation is-a réelle + comportement partagé massif (Template Method Pattern) ◆ **Composition** : features orthogonales — logging, cache, circuit breaker sur une stratégie ◆ **Mauvais** : `LoggedCachedStrategy(CachedStrategy(LoggedStrategy(BaseStrategy)))` — 3 niveaux pour 3 features ◆ **Bon** : `StrategyRunner(strategy, enable_log=True, enable_cache=True)` — composition libre ◆ **Contexte finance** : ajouter un circuit breaker à une `MeanReversionStrategy` → composition, pas héritage ⚠️ Si les features peuvent exister seules et sont indépendantes → composition systématiquement",
-  },
-  {
-    question: "Dataclass frozen=True — pattern clé ABC Arbitrage",
-    answer:
-      "◆ **frozen=True** : immutabilité + hashabilité + thread-safety implicite ◆ **replace()** : `replace(trade, net=trade.gross*(1-rate))` — copie modifiée, original inchangé ◆ **field(default_factory=list)** : jamais `tags: list = []` — bug partagé entre toutes les instances ◆ **__post_init__** + `object.__setattr__` : validation à la construction sur objet frozen ◆ **Hashable** : `{Instrument('AAPL','NASDAQ','equity'): 150.0}` — utilisable comme clé de dict ⚠️ frozen=True → partageable entre threads sans lock — argument fort en entretien Senior",
-  },
-  {
-    question: "Procédure de refactoring en 4 étapes",
-    answer:
-      "◆ **Étape 1 — Comprendre** : lire le code entier, identifier l'intention, ne rien toucher encore ◆ **Étape 2 — Identifier** : lister TOUS les code smells avec leur localisation précise ◆ **Étape 3 — Prioriser** : commencer par ce qui rend le code non-testable (dépendances hardcodées, état global) ◆ **Étape 4 — Refactoriser par petits pas** : une transformation à la fois, tester après chaque étape ◆ **Formule entretien** : 'Je commence par lister les problèmes avant de coder' ⚠️ Ne jamais refactoriser à l'aveugle — chaque changement doit avoir une justification explicite",
+      "◆ **SRP** : `class UserManager` qui valide + sauvegarde + envoie des emails ◆ **OCP** : cascade `if/elif` pour chaque nouveau type ◆ **LSP** : `raise NotImplementedError` dans une sous-classe ◆ **ISP** : interface `Worker` avec `eat()`, `sleep()`, `work()` pour un robot ◆ **DIP** : `self.db = PostgresDB()` en dur dans `__init__` ⚠️ Un code smell = un signal qu'un principe est violé",
   },
 ];
 
@@ -51,403 +26,786 @@ const questions = {
   moyen: [
     {
       question:
-        "[SRP] Quelle est la violation principale dans ce code de traitement d'ordres ?\n\ndef process_order(order, db, logger, config, api):\n    if order['qty'] <= 0: return None\n    price = api.get_price(order['symbol'])\n    pnl = (price - order['cost']) * order['qty']\n    db.execute('INSERT INTO trades VALUES (?)', (pnl,))\n    if pnl > config['alert_threshold']:\n        logger.warning(f'PnL spike: {pnl}')\n    return pnl",
+        "[SRP] Quelle phrase décrit le mieux le SRP ?",
       options: [
-        "La fonction ne gère pas les erreurs réseau de l'API",
-        "La fonction mélange validation, calcul, persistance et alertes — 4 responsabilités dans une seule fonction",
-        "Il faudrait utiliser une classe plutôt qu'une fonction",
-        "La fonction est trop courte pour être utile",
+        "Une classe doit avoir le moins de méthodes possible",
+        "Une classe ne doit dépendre que d'une seule autre classe",
+        "Une classe doit avoir une seule raison de changer",
+        "Une classe doit être immutable",
       ],
-      answer:
-        "La fonction mélange validation, calcul, persistance et alertes — 4 responsabilités dans une seule fonction",
+      answer: "Une classe doit avoir une seule raison de changer",
       explanation:
-        "SRP : une fonction/classe doit avoir une seule raison de changer. Ici, si on change la base de données, la logique de calcul, le format d'alerte, ou la règle de validation — on touche toujours à la même fonction. Solution : OrderValidator, PnlCalculator, TradeRepository, AlertService.",
+        "C'est la définition historique de Robert C. Martin. 'Une seule raison de changer' = une seule responsabilité.",
     },
     {
       question:
-        "[DRY] Quel problème identifies-tu immédiatement dans ce code de fetch de données marché ?\n\ndef fetch_equity(ticker, start, end):\n    url = f'https://api.market.com/equity/{ticker}?s={start}&e={end}'\n    r = requests.get(url, timeout=10)\n    r.raise_for_status()\n    return r.json()\n\ndef fetch_bond(isin, start, end):\n    url = f'https://api.market.com/bond/{isin}?s={start}&e={end}'\n    r = requests.get(url, timeout=10)\n    r.raise_for_status()\n    return r.json()",
+        "[SRP] Quel est le problème principal dans cette classe ?\n\nclass Invoice:\n    def calculate_total(self): ...\n    def save_to_db(self): ...\n    def print_invoice(self): ...",
       options: [
-        "Il manque une gestion du retry en cas d'échec réseau",
-        "Les paramètres start et end devraient être des datetime",
-        "Les deux fonctions dupliquent exactement la même logique HTTP — violation DRY : si timeout change, 2 endroits à modifier",
-        "Il faudrait une fonction asynchrone pour la performance",
+        "Trop de paramètres dans les méthodes",
+        "Absence d'interface abstraite",
+        "Pas d'injection de dépendances",
+        "Violation SRP : plusieurs responsabilités (calcul, persistance, affichage)",
       ],
-      answer:
-        "Les deux fonctions dupliquent exactement la même logique HTTP — violation DRY : si timeout change, 2 endroits à modifier",
+      answer: "Violation SRP : plusieurs responsabilités (calcul, persistance, affichage)",
       explanation:
-        "Violation DRY (Don't Repeat Yourself) : 90% du code est identique. Solution : extraire _fetch(endpoint, params) dans un MarketClient. Si le timeout passe de 10 à 5s, ou si on ajoute un retry, on ne modifie qu'un seul endroit.",
+        "La classe mélange calcul métier, persistance base de données et impression. Trois raisons distinctes de changer = violation SRP.",
     },
     {
       question:
-        "[Primitive Obsession] Quelle amélioration est la plus pertinente pour ce calcul de P&L ?\n\ndef compute_pnl(price_buy: float, price_sell: float,\n                quantity: int, currency: str,\n                commission_rate: float) -> float:\n    gross = (price_sell - price_buy) * quantity\n    return gross * (1 - commission_rate)",
+        "[SRP] Dans une architecture respectant le SRP, quel suffixe de classe indique une responsabilité unique ?",
       options: [
-        "Encapsuler dans des dataclasses : Price(value, currency) et Trade(buy, sell, qty, commission) — auto-documentation et validation à la construction",
-        "Ajouter un assert pour vérifier que price_sell > price_buy",
-        "Retourner un dict avec gross et net séparément",
-        "Renommer les paramètres pour plus de clarté",
+        "Manager, Handler, Processor",
+        "Helper, Utils, Common",
+        "Base, Abstract, Mixin",
+        "Validator, Repository, Service",
       ],
-      answer:
-        "Encapsuler dans des dataclasses : Price(value, currency) et Trade(buy, sell, qty, commission) — auto-documentation et validation à la construction",
+      answer: "Validator, Repository, Service",
       explanation:
-        "Primitive Obsession : passer 5 primitifs distincts est risqué (ordre des arguments, devise ignorée). Avec Trade(buy=Price(150,'USD'), sell=Price(155,'USD'), quantity=100), une erreur d'ordre est impossible et on peut valider price.value >= 0 dans __post_init__.",
+        "Ces suffixes indiquent des responsabilités spécifiques : validation, persistance, logique métier. 'Manager' est souvent un signe de violation.",
     },
     {
       question:
-        "[Long Param List] Comment améliorer la signature de cette fonction de backtest ?\n\ndef run_backtest(data, strategy, start_date, end_date,\n                 initial_capital, commission, slippage,\n                 benchmark, risk_free_rate, max_drawdown,\n                 rebalance_freq='monthly'):\n    ...",
+        "[SRP] Le SRP est violé si :",
       options: [
-        "Garder la signature telle quelle — plus de paramètres = plus flexible",
-        "Utiliser *args et **kwargs pour accepter n'importe quoi",
-        "Diviser en deux fonctions setup_backtest et execute_backtest",
-        "Regrouper les paramètres dans une dataclass BacktestConfig — signature claire, extensible sans casser l'API",
+        "Une classe a plus de 10 méthodes",
+        "Une classe change pour des raisons différentes (ex: changement DB ET changement règle métier)",
+        "Une classe utilise une autre classe",
+        "Une classe n'a pas de constructeur explicite",
       ],
-      answer:
-        "Regrouper les paramètres dans une dataclass BacktestConfig — signature claire, extensible sans casser l'API",
+      answer: "Une classe change pour des raisons différentes (ex: changement DB ET changement règle métier)",
       explanation:
-        "Long Parameter List : 11 paramètres rendent les appels illisibles et fragiles. BacktestConfig(start_date, end_date, initial_capital, commission=0.001, ...) avec des valeurs par défaut. Si on ajoute un paramètre, la signature de run_backtest(data, strategy, config) ne change pas.",
+        "C'est la définition : si la classe a plusieurs 'raisons de changer', elle viole SRP.",
     },
     {
       question:
-        "[default_factory] Quel bug silencieux contient cette dataclass ?\n\n@dataclass\nclass Portfolio:\n    name: str\n    positions: list = []\n    tags: dict = {}",
+        "[SRP] Laquelle de ces refactorisations respecte le SRP ?\n\n# Code initial\nclass Report:\n    def fetch_data(self): ...\n    def format_html(self): ...\n    def send_email(self): ...",
       options: [
-        "Il manque un __str__ pour l'affichage",
-        "Les types ne sont pas assez précis — utiliser list[str] et dict[str, float]",
-        "La liste et le dict sont partagés entre TOUTES les instances — modifier p1.positions modifie aussi p2.positions",
-        "@dataclass ne supporte pas les listes comme valeur par défaut",
+        "Une seule classe ReportService avec tout dedans",
+        "Report hérite de BaseReport",
+        "Report devient @dataclass",
+        "DataFetcher, HtmlFormatter, EmailSender — trois classes distinctes",
       ],
-      answer:
-        "La liste et le dict sont partagés entre TOUTES les instances — modifier p1.positions modifie aussi p2.positions",
+      answer: "DataFetcher, HtmlFormatter, EmailSender — trois classes distinctes",
       explanation:
-        "Bug classique Python : un objet mutable comme défaut est partagé entre toutes les instances. Portfolio('A').positions.append('AAPL') modifie aussi Portfolio('B').positions. Solution : positions: list = field(default_factory=list) — chaque instance obtient sa propre liste.",
+        "Chaque classe a une responsabilité unique : récupération, mise en forme, envoi. C'est l'essence du SRP.",
     },
     {
       question:
-        "[Open/Closed] Cette architecture de calcul de commission a un défaut majeur. Lequel ?\n\ndef compute_commission(instrument_type: str,\n                       notional: float) -> float:\n    if instrument_type == 'equity':\n        return notional * 0.001\n    elif instrument_type == 'fx':\n        return notional * 0.0002\n    elif instrument_type == 'option':\n        return notional * 0.005\n    # Ajouter 'crypto' → modifier ici",
+        "[SRP] 'Separation of concerns' signifie :",
       options: [
-        "Les taux de commission devraient être dans une base de données",
-        "Il faudrait lever une exception si instrument_type est inconnu",
-        "Chaque nouvel instrument nécessite de modifier cette fonction — violation Open/Closed — risque de régression",
-        "Les magic numbers 0.001, 0.0002, 0.005 devraient être des constantes nommées",
+        "Séparer les classes en différents fichiers",
+        "Éviter les méthodes privées",
+        "Utiliser des interfaces partout",
+        "Séparer les préoccupations métier, techniques et d'infrastructure",
       ],
-      answer:
-        "Chaque nouvel instrument nécessite de modifier cette fonction — violation Open/Closed — risque de régression",
+      answer: "Séparer les préoccupations métier, techniques et d'infrastructure",
       explanation:
-        "Violation Open/Closed : chaque nouvel instrument modifie du code existant → risque de régression. Solution : Registry Pattern avec @CommissionRegistry.register('crypto') — ajouter un instrument = créer une nouvelle classe, zéro modification du code existant.",
+        "C'est le principe architectural sous-jacent au SRP : chaque préoccupation (concern) est isolée.",
     },
     {
       question:
-        "[Dependency Inversion] Quel est le problème de testabilité dans ce SignalEngine ?\n\nclass SignalEngine:\n    def __init__(self):\n        self.db = PostgresDB(host='prod.db.com')\n        self.cache = RedisCache(host='redis.com')\n        self.api = BloombergAPI(key='prod-key')\n\n    def compute(self, symbol: str) -> float:\n        data = self.api.get(symbol)\n        sig = self._calc(data)\n        self.cache.set(symbol, sig)\n        self.db.save(symbol, sig)\n        return sig",
+        "[SRP] Lequel de ces rôles N'EST PAS une responsabilité unique acceptable ?",
       options: [
-        "Il faut ajouter un paramètre env pour switcher entre prod et dev",
-        "Le code est trop couplé aux implémentations concrètes — impossible à tester sans accès à PostgreSQL, Redis et Bloomberg",
-        "Il faudrait utiliser des variables d'environnement pour les hosts",
-        "La méthode compute est trop courte — elle devrait faire plus de choses",
+        "UserValidator",
+        "UserService",
+        "UserAndOrderManager",
+        "UserRepository",
       ],
-      answer:
-        "Le code est trop couplé aux implémentations concrètes — impossible à tester sans accès à PostgreSQL, Redis et Bloomberg",
+      answer: "UserAndOrderManager",
       explanation:
-        "Violation Dependency Inversion : PostgresDB('prod.db.com') hardcodé = impossible à tester unitairement. Solution : def __init__(self, source: DataSource, repo: SignalRepo) + injection. En test : SignalEngine(MockDataSource(), InMemoryRepo()) — zéro connexion externe.",
+        "Le nom suggère que la classe gère à la fois les utilisateurs ET les commandes → deux responsabilités.",
     },
     {
       question:
-        "[frozen=True] Pourquoi préférer une dataclass frozen pour un MarketSnapshot en contexte multi-thread ?",
+        "[SRP] Une classe Order (commande métier) doit :",
       options: [
-        "Pour que Python puisse l'optimiser en mémoire automatiquement",
-        "Parce que frozen=True rend l'objet sérialisable en JSON",
-        "Un objet frozen est immuable → plusieurs threads peuvent le partager sans lock — aucun thread ne peut modifier les données sous les pieds d'un autre",
-        "Pour activer la comparaison automatique entre snapshots",
+        "Calculer sa TVA ET sauvegarder en base",
+        "Envoyer une confirmation par email",
+        "Gérer les logs système",
+        "Uniquement représenter les données métier (prix, quantité, produit)",
       ],
-      answer:
-        "Un objet frozen est immuable → plusieurs threads peuvent le partager sans lock — aucun thread ne peut modifier les données sous les pieds d'un autre",
+      answer: "Uniquement représenter les données métier (prix, quantité, produit)",
       explanation:
-        "Thread-safety implicite : un objet mutable partagé entre threads nécessite un Lock pour chaque accès. Un objet frozen=True ne peut jamais être modifié → on peut le passer à 100 threads sans protection. Bonus : hashable → utilisable comme clé de cache {snapshot: result}.",
+        "Dans une architecture SRP, l'entité métier ne doit pas gérer la persistance ni les notifications.",
     },
     {
       question:
-        "[Composition] Un StrategyRunner doit avoir logging, cache et circuit breaker. Quelle approche est correcte ?",
+        "[SRP] Le SRP est un principe :",
       options: [
-        "Créer LoggedStrategy(CachedStrategy(CBStrategy(BaseStrategy))) — 3 niveaux d'héritage",
-        "Créer StrategyRunner(strategy, enable_log, enable_cache) qui compose les features — chaque feature testable indépendamment et combinable librement",
-        "Tout mettre dans BaseStrategy avec des flags enable_log, enable_cache, enable_cb",
-        "Créer une interface IResilientStrategy et forcer toutes les stratégies à l'implémenter",
+        "De performance mémoire",
+        "De sécurité des threads",
+        "D'héritage multiple",
+        "D'organisation des responsabilités pour faciliter la maintenance",
       ],
-      answer:
-        "Créer StrategyRunner(strategy, enable_log, enable_cache) qui compose les features — chaque feature testable indépendamment et combinable librement",
+      answer: "D'organisation des responsabilités pour faciliter la maintenance",
       explanation:
-        "Logging, cache et circuit breaker sont des features orthogonales — aucune relation is-a avec la stratégie. La composition libère les combinaisons : log=True, cache=False ou log=False, cache=True, cb=True. L'héritage multiplié crée des classes impossibles à tester seules.",
+        "Le SRP vise à rendre le code plus maintenable en isolant ce qui change pour des raisons différentes.",
     },
     {
       question:
-        "[replace()] Comment modifier proprement le prix d'achat d'un Trade frozen sans muter l'objet ?\n\n@dataclass(frozen=True)\nclass Trade:\n    symbol: str\n    buy_price: float\n    quantity: int",
+        "[SRP] Quelle phrase est fausse concernant le SRP ?",
       options: [
-        "trade.buy_price = new_price — assignation directe",
-        "new_trade = replace(trade, buy_price=new_price) — retourne une nouvelle instance, original inchangé",
-        "trade.__dict__['buy_price'] = new_price — accès au dict interne",
-        "object.__setattr__(trade, 'buy_price', new_price) — contourne la restriction",
+        "Une classe avec 3 méthodes peut respecter le SRP",
+        "SRP réduit l'impact des changements",
+        "SRP facilite les tests unitaires",
+        "SRP interdit d'avoir plusieurs méthodes publiques",
       ],
-      answer:
-        "new_trade = replace(trade, buy_price=new_price) — retourne une nouvelle instance, original inchangé",
+      answer: "SRP interdit d'avoir plusieurs méthodes publiques",
       explanation:
-        "replace() du module dataclasses crée une copie avec les champs modifiés — l'original est inchangé. C'est l'immutable update pattern : l'historique des états est préservé, thread-safe, et les autres threads qui ont une référence à l'ancien objet ne sont pas affectés.",
-    },
-  ],
-  avance: [
-    {
-      question:
-        "[Open/Closed avancé] Comment implémenter un Registry Pattern pour les stratégies de trading ?",
-      options: [
-        "Un dict global STRATEGIES = {'mean_rev': MeanReversionStrategy} modifiable directement",
-        "Un switch/case sur le nom de la stratégie dans Backtester.run()",
-        "Une classe StrategyFactory avec @classmethod register(name) retournant un décorateur, et create(name, **kwargs) pour instancier — zéro if/elif",
-        "Une liste de tuples [(name, class), ...] parcourue à chaque instanciation",
-      ],
-      answer:
-        "Une classe StrategyFactory avec @classmethod register(name) retournant un décorateur, et create(name, **kwargs) pour instancier — zéro if/elif",
-      explanation:
-        "@StrategyFactory.register('mean_reversion') décore la classe et l'ajoute au _registry. create('mean_reversion', window=20) instancie sans if/elif. Ajouter 'pairs_trading' = créer PairsTradingStrategy + @register — aucune modification du Backtester ni du Factory.",
+        "Une classe peut avoir plusieurs méthodes publiques tant qu'elles servent la même responsabilité.",
     },
     {
       question:
-        "[Liskov] Quelle implémentation de CachedDataSource viole le principe de substitution de Liskov ?\n\nclass DataSource:\n    def fetch(self, symbol: str) -> list[float]:\n        ...  # garantit toujours list[float]",
+        "[SRP] Refactoriser selon SRP rend le code :",
       options: [
-        "Une CachedDataSource.fetch() qui retourne None si le symbole n'est pas en cache — le contrat parent garantit list[float]",
-        "Une CachedDataSource qui retourne list[float] depuis le cache ou depuis l'API si absent",
-        "Une CachedDataSource qui loggue chaque appel avant de déléguer au parent",
-        "Une CachedDataSource qui lève une CacheExpiredException au lieu d'une ConnectionError",
+        "Plus long mais plus sûr",
+        "Plus lent à l'exécution",
+        "Impossible à étendre",
+        "Plus testable et plus lisible",
       ],
-      answer:
-        "Une CachedDataSource.fetch() qui retourne None si le symbole n'est pas en cache — le contrat parent garantit list[float]",
+      answer: "Plus testable et plus lisible",
       explanation:
-        "LSP : un sous-type doit pouvoir remplacer son parent sans briser le comportement. DataSource.fetch() garantit toujours list[float]. Si CachedDataSource.fetch() retourne None, tout le code qui appelle .fetch() peut planter sans avoir changé. Solution : retourner self._inner.fetch() si absent du cache.",
+        "Les bénéfices concrets du SRP sont une meilleure testabilité et une lisibilité accrue.",
     },
     {
       question:
-        "[Protocol vs ABC] Dans quel cas utiliser Protocol plutôt que ABC pour une DataSource ?",
+        "[SRP] Le SRP prépare naturellement à quel autre principe SOLID ?",
       options: [
-        "Quand on veut forcer l'implémentation d'une méthode _validate() dans toutes les sous-classes",
-        "Quand on veut partager du comportement commun entre plusieurs implémentations via des méthodes concrètes",
-        "Protocol et ABC sont interchangeables — c'est une question de style",
-        "Pour les dépendances externes (Bloomberg, Reuters) et les mocks de test — aucun héritage requis, duck typing, BloombergClient peut satisfaire le Protocol sans l'importer",
+        "Uniquement LSP",
+        "Uniquement OCP",
+        "Aucun",
+        "Tous, car chaque principe s'applique à une classe à responsabilité unique",
       ],
-      answer:
-        "Pour les dépendances externes (Bloomberg, Reuters) et les mocks de test — aucun héritage requis, duck typing, BloombergClient peut satisfaire le Protocol sans l'importer",
+      answer: "Tous, car chaque principe s'applique à une classe à responsabilité unique",
       explanation:
-        "Protocol = duck typing : une classe satisfait le Protocol si elle a les bonnes méthodes, sans hériter. Parfait pour les dépendances externes que tu ne contrôles pas (SDK Bloomberg). ABC = pour les hiérarchies internes où tu veux partager du comportement via des méthodes concrètes (Template Method). En test : MockDataSource sans héritage.",
+        "SRP est souvent la première étape avant d'appliquer OCP, LSP, ISP, DIP.",
     },
     {
       question:
-        "[Template Method] Quelle est la structure correcte d'une BaseStrategy avec Template Method ?\n\nclass BaseStrategy(ABC):\n    def run(self, data):\n        # étapes fixes\n        ...\n    \n    @abstractmethod\n    def _compute_signals(self, data): ...",
+        "[OCP] Que signifie 'ouvert à l'extension, fermé à la modification' ?",
       options: [
-        "run() dans la base avec le squelette (validate → normalize → compute → format), _compute_signals() abstract dans la sous-classe — le squelette est fixé, seul le détail variable est délégué",
-        "run() dans la sous-classe, _compute_signals() dans la base — les détails dans la base, le squelette dans la sous-classe",
-        "Toute la logique dans _compute_signals() pour que les sous-classes puissent tout surcharger",
-        "run() et _compute_signals() tous les deux abstract — chaque sous-classe définit tout",
+        "On peut modifier le code existant librement",
+        "On ne peut jamais modifier une classe",
+        "On doit figer l'API après la première version",
+        "On peut ajouter du comportement sans modifier le code existant",
       ],
-      answer:
-        "run() dans la base avec le squelette (validate → normalize → compute → format), _compute_signals() abstract dans la sous-classe — le squelette est fixé, seul le détail variable est délégué",
+      answer: "On peut ajouter du comportement sans modifier le code existant",
       explanation:
-        "Template Method : le squelette (validate → normalize → compute_signals → format_result) est dans run() de la base — il ne change jamais. Seule compute_signals() est abstraite car c'est ce qui varie entre MeanReversion et Momentum. La base garantit que toutes les stratégies passent par les mêmes étapes.",
+        "C'est la définition exacte de l'OCP : le code existant reste intact, on ajoute de nouvelles classes.",
     },
     {
       question:
-        "[Interface Segregation] Quel problème pose cette interface dans un contexte de streaming de ticks ?\n\nclass DataProcessor(ABC):\n    @abstractmethod\n    def load(self): ...\n    @abstractmethod\n    def transform(self): ...\n    @abstractmethod\n    def export_to_csv(self): ...\n    @abstractmethod\n    def send_alert_email(self): ...",
+        "[OCP] Quel pattern est LA solution typique à l'OCP ?",
       options: [
-        "L'interface a trop de méthodes — il faudrait une seule méthode process()",
-        "Les méthodes ne sont pas assez génériques",
-        "ABC ne supporte pas les interfaces multi-méthodes en Python",
-        "Un processor de streaming de ticks est forcé d'implémenter export_to_csv() et send_alert_email() dont il n'a pas besoin — violation Interface Segregation",
+        "Singleton",
+        "Factory Method uniquement",
+        "Observer Pattern",
+        "Strategy Pattern / Registry Pattern",
       ],
-      answer:
-        "Un processor de streaming de ticks est forcé d'implémenter export_to_csv() et send_alert_email() dont il n'a pas besoin — violation Interface Segregation",
+      answer: "Strategy Pattern / Registry Pattern",
       explanation:
-        "ISP : ne pas forcer les classes à implémenter des méthodes inutiles. Solution : séparer en Loadable, Transformable, CsvExportable, AlertSender. Le TickStreamProcessor implémente uniquement Loadable et Transformable. Chaque interface = une responsabilité.",
+        "Strategy permet d'ajouter de nouvelles implémentations sans modifier le code client.",
     },
     {
       question:
-        "[object.__setattr__] Pourquoi utilise-t-on object.__setattr__ dans __post_init__ d'une dataclass frozen ?\n\n@dataclass(frozen=True)\nclass Instrument:\n    symbol: str\n    def __post_init__(self):\n        object.__setattr__(self, 'symbol', self.symbol.upper())",
+        "[OCP] Le code suivant viole quel principe ?\n\ndef process_payment(method, amount):\n    if method == 'card': ...\n    elif method == 'paypal': ...\n    elif method == 'crypto': ...",
       options: [
-        "C'est une erreur — frozen=True interdit toute modification même dans __post_init__",
-        "Pour des raisons de performance — object.__setattr__ est plus rapide que l'assignation directe",
-        "frozen=True déclenche un __setattr__ qui lève FrozenInstanceError — object.__setattr__ bypass ce mécanisme uniquement pendant la construction, permettant la normalisation initiale",
-        "Pour contourner la validation frozen le temps de l'initialisation — __post_init__ s'exécute avant que frozen soit actif",
+        "SRP",
+        "LSP",
+        "DIP",
+        "OCP",
       ],
-      answer:
-        "frozen=True déclenche un __setattr__ qui lève FrozenInstanceError — object.__setattr__ bypass ce mécanisme uniquement pendant la construction, permettant la normalisation initiale",
+      answer: "OCP",
       explanation:
-        "frozen=True overrides __setattr__ pour lever FrozenInstanceError. Mais object.__setattr__ appelle le __setattr__ de object directement, contournant l'override. C'est le pattern standard pour valider/normaliser dans __post_init__ d'un objet frozen. Après construction, l'objet est véritablement immutable.",
+        "Chaque nouveau moyen de paiement nécessite de modifier la fonction → violation OCP.",
     },
     {
       question:
-        "[Observer Pattern Finance] Quel avantage a le MarketEventBus pour un système de trading ?\n\nbus = MarketEventBus()\nbus.subscribe(PriceUpdate, risk_engine.check)\nbus.subscribe(PriceUpdate, pnl_tracker.update)\nbus.publish(PriceUpdate('AAPL', 150.5, 1000))",
+        "[OCP] Comment corriger ce problème OCP ?",
       options: [
-        "Cela permet d'éviter les imports circulaires entre modules",
-        "Le producteur (publisher) ne connaît pas les consommateurs — ajouter un nouveau handler ne nécessite pas de modifier le code qui publie",
-        "C'est plus rapide qu'un appel direct aux méthodes",
-        "L'EventBus garantit l'ordre d'exécution des handlers",
+        "Ajouter un else",
+        "Utiliser un match/case (Python 3.10)",
+        "Tout mettre dans une seule classe",
+        "Créer une abstraction PaymentProcessor et des classes concrètes",
       ],
-      answer:
-        "Le producteur (publisher) ne connaît pas les consommateurs — ajouter un nouveau handler ne nécessite pas de modifier le code qui publie",
+      answer: "Créer une abstraction PaymentProcessor et des classes concrètes",
       explanation:
-        "Observer Pattern : découplage total. Le code qui publie PriceUpdate ne sait pas qui l'écoute. Ajouter un PositionTracker → bus.subscribe(PriceUpdate, position_tracker.update) sans toucher au publisher. Dans un système de trading multi-composants (risk, pnl, position, alertes), c'est critique pour la maintenabilité.",
+        "L'abstraction permet d'étendre : chaque nouvelle implémentation est une nouvelle classe.",
     },
     {
       question:
-        "[Circuit Breaker] Dans une composition StrategyRunner, quand le circuit breaker doit-il s'ouvrir ?\n\n@dataclass\nclass CircuitBreaker:\n    max_failures: int = 3\n    reset_timeout: float = 60.0\n    _failures: int = field(default=0, init=False)\n    _last_fail: float = field(default=0.0, init=False)",
+        "[OCP] Dans une architecture OCP, où se fait l'enregistrement des nouvelles implémentations ?",
       options: [
-        "Dès la première erreur — pour maximiser la sécurité du système",
-        "Après max_failures erreurs consécutives — puis se referme automatiquement après reset_timeout secondes sans appel",
-        "Seulement si l'erreur est une TimeoutError — pas pour les autres types d'erreurs",
-        "Le circuit ne doit jamais se refermer automatiquement — intervention humaine requise",
+        "Directement dans le code client avec des if",
+        "Dans une variable globale modifiable",
+        "Dans le constructeur de l'abstraction",
+        "Dans un registre (Registry Pattern) ou via injection",
       ],
-      answer:
-        "Après max_failures erreurs consécutives — puis se referme automatiquement après reset_timeout secondes sans appel",
+      answer: "Dans un registre (Registry Pattern) ou via injection",
       explanation:
-        "Circuit Breaker pattern : après max_failures erreurs consécutives, le circuit s'ouvre et toute tentative lève une RuntimeError immédiate (fail-fast). Après reset_timeout secondes, il se referme en half-open pour tenter de nouvelles requêtes. En finance : évite de spammer une API de marché en panne et de générer de faux signaux.",
+        "Le registre ou l'injection permettent d'ajouter des stratégies sans modifier le cœur.",
     },
     {
       question:
-        "[DRY + Open/Closed combinés] Ce code viole deux principes simultanément. Lesquels ?\n\ndef calc_equity_fee(notional, qty):\n    return notional * 0.001 * qty\n\ndef calc_bond_fee(notional, qty):\n    return notional * 0.001 * qty  # copié-collé\n\ndef calc_crypto_fee(notional, qty):\n    return notional * 0.003 * qty  # taux différent",
+        "[OCP] Lequel de ces mots-clés est associé à l'OCP ?",
       options: [
-        "SRP et Liskov — les fonctions font trop et ne respectent pas le contrat",
-        "Interface Segregation et Dependency Inversion — les fonctions sont trop couplées",
-        "Uniquement DRY — Open/Closed n'est pas pertinent ici",
-        "DRY (calc_equity et calc_bond sont identiques) ET Open/Closed (ajouter un instrument = créer une nouvelle fonction globale, aucune encapsulation)",
+        "@dataclass(frozen=True)",
+        "__slots__",
+        "global",
+        "@abstractmethod",
       ],
-      answer:
-        "DRY (calc_equity et calc_bond sont identiques) ET Open/Closed (ajouter un instrument = créer une nouvelle fonction globale, aucune encapsulation)",
+      answer: "@abstractmethod",
       explanation:
-        "Double violation : DRY car equity et bond sont strictement identiques, et Open/Closed car ajouter 'futures' nécessite d'écrire une nouvelle fonction sans encapsulation. Solution : FeeCalculator avec Registry Pattern — @register('equity'), @register('bond') avec un taux paramétré, et la logique commune dans _base_fee(notional, qty, rate).",
+        "@abstractmethod définit le contrat extensible que les sous-classes doivent implémenter.",
     },
     {
       question:
-        "[Factory + Protocol] Comment créer une stratégie depuis une config YAML sans if/elif ?\n\n# config.yaml\n# strategy:\n#   type: mean_reversion\n#   window: 20\n#   z_threshold: 2.5",
+        "[OCP] L'OCP est violé si :",
       options: [
-        "StrategyFactory.create(config['type'], **config['params']) — le Factory cherche dans son registry, lève une ValueError claire si inconnu",
-        "if config['type'] == 'mean_reversion': return MeanReversionStrategy(**params) — clair et direct",
-        "Importer dynamiquement le module : importlib.import_module(config['type'])()",
-        "Eval de la string : eval(config['type'])(**params) — dynamique et sans if/elif",
+        "On utilise l'héritage",
+        "On a plus de 3 classes",
+        "On injecte des dépendances",
+        "On modifie une classe existante pour ajouter un nouveau cas",
       ],
-      answer:
-        "StrategyFactory.create(config['type'], **config['params']) — le Factory cherche dans son registry, lève une ValueError claire si inconnu",
+      answer: "On modifie une classe existante pour ajouter un nouveau cas",
       explanation:
-        "StrategyFactory.create() consulte _registry[name] et instancie avec **kwargs. Zéro if/elif, zéro eval() (sécurité), erreur explicite si le type est inconnu. Les stratégies s'enregistrent elles-mêmes via @StrategyFactory.register('mean_reversion') — le Factory n'a jamais besoin d'être modifié.",
-    },
-  ],
-  expert: [
-    {
-      question:
-        "[PIEGE — LSP subtil] Ce code semble correct. Quelle violation de Liskov se cache ici ?\n\nclass PriceRepository:\n    def get_prices(self, symbol: str,\n                  days: int) -> list[float]:\n        ...  # toujours list[float], jamais vide\n\nclass CachedPriceRepo(PriceRepository):\n    def get_prices(self, symbol: str,\n                  days: int = 30) -> list[float]:\n        if symbol in self._cache:\n            return self._cache[symbol]\n        return super().get_prices(symbol, days)",
-      options: [
-        "Il n'y a pas de violation — CachedPriceRepo retourne toujours list[float]",
-        "Le cache devrait être un argument du constructeur, pas un attribut d'instance",
-        "La valeur par défaut days=30 dans la sous-classe viole LSP car le parent n'a pas de défaut — un appel repo.get_prices('AAPL') est valide via la sous-classe mais pas via le parent",
-        "La sous-classe devrait surcharger __init__ pour initialiser le cache",
-      ],
-      answer:
-        "La valeur par défaut days=30 dans la sous-classe viole LSP car le parent n'a pas de défaut — un appel repo.get_prices('AAPL') est valide via la sous-classe mais pas via le parent",
-      explanation:
-        "Piège subtil : la sous-classe ajoute days=30 comme défaut, permettant repo.get_prices('AAPL') sans le second argument. Si du code polymorphique appelle get_prices(symbol) via une référence typée PriceRepository, il fonctionne seulement avec CachedPriceRepo — comportement non garanti par le parent. LSP exige que la sous-classe ne soit PAS plus permissive dans son interface.",
+        "C'est exactement la violation : le code existant devrait être fermé à la modification.",
     },
     {
       question:
-        "[PIEGE — default mutable héritage] Quel est le bug potentiel dans cette hiérarchie ?\n\n@dataclass\nclass BasePortfolio:\n    positions: list[str] = field(default_factory=list)\n\n@dataclass\nclass ManagedPortfolio(BasePortfolio):\n    strategy: str = 'passive'\n    # hérite positions",
+        "[OCP] L'OCP repose principalement sur :",
       options: [
-        "Il n'y a pas de bug — field(default_factory=list) est correct",
-        "ManagedPortfolio devrait redéfinir positions avec son propre default_factory",
-        "Le vrai bug : si on ajoute positions: list = [] dans ManagedPortfolio sans field(), cela override le default_factory du parent et réintroduit le bug de partage",
-        "L'héritage de dataclasses ne supporte pas field(default_factory=list)",
+        "Les variables globales",
+        "Les fonctions imbriquées",
+        "Les listes chaînées",
+        "Le polymorphisme",
       ],
-      answer:
-        "Le vrai bug : si on ajoute positions: list = [] dans ManagedPortfolio sans field(), cela override le default_factory du parent et réintroduit le bug de partage",
+      answer: "Le polymorphisme",
       explanation:
-        "Piège héritage dataclass : si un développeur 'améliore' ManagedPortfolio en réécrivant positions: list = [], cela override le field() du parent et tous les ManagedPortfolio partagent la même liste. Le code de base est correct — le piège est que l'erreur peut être introduite plus tard par quelqu'un qui ne sait pas que BasePortfolio a déjà le bon défaut.",
+        "Le polymorphisme permet d'ajouter de nouveaux comportements sans conditionnelles.",
     },
     {
       question:
-        "[PIEGE — is-a vs has-a] Cette hiérarchie est-elle correcte pour modéliser un HedgedPortfolio ?\n\nclass Portfolio:\n    def add_position(self, pos): ...\n    def get_value(self) -> float: ...\n\nclass HedgedPortfolio(Portfolio):\n    def add_position(self, pos):\n        super().add_position(pos)\n        super().add_position(self._hedge(pos))  # hedge auto",
+        "[OCP] checkout(processor: PaymentProcessor, amount: float) respecte l'OCP car :",
       options: [
-        "Oui — HedgedPortfolio IS-A Portfolio, l'héritage est justifié",
-        "Oui — surcharger add_position est une bonne pratique pour étendre le comportement",
-        "Non — HedgedPortfolio change le comportement de add_position de manière inattendue : code qui appelle add_position sur un Portfolio attend 1 position ajoutée, pas 2 — violation LSP",
-        "Non — le problème est uniquement que _hedge() n'est pas définie dans la base",
+        "Le paramètre est typé avec une abstraction",
+        "On peut passer n'importe quelle classe qui hérite de PaymentProcessor",
+        "On n'a pas besoin de modifier checkout pour ajouter un nouveau moyen de paiement",
+        "Toutes les réponses ci-dessus",
       ],
-      answer:
-        "Non — HedgedPortfolio change le comportement de add_position de manière inattendue : code qui appelle add_position sur un Portfolio attend 1 position ajoutée, pas 2 — violation LSP",
+      answer: "Toutes les réponses ci-dessus",
       explanation:
-        "Violation LSP subtile : tout code qui utilise Portfolio.add_position() attend qu'une seule position soit ajoutée. HedgedPortfolio en ajoute silencieusement 2. Si du code boucle sur [add_position(p) for p in positions] avec un HedgedPortfolio, les positions sont doublées. Solution : HedgedPortfolio HAS-A Portfolio (composition) + add_hedged_position() distinct.",
+        "Tout est correct : abstraction, polymorphisme, extension sans modification.",
     },
     {
       question:
-        "[PIEGE — Protocol silencieux] Quel bug silencieux se cache dans ce code au runtime ?\n\nfrom typing import Protocol\n\nclass DataSource(Protocol):\n    def fetch(self, symbol: str) -> list[float]: ...\n    def get_metadata(self, symbol: str) -> dict: ...\n\nclass CSVDataSource:\n    def fetch(self, symbol: str) -> list[float]:\n        return [100.0, 101.0, 99.5]\n    # get_metadata() manquante !",
+        "[OCP] Que signifie 'zéro risque de régression' dans un contexte OCP ?",
       options: [
-        "Python lève une TypeError à l'import si get_metadata() est absente",
-        "Python lève une TypeError à l'instantiation de CSVDataSource",
-        "mypy détecte toujours cette erreur au moment de la définition de classe",
-        "Aucune erreur à l'instanciation ni à l'annotation — l'erreur n'apparaît qu'au runtime si get_metadata() est appelée sur un objet CSVDataSource typé DataSource",
+        "Le code ne change jamais",
+        "On teste après chaque modification",
+        "On utilise le duck typing",
+        "On n'ajoute que de nouvelles classes, on ne modifie pas l'existant → on ne casse rien",
       ],
-      answer:
-        "Aucune erreur à l'instanciation ni à l'annotation — l'erreur n'apparaît qu'au runtime si get_metadata() est appelée sur un objet CSVDataSource typé DataSource",
+      answer: "On n'ajoute que de nouvelles classes, on ne modifie pas l'existant → on ne casse rien",
       explanation:
-        "Piège Protocol : contrairement à ABC, Protocol ne vérifie PAS l'implémentation des méthodes à la construction. source: DataSource = CSVDataSource() passe sans erreur. L'erreur arrive au runtime uniquement si source.get_metadata('AAPL') est appelée. Solution : activer mypy avec --strict pour détecter les violations Protocol statiquement.",
+        "L'OCP protège le code existant car on ne le modifie pas.",
     },
     {
       question:
-        "[PIEGE — DRY mal appliqué] Ce refactoring DRY est-il toujours une amélioration ?\n\n# Avant\ndef validate_trade_buy(trade):\n    assert trade.qty > 0\n    assert trade.price > 0\n    assert trade.symbol in ALLOWED_SYMBOLS\n\ndef validate_trade_sell(trade):\n    assert trade.qty > 0\n    assert trade.price > 0\n    assert trade.symbol in ALLOWED_SYMBOLS\n\n# Apres (DRY 'corrige')\ndef validate_trade(trade, side):\n    assert trade.qty > 0\n    if side == 'buy':\n        assert trade.price > 0\n    elif side == 'sell':\n        assert trade.price > 0\n    assert trade.symbol in ALLOWED_SYMBOLS",
+        "[OCP] Le 'Registry Pattern' est utile pour l'OCP car :",
       options: [
-        "Oui — moins de code = meilleur, toujours éliminer la duplication",
-        "Oui — la version after est plus maintenable car un seul point de modification",
-        "Non — la 'correction' DRY n'a fait qu'introduire un paramètre side inutile avec des if/elif redondants — les deux fonctions originales étaient identiques donc à fusionner, mais pas de cette manière",
-        "Non — on ne devrait jamais refactoriser des fonctions de validation",
+        "Il évite les if/elif",
+        "Il centralise l'enregistrement des stratégies",
+        "Il permet d'ajouter une stratégie avec un simple décorateur @register",
+        "Toutes les réponses ci-dessus",
       ],
-      answer:
-        "Non — la 'correction' DRY n'a fait qu'introduire un paramètre side inutile avec des if/elif redondants — les deux fonctions originales étaient identiques donc à fusionner, mais pas de cette manière",
+      answer: "Toutes les réponses ci-dessus",
       explanation:
-        "Piège DRY : les deux fonctions sont identiques → les fusionner en validate_trade(trade) est correct. Mais la version 'après' ajoute un paramètre side inutile avec des if/elif qui font exactement la même chose — le code est plus compliqué sans gain. La bonne correction : def validate_trade(trade): assert trade.qty > 0 and trade.price > 0 and trade.symbol in ALLOWED_SYMBOLS.",
+        "Le registre est une implémentation pratique de l'OCP avec tous ces avantages.",
     },
     {
       question:
-        "[PIEGE — __slots__ + héritage] Quel est le comportement inattendu de ce code ?\n\nclass Tick:\n    __slots__ = ('symbol', 'price', 'volume')\n    def __init__(self, sym, p, v):\n        self.symbol=sym; self.price=p; self.volume=v\n\nclass EnrichedTick(Tick):\n    # Pas de __slots__ défini\n    def __init__(self, sym, p, v, sector):\n        super().__init__(sym, p, v)\n        self.sector = sector",
+        "[OCP] Lequel n'est PAS un indicateur de violation OCP ?",
       options: [
-        "EnrichedTick hérite des __slots__ de Tick — tout fonctionne comme prévu",
-        "EnrichedTick ne peut pas ajouter d'attributs car __slots__ est hérité et verrouillé",
-        "EnrichedTick a un __dict__ car elle ne définit pas ses propres __slots__ — elle peut avoir des attributs dynamiques MAIS les instances ont à la fois __slots__ (de Tick) ET __dict__ (d'EnrichedTick), annulant l'économie mémoire de __slots__",
-        "Python lève une TypeError à la définition de EnrichedTick car on ne peut pas hériter d'une classe avec __slots__",
+        "Une longue chaîne if/elif sur un type",
+        "L'ajout systématique de elif pour chaque nouveau cas",
+        "Une classe PaymentProcessor qui grandit à chaque nouvelle demande",
+        "L'utilisation de @abstractmethod",
       ],
-      answer:
-        "EnrichedTick a un __dict__ car elle ne définit pas ses propres __slots__ — elle peut avoir des attributs dynamiques MAIS les instances ont à la fois __slots__ (de Tick) ET __dict__ (d'EnrichedTick), annulant l'économie mémoire de __slots__",
+      answer: "L'utilisation de @abstractmethod",
       explanation:
-        "Piège __slots__ + héritage : si la sous-classe ne définit pas ses propres __slots__, elle obtient un __dict__ automatiquement. Les instances ont alors les slots du parent ET un dict — l'économie mémoire de __slots__ est annulée. Solution : class EnrichedTick(Tick): __slots__ = ('sector',) — seul le nouveau champ dans les slots de la sous-classe.",
+        "@abstractmethod est au contraire un bon signe d'OCP (création d'abstraction).",
     },
     {
       question:
-        "[PIEGE — frozen + dict mutable] Ce dataclass frozen est-il vraiment immutable ?\n\n@dataclass(frozen=True)\nclass Portfolio:\n    name: str\n    positions: dict[str, int]  # symbol -> quantity\n\np = Portfolio('Fund A', {'AAPL': 100, 'GOOGL': 50})\np.positions['TSLA'] = 200  # ?",
+        "[LSP] Que dit le principe de substitution de Liskov (LSP) ?",
       options: [
-        "Lève une FrozenInstanceError — frozen=True interdit toute modification",
-        "Lève un TypeError car un dict ne peut pas être dans un frozen dataclass",
-        "Le dict devient automatiquement immutable quand il est dans un frozen dataclass",
-        "Fonctionne sans erreur — le dict est mutable même si Portfolio est frozen",
+        "Un enfant doit être plus petit que son parent",
+        "Toute classe doit avoir un parent",
+        "Une classe ne doit pas hériter de plus d'une classe",
+        "Un sous-type doit pouvoir remplacer son parent sans casser le programme",
       ],
-      answer:
-        "Fonctionne sans erreur — le dict est mutable même si Portfolio est frozen",
+      answer: "Un sous-type doit pouvoir remplacer son parent sans casser le programme",
       explanation:
-        "Piège frozen : frozen=True empêche uniquement la réassignation des attributs (p.positions = {} → FrozenInstanceError). Mais le contenu d'un dict reste mutable — p.positions['TSLA'] = 200 fonctionne. Solution : utiliser types.MappingProxyType({'AAPL': 100}) pour un dict vraiment en lecture seule, ou convertir en tuple[tuple[str,int],...].",
+        "C'est la définition exacte du LSP : le parent et l'enfant sont interchangeables.",
     },
     {
       question:
-        "[PIEGE — composition vs héritage ambigu] Lequel de ces cas justifie réellement l'héritage ?",
+        "[LSP] Quel code viole clairement LSP ?\n\nclass Bird:\n    def fly(self): ...\n\nclass Penguin(Bird):\n    def fly(self):\n        raise NotImplementedError()",
       options: [
-        "Un LoggedOrderBook qui loggue chaque ordre — logging est orthogonal à OrderBook",
-        "Un EquityStrategy(TradingStrategy) qui implémente compute_signals() — is-a réel, comportement partagé via Template Method dans TradingStrategy",
-        "Un RealTimePortfolio(Portfolio) qui met à jour les prix en temps réel — feature orthogonale, HAS-A DataStream",
-        "Un CachedBacktester(Backtester) qui cache les résultats — caching est orthogonal",
+        "Aucune violation",
+        "Violation SRP",
+        "Violation DIP",
+        "Violation LSP car Penguin ne peut pas voler",
       ],
-      answer:
-        "Un EquityStrategy(TradingStrategy) qui implémente compute_signals() — is-a réel, comportement partagé via Template Method dans TradingStrategy",
+      answer: "Violation LSP car Penguin ne peut pas voler",
       explanation:
-        "Seul EquityStrategy justifie l'héritage : is-a réel (une EquityStrategy EST une TradingStrategy), comportement partagé massif via Template Method (validate, normalize, format partagés), et la hiérarchie n'explosera pas. Les autres cas (logging, real-time updates, caching) sont des features orthogonales → composition avec enable_log, DataStream injecté, cache injecté.",
+        "Penguin ne peut pas remplacer Bird partout car tout code appelant fly() échouera.",
+    },
+    {
+      question:
+        "[LSP] Comment corriger la hiérarchie Penguin / Bird ?",
+      options: [
+        "Laisser Penguin hériter mais gérer l'exception",
+        "Ne pas utiliser l'héritage",
+        "Ajouter une méthode swim() dans Bird",
+        "Créer une classe Animal avec move() abstrait, puis FlyingBird et Penguin",
+      ],
+      answer: "Créer une classe Animal avec move() abstrait, puis FlyingBird et Penguin",
+      explanation:
+        "On crée une abstraction plus générale qui ne suppose pas le vol.",
+    },
+    {
+      question:
+        "[LSP] isinstance(obj, Parent) est utile pour :",
+      options: [
+        "Vérifier le respect du SRP",
+        "Forcer l'OCP",
+        "Inverser les dépendances",
+        "Vérifier la compatibilité de type (mais LSP préfère éviter ces tests)",
+      ],
+      answer: "Vérifier la compatibilité de type (mais LSP préfère éviter ces tests)",
+      explanation:
+        "LSP encourage plutôt des comportements uniformes sans tests de type explicites.",
+    },
+    {
+      question:
+        "[LSP] LSP est violé si :",
+      options: [
+        "Une sous-classe ajoute une nouvelle méthode",
+        "Une sous-classe a le même nom que le parent",
+        "Une sous-classe utilise super()",
+        "Une sous-classe restreint les types des paramètres",
+      ],
+      answer: "Une sous-classe restreint les types des paramètres",
+      explanation:
+        "Restreindre les préconditions ou affaiblir les postconditions viole LSP.",
+    },
+    {
+      question:
+        "[LSP] Que signifie 'le contrat du parent' pour LSP ?",
+      options: [
+        "Le nom de la classe",
+        "La liste des imports",
+        "Le nombre de méthodes",
+        "Les préconditions, postconditions et invariants",
+      ],
+      answer: "Les préconditions, postconditions et invariants",
+      explanation:
+        "LSP assure que le sous-type respecte ces contrats.",
+    },
+    {
+      question:
+        "[LSP] Le code suivant viole-t-il LSP ?\n\nclass Rectangle:\n    def set_width(self, w): self.w = w\n    def set_height(self, h): self.h = h\n\nclass Square(Rectangle):\n    def set_width(self, w): self.w = self.h = w\n    def set_height(self, h): self.w = self.h = h",
+      options: [
+        "Non",
+        "Oui, car Square n'a pas de constructeur",
+        "Non, c'est un exemple classique valide",
+        "Oui, car Square change le comportement attendu d'un Rectangle",
+      ],
+      answer: "Oui, car Square change le comportement attendu d'un Rectangle",
+      explanation:
+        "C'est la violation LSP classique : un carré ne peut pas remplacer un rectangle (largeur/hauteur liées).",
+    },
+    {
+      question:
+        "[LSP] super().__init__() est utilisé pour :",
+      options: [
+        "Violer LSP",
+        "Éviter l'héritage multiple",
+        "Rendre la classe immutable",
+        "Appeler le constructeur parent et garantir l'initialisation du contrat parent",
+      ],
+      answer: "Appeler le constructeur parent et garantir l'initialisation du contrat parent",
+      explanation:
+        "C'est une bonne pratique pour respecter LSP.",
+    },
+    {
+      question:
+        "[LSP] Une sous-classe respecte LSP si :",
+      options: [
+        "Elle supprime certaines méthodes",
+        "Elle change complètement le type de retour",
+        "Elle ajoute des préconditions plus strictes",
+        "Elle lève des exceptions plus spécifiques (jamais de nouvelles inattendues)",
+      ],
+      answer: "Elle lève des exceptions plus spécifiques (jamais de nouvelles inattendues)",
+      explanation:
+        "Lever des exceptions plus spécifiques est acceptable, mais pas des exceptions totalement nouvelles.",
+    },
+    {
+      question:
+        "[LSP] 'f(Parent) doit marcher avec f(Enfant)' signifie :",
+      options: [
+        "Les fonctions doivent être privées",
+        "Les enfants doivent être plus lents",
+        "Les parents doivent hériter des enfants",
+        "Toute fonction qui utilise le parent doit fonctionner avec l'enfant",
+      ],
+      answer: "Toute fonction qui utilise le parent doit fonctionner avec l'enfant",
+      explanation:
+        "C'est la traduction pratique du LSP.",
+    },
+    {
+      question:
+        "[LSP] Lequel est un bon candidat pour LSP ?",
+      options: [
+        "Penguin hérite de Bird sans méthode fly",
+        "Manager hérite de Employee mais supprime calculate_salary()",
+        "Cat hérite de Dog",
+        "Car hérite de Vehicle avec start_engine() commun",
+      ],
+      answer: "Car hérite de Vehicle avec start_engine() commun",
+      explanation:
+        "Le contrat commun est respecté : toute voiture est un véhicule.",
+    },
+    {
+      question:
+        "[LSP] Pourquoi raise NotImplementedError dans une sous-classe est souvent un problème LSP ?",
+      options: [
+        "Parce que c'est trop lent",
+        "Parce que ça rend le code plus long",
+        "Parce que ça force l'usage de try/except",
+        "Parce que la méthode devrait exister ou l'abstraction être repensée",
+      ],
+      answer: "Parce que la méthode devrait exister ou l'abstraction être repensée",
+      explanation:
+        "Si une sous-classe ne peut pas implémenter une méthode, le contrat parent est trop large.",
+    },
+    {
+      question:
+        "[ISP] Que dit l'ISP ?",
+      options: [
+        "Une interface doit être unique",
+        "Toute classe doit avoir au moins 2 interfaces",
+        "Les interfaces doivent être privées",
+        "Une classe ne doit pas être forcée d'implémenter des méthodes qu'elle n'utilise pas",
+      ],
+      answer: "Une classe ne doit pas être forcée d'implémenter des méthodes qu'elle n'utilise pas",
+      explanation:
+        "C'est la définition de l'ISP : ne pas imposer de méthodes inutiles.",
+    },
+    {
+      question:
+        "[ISP] Le code suivant viole quel principe ?\n\nclass Worker(ABC):\n    @abstractmethod\n    def work(self): ...\n    @abstractmethod\n    def eat(self): ...\n    @abstractmethod\n    def sleep(self): ...\n\nclass RobotWorker(Worker):\n    def work(self): ...\n    def eat(self): raise NotImplementedError\n    def sleep(self): raise NotImplementedError",
+      options: [
+        "SRP",
+        "OCP",
+        "LSP",
+        "ISP",
+      ],
+      answer: "ISP",
+      explanation:
+        "RobotWorker est forcé d'implémenter eat() et sleep() dont il n'a pas besoin.",
+    },
+    {
+      question:
+        "[ISP] Comment corriger cette violation ISP ?",
+      options: [
+        "Mettre pass dans eat() et sleep()",
+        "Supprimer eat() et sleep() de Worker",
+        "Utiliser @abstractproperty",
+        "Créer plusieurs interfaces minimales : Workable, Eatable, Sleepable",
+      ],
+      answer: "Créer plusieurs interfaces minimales : Workable, Eatable, Sleepable",
+      explanation:
+        "La ségrégation des interfaces : chaque classe implémente uniquement ce dont elle a besoin.",
+    },
+    {
+      question:
+        "[ISP] En Python, quel mécanisme permet de créer des interfaces légères sans héritage ?",
+      options: [
+        "type()",
+        "@staticmethod",
+        "__slots__",
+        "Protocol (typing)",
+      ],
+      answer: "Protocol (typing)",
+      explanation:
+        "Protocol permet le duck typing structurel (interfaces implicites).",
+    },
+    {
+      question:
+        "[ISP] Une interface 'grasse' (bloated) signifie :",
+      options: [
+        "Trop de méthodes abstraites",
+        "Des méthodes sans implémentation",
+        "Une interface avec beaucoup de documentation",
+        "Une interface qui force des classes à implémenter des comportements non pertinents",
+      ],
+      answer: "Une interface qui force des classes à implémenter des comportements non pertinents",
+      explanation:
+        "C'est le problème que l'ISP résout.",
+    },
+    {
+      question:
+        "[ISP] Les Mixin sont utiles dans le cadre de l'ISP car :",
+      options: [
+        "Ils remplacent les interfaces",
+        "Ils rendent les classes finales",
+        "Ils améliorent les performances",
+        "Ils permettent la composition de comportements optionnels",
+      ],
+      answer: "Ils permettent la composition de comportements optionnels",
+      explanation:
+        "Un mixin ajoute un comportement sans forcer toutes les classes.",
+    },
+    {
+      question:
+        "[ISP] L'ISP est particulièrement lié à :",
+      options: [
+        "L'héritage simple",
+        "Les variables globales",
+        "Les décorateurs",
+        "La composition et la ségrégation des contrats",
+      ],
+      answer: "La composition et la ségrégation des contrats",
+      explanation:
+        "ISP encourage plusieurs petits contrats plutôt qu'un seul gros.",
+    },
+    {
+      question:
+        "[ISP] Lequel est un signe de violation ISP ?",
+      options: [
+        "Une classe avec __init__",
+        "Une classe avec 2 méthodes",
+        "Une classe sans attributs",
+        "Une classe qui utilise pass pour des méthodes abstraites",
+      ],
+      answer: "Une classe qui utilise pass pour des méthodes abstraites",
+      explanation:
+        "pass ou NotImplementedError pour des méthodes inutiles = ISP violé.",
+    },
+    {
+      question:
+        "[ISP] En Python 3.8+, Protocol permet :",
+      options: [
+        "De forcer l'héritage",
+        "De rendre les classes immutables",
+        "De créer des singletons",
+        "De définir des interfaces implicites (duck typing)",
+      ],
+      answer: "De définir des interfaces implicites (duck typing)",
+      explanation:
+        "Protocol est une forme d'interface structurelle.",
+    },
+    {
+      question:
+        "[ISP] HumanWorker(Workable, Eatable, Sleepable) respecte l'ISP car :",
+      options: [
+        "Il n'implémente rien",
+        "Il a un nom long",
+        "Il utilise @dataclass",
+        "Il hérite de trois interfaces spécialisées",
+      ],
+      answer: "Il hérite de trois interfaces spécialisées",
+      explanation:
+        "Chaque interface a une seule responsabilité de contrat.",
+    },
+    {
+      question:
+        "[ISP] L'ISP est proche de quel autre principe ?",
+      options: [
+        "OCP",
+        "LSP",
+        "DIP",
+        "SRP (mais au niveau des interfaces)",
+      ],
+      answer: "SRP (mais au niveau des interfaces)",
+      explanation:
+        "SRP s'applique aux classes, ISP aux interfaces (contrats).",
+    },
+    {
+      question:
+        "[ISP] Une interface Machine avec start(), stop(), refuel() est mauvaise pour un Robot électrique car :",
+      options: [
+        "start() est trop court",
+        "stop() est inutile",
+        "L'interface est trop petite",
+        "refuel() n'a pas de sens",
+      ],
+      answer: "refuel() n'a pas de sens",
+      explanation:
+        "Violation ISP : un robot électrique n'a pas besoin de refuel().",
+    },
+    {
+      question:
+        "[DIP] Que dit le DIP ?",
+      options: [
+        "Dépendre des implémentations concrètes",
+        "Ne jamais utiliser l'injection",
+        "Toujours instancier les dépendances dans le constructeur",
+        "Dépendre des abstractions, pas des implémentations",
+      ],
+      answer: "Dépendre des abstractions, pas des implémentations",
+      explanation:
+        "C'est la définition du Dependency Inversion Principle.",
+    },
+    {
+      question:
+        "[DIP] Le code suivant viole quel principe ?\n\nclass NotificationService:\n    def __init__(self):\n        self.sender = EmailSender()",
+      options: [
+        "SRP",
+        "OCP",
+        "LSP",
+        "DIP",
+      ],
+      answer: "DIP",
+      explanation:
+        "Dépendance concrète en dur, pas d'injection → violation DIP.",
+    },
+    {
+      question:
+        "[DIP] Comment corriger cette violation DIP ?",
+      options: [
+        "Remplacer EmailSender par SMSSender en dur",
+        "Ajouter un if pour choisir le sender",
+        "Supprimer NotificationService",
+        "Injecter sender: MessageSender dans le constructeur",
+      ],
+      answer: "Injecter sender: MessageSender dans le constructeur",
+      explanation:
+        "L'injection de dépendance via l'abstraction est la correction standard.",
+    },
+    {
+      question:
+        "[DIP] Le DIP facilite les tests car :",
+      options: [
+        "Les tests sont plus lents",
+        "On teste directement la base de données",
+        "On n'a pas besoin de tester",
+        "On peut remplacer la dépendance réelle par un Mock ou Stub",
+      ],
+      answer: "On peut remplacer la dépendance réelle par un Mock ou Stub",
+      explanation:
+        "L'injection permet d'isoler la classe testée.",
+    },
+    {
+      question:
+        "[DIP] unittest.mock.Mock() est utilisé pour :",
+      options: [
+        "Violer le DIP",
+        "Créer une vraie base de données",
+        "Rendre une classe finale",
+        "Remplacer une dépendance concrète en test",
+      ],
+      answer: "Remplacer une dépendance concrète en test",
+      explanation:
+        "Le mock simule l'abstraction pour les tests unitaires.",
+    },
+    {
+      question:
+        "[DIP] Le DIP repose sur le principe d'inversion de contrôle (IoC) :",
+      options: [
+        "Faux",
+        "Uniquement pour les bases de données",
+        "Seulement en Java",
+        "Vrai",
+      ],
+      answer: "Vrai",
+      explanation:
+        "IoC (Inversion of Control) est le fondement du DIP.",
+    },
+    {
+      question:
+        "[DIP] Une abstraction en Python peut être :",
+      options: [
+        "ABC avec @abstractmethod",
+        "Protocol",
+        "Une classe parente simple (duck typing)",
+        "Toutes les réponses ci-dessus",
+      ],
+      answer: "Toutes les réponses ci-dessus",
+      explanation:
+        "Python est flexible : ABC, Protocol ou duck typing informel.",
+    },
+    {
+      question:
+        "[DIP] Le DIP est violé si :",
+      options: [
+        "On injecte une dépendance abstraite",
+        "On utilise super()",
+        "On définit une interface",
+        "On fait self.db = PostgresDB() dans __init__",
+      ],
+      answer: "On fait self.db = PostgresDB() dans __init__",
+      explanation:
+        "Couplage fort à une implémentation concrète = violation DIP.",
+    },
+    {
+      question:
+        "[DIP] L'injection par constructeur (__init__) permet :",
+      options: [
+        "De figer les dépendances",
+        "D'éviter l'utilisation d'interfaces",
+        "De cacher les dépendances",
+        "De rendre la classe flexible et testable",
+      ],
+      answer: "De rendre la classe flexible et testable",
+      explanation:
+        "C'est le but principal de l'injection de dépendances.",
+    },
+    {
+      question:
+        "[DIP] DIP + OCP ensemble permettent :",
+      options: [
+        "De multiplier les if/elif",
+        "D'écrire moins de classes",
+        "D'éviter l'héritage",
+        "D'ajouter de nouvelles implémentations sans modifier le code client",
+      ],
+      answer: "D'ajouter de nouvelles implémentations sans modifier le code client",
+      explanation:
+        "DIP fournit l'abstraction, OCP permet l'extension.",
+    },
+    {
+      question:
+        "[DIP] Lequel est un bénéfice direct du DIP ?",
+      options: [
+        "Code plus rapide",
+        "Moins de classes",
+        "Plus de variables globales",
+        "Code découplé, remplaçable, testable",
+      ],
+      answer: "Code découplé, remplaçable, testable",
+      explanation:
+        "Le DIP réduit le couplage et améliore la testabilité.",
+    },
+    {
+      question:
+        "[DIP] 'Inversion' dans DIP signifie :",
+      options: [
+        "Inverser l'ordre des méthodes",
+        "Inverser l'héritage",
+        "Inverser les noms de classes",
+        "Les modules de haut niveau ne dépendent plus des modules de bas niveau, mais tous dépendent d'abstractions",
+      ],
+      answer: "Les modules de haut niveau ne dépendent plus des modules de bas niveau, mais tous dépendent d'abstractions",
+      explanation:
+        "C'est le sens de l'inversion des dépendances.",
     },
   ],
 };
-
 
 const renderInlineTokens = (text, keyPrefix) => {
   const regex = /(\*\*.*?\*\*|`.*?`|\*.*?\*)/g;
