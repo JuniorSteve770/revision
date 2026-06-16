@@ -11,6 +11,11 @@ const Project10Navbar = () => {
       <Link to="/project10/page3">3. Refactor</Link>
       <Link to="/project10/page4">4. OOP</Link>
       <Link to="/project10/page5">5. DataClass</Link>
+      <Link to="/project10/page6">6. attrs, Pydantic et dataclass</Link>
+      <Link to="/project10/page7">7. SQLAlchemy</Link>
+
+
+
     </nav>
   );
 };
