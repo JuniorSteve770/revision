@@ -1,6 +1,6 @@
 // src/projects/Project3/pages/Page10_TypeScript.js
 
-import React, { useState, useEffect, useCallback } from "react";
+import React, { useState, useEffect } from "react";
 import "./Page.css";
 
 const basicSlides = [
@@ -414,9 +414,7 @@ const questions = {
       ],
       "answer": "`function get<T, K extends keyof T>(obj: T, key: K): T[K]` — K est contraint à être une clé de T, le retour est exactement T[K].",
       "explanation": "function get<T, K extends keyof T>(obj: T, key: K): T[K] { return obj[key]; }. const trade = { isin: 'FR...', qty: 100, price: 58.5 }. const isin = get(trade, 'isin') → TypeScript infère string. const qty = get(trade, 'qty') → TypeScript infère number. get(trade, 'unknown') → erreur de compilation. Ce pattern est la base des fonctions de transformation génériques en TypeScript. En Data Engineering : fonctions de sélection de colonnes typées, transformations génériques de modèles de données."
-    }
-  ],
-  expert: [
+    },
     {
       "question": "[Async] Comment gérer proprement une Promise qui peut timeout en TypeScript ?",
       "options": [
@@ -471,141 +469,80 @@ const questions = {
       ],
       "answer": "ts-jest : transpile avec le compilateur TypeScript officiel — type-checking possible, plus lent. @swc/jest : transpile avec SWC (Rust) — 10-20x plus rapide, mais pas de type-checking.",
       "explanation": "ts-jest : `diagnostics: true` (défaut) — type-check pendant les tests (lent). `diagnostics: false` — transpile uniquement (rapide). @swc/jest : SWC = compilateur Rust, 10-20x plus rapide. Jamais de type-checking. Stratégie CI optimale : `tsc --noEmit` séparé pour le type-checking + `@swc/jest` pour les tests (rapide). Sur un projet avec 500 tests : ts-jest=120s, @swc/jest=8s. En Data Engineering : @swc/jest pour le feedback rapide en développement, tsc --noEmit dans la CI pour garantir la correction des types."
-    },
+    }
   ]
 };
 
-const renderInlineTokens = (text, keyPrefix) => {
-  const regex = /(\*\*.*?\*\*|`.*?`|\*.*?\*)/g;
-  const parts = text.split(regex);
-  return parts.map((part, idx) => {
-    if (part.startsWith("**") && part.endsWith("**")) {
-      return <strong key={`${keyPrefix}-${idx}`} style={{ display: 'inline', fontWeight: 'bold' }}>{part.slice(2, -2)}</strong>;
-    }
-    if (part.startsWith("`") && part.endsWith("`")) {
-      return (
-        <code key={`${keyPrefix}-${idx}`} style={{
-          display: 'inline',
-          backgroundColor: '#eef2f7',
-          padding: '1px 5px',
-          borderRadius: '3px',
-          fontFamily: 'monospace',
-          color: '#e01e5a',
-          fontWeight: 'bold',
-          fontSize: '13px'
-        }}>
-          {part.slice(1, -1)}
-        </code>
-      );
-    }
-    if (part.startsWith("*") && part.endsWith("*")) {
-      return <em key={`${keyPrefix}-${idx}`} style={{ display: 'inline' }}>{part.slice(1, -1)}</em>;
-    }
-    return part;
-  });
-};
-
-const renderFormattedText = (text) => {
-  if (!text) return null;
-  let cleanText = text
-    .replace(/\r?\n- /g, " ◆ ")
-    .replace(/\r?\n• /g, " ◆ ")
-    .replace(/\r?\n/g, " ")
-    .replace(/\.-\s*\*\*/g, " ◆ **")
-    .replace(/-\s*\*\*/g, " ◆ **");
-
-  if (cleanText.startsWith(" ◆ ")) cleanText = cleanText.substring(3);
-  if (cleanText.startsWith("- ")) cleanText = cleanText.substring(2);
-
-  const segments = cleanText.split(" ◆ ");
-
-  return (
-    <span style={{ display: 'block', lineHeight: '1.7' }}>
-      {segments.map((segment, segIdx) => (
-        <span key={segIdx} style={{ display: 'block', marginBottom: segIdx < segments.length - 1 ? '6px' : '0' }}>
-          {segIdx > 0 && (
-            <span style={{ color: '#1a73e8', fontWeight: 'bold', marginRight: '5px' }}>◆</span>
-          )}
-          {renderInlineTokens(segment, `seg-${segIdx}`)}
-        </span>
-      ))}
-    </span>
-  );
-};
-
-const Timer = ({ timeLeft }) => <p className="timer">⏳ <span>{timeLeft}s</span></p>;
+const Flashcard = ({ slide }) => (
+  <div className="flashcard">
+    <h3 className="question">{slide.question}</h3>
+    <p className="answer" style={{ whiteSpace: "pre-wrap", fontSize: "11px", lineHeight: "1.5" }}
+      dangerouslySetInnerHTML={{ __html: slide.answer.replace(/\*\*(.*?)\*\*/g, "<strong>$1</strong>").replace(/`(.*?)`/g, "<code>$1</code>") }}
+    />
+  </div>
+);
 
 const QuestionCard = ({ question, options, onAnswerClick, timeLeft }) => (
   <div className="question-card">
-    <h4>💡 {question}</h4>
-    <Timer timeLeft={timeLeft} />
-    <div className="options-container">
-      {options.map((option, index) => (
-        <button key={index} onClick={() => onAnswerClick(option)} className="option-button">
-          {String.fromCharCode(65 + index)}. {option}
+    <div className="timer">⏱ {timeLeft}s</div>
+    <h3 className="question" style={{ fontSize: "12px" }}>{question}</h3>
+    <div className="options">
+      {options.map((opt, i) => (
+        <button key={i} className="option-btn" onClick={() => onAnswerClick(opt)}
+          style={{ fontSize: "11px", textAlign: "left", padding: "6px 10px", marginBottom: "4px", width: "100%" }}>
+          {opt}
         </button>
       ))}
     </div>
   </div>
 );
 
-const Flashcard = ({ slide }) => (
-  <div className="question-card" style={{ fontSize: '14px', margin: '0' }}>
-    <p style={{ fontWeight: 'bold', fontSize: '15px', color: '#1a73e8', margin: '0 0 10px 0' }}>{slide.question}</p>
-    <div style={{ padding: '12px 15px', background: '#f8f9fa', borderRadius: '8px', borderLeft: '4px solid #1a73e8', textAlign: 'left' }}>
-      {renderFormattedText(slide.answer)}
-    </div>
+const Results = ({ scores }) => (
+  <div className="results">
+    <h2>🎯 Résultats</h2>
+    <p>Niveau Moyen : {scores.moyen} / {questions.moyen.length}</p>
+    <p>Niveau Avancé : {scores.avance} / {questions.avance.length}</p>
+    <p>Total : {scores.moyen + scores.avance} / {questions.moyen.length + questions.avance.length}</p>
   </div>
 );
 
-const Results = ({ scores }) => {
-  const totalScore = scores.moyen + scores.avance + scores.expert;
-  const totalQuestions = questions.moyen.length + questions.avance.length + questions.expert.length;
-  return (
-    <div className="results">
-      <h3>🎯 Score : {totalScore} / {totalQuestions}</h3>
-      <p>✅ Moyen : {scores.moyen}/{questions.moyen.length} | ✅ Avancé : {scores.avance}/{questions.avance.length} | ✅ Expert : {scores.expert}/{questions.expert.length}</p>
-      {totalScore >= Math.floor(totalQuestions * 0.6)
-        ? <h3 className="success">🚀 Excellent ! Backend development maîtrisé.</h3>
-        : <p className="fail">📚 Révisez les concepts backend fondamentaux et avancés.</p>
-      }
-    </div>
-  );
-};
-
-const BackendInterviewQCM = () => {
+const Page10_TypeScript = () => {
   const [level, setLevel] = useState("basic");
   const [currentSlide, setCurrentSlide] = useState(0);
   const [currentQuestion, setCurrentQuestion] = useState(0);
-  const [scores, setScores] = useState({ moyen: 0, avance: 0, expert: 0 });
+  const [scores, setScores] = useState({ moyen: 0, avance: 0 });
   const [timeLeft, setTimeLeft] = useState(25);
   const [showResult, setShowResult] = useState(false);
   const [message, setMessage] = useState("");
 
-  const handleNextQuestion = useCallback(() => {
+  const handleNextQuestion = () => {
     const qs = questions[level];
     if (currentQuestion + 1 < qs.length) {
       setCurrentQuestion(q => q + 1);
       setTimeLeft(25);
       setMessage("");
     } else {
-      if (level === "moyen") { setLevel("avance"); }
-      else if (level === "avance") { setLevel("expert"); }
-      else { setShowResult(true); }
+      if (level === "moyen") {
+        setLevel("avance");
+      } else {
+        setShowResult(true);
+      }
       setCurrentQuestion(0);
       setTimeLeft(25);
       setMessage("");
     }
-  }, [level, currentQuestion]);;
+  };
 
   useEffect(() => {
-    if (level !== "basic" && !showResult && !message) {
+    if (level !== "basic" && !showResult) {
       if (timeLeft > 0) {
         const t = setTimeout(() => setTimeLeft(t2 => t2 - 1), 1000);
         return () => clearTimeout(t);
-      } else handleNextQuestion();
+      } else {
+        handleNextQuestion();
+      }
     }
-  }, [timeLeft, level, showResult, message, handleNextQuestion]);
+  }, [timeLeft, level, showResult]);
 
   useEffect(() => {
     if (level === "basic" && !showResult) {
@@ -617,13 +554,12 @@ const BackendInterviewQCM = () => {
           setTimeLeft(25);
           return 0;
         });
-      }, 20000);
+      }, 12000);
       return () => clearInterval(i);
     }
   }, [level, showResult]);
 
   const handleAnswerClick = (option) => {
-    if (message) return;
     const current = questions[level][currentQuestion];
     if (option === current.answer) {
       setScores(p => ({ ...p, [level]: p[level] + 1 }));
@@ -636,13 +572,15 @@ const BackendInterviewQCM = () => {
 
   return (
     <div className="qcm-container">
-      {showResult ? <Results scores={scores} /> : (
+      {showResult ? (
+        <Results scores={scores} />
+      ) : (
         <div>
-          <h4 className="subtitle" style={{ fontSize: '10px', margin: '0 0 6px 0' }}>
-            Backend Interview 🔹 {level === "basic"
+          <h4 className="subtitle" style={{ fontSize: "10px", margin: "0 0 6px 0" }}>
+            TypeScript 🔹{" "}
+            {level === "basic"
               ? `Slide ${currentSlide + 1}/${basicSlides.length}`
-              : `QCM ${level.toUpperCase()} — Q${currentQuestion + 1}/${questions[level].length}`
-            }
+              : `QCM ${level.toUpperCase()} — Q${currentQuestion + 1}/${questions[level].length}`}
           </h4>
           {level === "basic" ? (
             <Flashcard slide={basicSlides[currentSlide]} />
@@ -654,11 +592,15 @@ const BackendInterviewQCM = () => {
               timeLeft={timeLeft}
             />
           )}
-          {message && <p className="message" style={{ whiteSpace: 'pre-wrap', marginTop: '8px' }}>{message}</p>}
+          {message && (
+            <p className="message" style={{ whiteSpace: "pre-wrap", marginTop: "8px" }}>
+              {message}
+            </p>
+          )}
         </div>
       )}
     </div>
   );
 };
 
-export default BackendInterviewQCM;
+export default Page10_TypeScript;

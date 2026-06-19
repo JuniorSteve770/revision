@@ -82,7 +82,7 @@ const HomePage = () => {
         {/* Bouton Projet 11 */}
         <Link to="/project11">
           <button className="home-page-button" id="project11-button">
-            11. Projet 11
+            11. Amund*
           </button>
         </Link>
 
