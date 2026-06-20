@@ -1,8 +1,7 @@
-// src/projects/CIBPricing/CIBRestApiInfraQCM.js
+// src/projects/Project3/pages/Page12_Architecture.js
 
-import React, { useState, useEffect, useCallback } from "react";
+import React, { useState, useEffect } from "react";
 import "./Page.css";
-
 
 const basicSlides = [
   {
@@ -437,9 +436,7 @@ const questions = {
       ],
       "answer": "L'état du système sera cohérent à terme, mais pas immédiatement après une écriture — acceptable pour les données non-critiques (catalogue, profil utilisateur) mais inacceptable pour les transactions financières.",
       "explanation": "Dans un système distribué (microservices, bases répliquées) : après une écriture, différentes instances peuvent retourner des valeurs différentes pendant quelques millisecondes à secondes. Acceptable : un utilisateur voit son profil mis à jour avec 1 seconde de délai — pas grave. Inacceptable : après un virement bancaire, le solde doit immédiatement refléter la transaction. En finance : les positions doivent être cohérentes immédiatement (CP). Le cours d'une action peut être légèrement en retard (AP). La cohérence éventuelle est une conséquence de l'architecture distribuée, pas un choix arbitraire — il faut en être conscient."
-    }
-  ],
-  expert: [
+    },
     {
       "question": "[Phase 4] Qu'est-ce que le 'feature flag' et quel est son rôle dans le CI/CD ?",
       "options": [
@@ -476,156 +473,134 @@ const questions = {
   ]
 };
 
-
-
-const renderInlineTokens = (text, keyPrefix) => {
-  const regex = /(\*\*.*?\*\*|`.*?`|\*.*?\*)/g;
-  const parts = text.split(regex);
-  return parts.map((part, idx) => {
-    if (part.startsWith("**") && part.endsWith("**")) {
-      return <strong key={`${keyPrefix}-${idx}`} style={{ display: 'inline', fontWeight: 'bold' }}>{part.slice(2, -2)}</strong>;
-    }
-    if (part.startsWith("`") && part.endsWith("`")) {
-      return (
-        <code key={`${keyPrefix}-${idx}`} style={{
-          display: 'inline', backgroundColor: '#eef2f7', padding: '1px 5px',
-          borderRadius: '3px', fontFamily: 'monospace', color: '#e01e5a',
-          fontWeight: 'bold', fontSize: '13px'
-        }}>
-          {part.slice(1, -1)}
-        </code>
-      );
-    }
-    if (part.startsWith("*") && part.endsWith("*")) {
-      return <em key={`${keyPrefix}-${idx}`} style={{ display: 'inline' }}>{part.slice(1, -1)}</em>;
-    }
-    return part;
-  });
-};
-
-const renderFormattedText = (text) => {
-  if (!text) return null;
-  let cleanText = text
-    .replace(/\r?\n- /g, " ◆ ").replace(/\r?\n• /g, " ◆ ").replace(/\r?\n/g, " ")
-    .replace(/\.-\s*\*\*/g, " ◆ **").replace(/-\s*\*\*/g, " ◆ **");
-  if (cleanText.startsWith(" ◆ ")) cleanText = cleanText.substring(3);
-  if (cleanText.startsWith("- ")) cleanText = cleanText.substring(2);
-  const segments = cleanText.split(" ◆ ");
-  return (
-    <span style={{ display: 'block', lineHeight: '1.7' }}>
-      {segments.map((segment, segIdx) => (
-        <span key={segIdx} style={{ display: 'block', marginBottom: segIdx < segments.length - 1 ? '6px' : '0' }}>
-          {segIdx > 0 && <span style={{ color: '#1a73e8', fontWeight: 'bold', marginRight: '5px' }}>◆</span>}
-          {renderInlineTokens(segment, `seg-${segIdx}`)}
-        </span>
-      ))}
-    </span>
-  );
-};
-
-const Timer = ({ timeLeft }) => <p className="timer">⏳ <span>{timeLeft}s</span></p>;
+const Flashcard = ({ slide }) => (
+  <div className="flashcard">
+    <h3 className="question">{slide.question}</h3>
+    <p className="answer" style={{ whiteSpace: "pre-wrap", fontSize: "11px", lineHeight: "1.5" }}
+      dangerouslySetInnerHTML={{ __html: slide.answer.replace(/\*\*(.*?)\*\*/g, "<strong>$1</strong>").replace(/`(.*?)`/g, "<code>$1</code>") }}
+    />
+  </div>
+);
 
 const QuestionCard = ({ question, options, onAnswerClick, timeLeft }) => (
   <div className="question-card">
-    <h4>💡 {question}</h4>
-    <Timer timeLeft={timeLeft} />
-    <div className="options-container">
-      {options.map((option, index) => (
-        <button key={index} onClick={() => onAnswerClick(option)} className="option-button">
-          {String.fromCharCode(65 + index)}. {option}
+    <div className="timer">⏱ {timeLeft}s</div>
+    <h3 className="question" style={{ fontSize: "12px" }}>{question}</h3>
+    <div className="options">
+      {options.map((opt, i) => (
+        <button key={i} className="option-btn" onClick={() => onAnswerClick(opt)}
+          style={{ fontSize: "11px", textAlign: "left", padding: "6px 10px", marginBottom: "4px", width: "100%" }}>
+          {opt}
         </button>
       ))}
     </div>
   </div>
 );
 
-const Flashcard = ({ slide }) => (
-  <div className="question-card" style={{ fontSize: '14px', margin: '0' }}>
-    <p style={{ fontWeight: 'bold', fontSize: '15px', color: '#1a73e8', margin: '0 0 10px 0' }}>{slide.question}</p>
-    <div style={{ padding: '12px 15px', background: '#f8f9fa', borderRadius: '8px', borderLeft: '4px solid #1a73e8', textAlign: 'left' }}>
-      {renderFormattedText(slide.answer)}
-    </div>
+const Results = ({ scores }) => (
+  <div className="results">
+    <h2>🎯 Résultats</h2>
+    <p>Niveau Moyen : {scores.moyen} / {questions.moyen.length}</p>
+    <p>Niveau Avancé : {scores.avance} / {questions.avance.length}</p>
+    <p>Total : {scores.moyen + scores.avance} / {questions.moyen.length + questions.avance.length}</p>
   </div>
 );
 
-const Results = ({ scores }) => {
-  const totalScore = scores.moyen + scores.avance + scores.expert;
-  const totalQuestions = questions.moyen.length + questions.avance.length + questions.expert.length;
-  return (
-    <div className="results">
-      <h3>🎯 Score : {totalScore} / {totalQuestions}</h3>
-      <p>✅ Moyen : {scores.moyen}/{questions.moyen.length} | ✅ Avancé : {scores.avance}/{questions.avance.length} | ✅ Expert : {scores.expert}/{questions.expert.length}</p>
-      {totalScore >= Math.floor(totalQuestions * 0.6)
-        ? <h3 className="success">🚀 Infrastructure REST API CIB maîtrisée — Mission MAPS prête !</h3>
-        : <p className="fail">📚 Révisez l'API REST, le multithreading C# et l'architecture microservices CIB.</p>}
-    </div>
-  );
-};
-
-const CIBRestApiInfraQCM = () => {
+const Page12_Architecture = () => {
   const [level, setLevel] = useState("basic");
   const [currentSlide, setCurrentSlide] = useState(0);
   const [currentQuestion, setCurrentQuestion] = useState(0);
-  const [scores, setScores] = useState({ moyen: 0, avance: 0, expert: 0 });
+  const [scores, setScores] = useState({ moyen: 0, avance: 0 });
   const [timeLeft, setTimeLeft] = useState(25);
   const [showResult, setShowResult] = useState(false);
   const [message, setMessage] = useState("");
 
-  const handleNextQuestion = useCallback(() => {
+  const handleNextQuestion = () => {
     const qs = questions[level];
-    if (currentQuestion + 1 < qs.length) { setCurrentQuestion(q => q + 1); setTimeLeft(25); setMessage(""); }
-    else {
-      if (level === "moyen") setLevel("avance");
-      else if (level === "avance") setLevel("expert");
-      else setShowResult(true);
-      setCurrentQuestion(0); setTimeLeft(25); setMessage("");
+    if (currentQuestion + 1 < qs.length) {
+      setCurrentQuestion(q => q + 1);
+      setTimeLeft(25);
+      setMessage("");
+    } else {
+      if (level === "moyen") {
+        setLevel("avance");
+      } else {
+        setShowResult(true);
+      }
+      setCurrentQuestion(0);
+      setTimeLeft(25);
+      setMessage("");
     }
-  }, [level, currentQuestion]);;
+  };
 
   useEffect(() => {
-    if (level !== "basic" && !showResult && !message) {
-      if (timeLeft > 0) { const t = setTimeout(() => setTimeLeft(t2 => t2 - 1), 1000); return () => clearTimeout(t); }
-      else handleNextQuestion();
+    if (level !== "basic" && !showResult) {
+      if (timeLeft > 0) {
+        const t = setTimeout(() => setTimeLeft(t2 => t2 - 1), 1000);
+        return () => clearTimeout(t);
+      } else {
+        handleNextQuestion();
+      }
     }
-  }, [timeLeft, level, showResult, message, handleNextQuestion]);
+  }, [timeLeft, level, showResult]);
 
   useEffect(() => {
     if (level === "basic" && !showResult) {
       const i = setInterval(() => {
         setCurrentSlide(prev => {
           if (prev + 1 < basicSlides.length) return prev + 1;
-          setLevel("moyen"); setCurrentQuestion(0); setTimeLeft(25); return 0;
+          setLevel("moyen");
+          setCurrentQuestion(0);
+          setTimeLeft(25);
+          return 0;
         });
-      }, 20000);
+      }, 12000);
       return () => clearInterval(i);
     }
   }, [level, showResult]);
 
   const handleAnswerClick = (option) => {
-    if (message) return;
     const current = questions[level][currentQuestion];
-    if (option === current.answer) { setScores(p => ({ ...p, [level]: p[level] + 1 })); setMessage("✅ Correct !"); }
-    else { setMessage(`❌ ${current.answer}\n\nℹ️ ${current.explanation}`); }
+    if (option === current.answer) {
+      setScores(p => ({ ...p, [level]: p[level] + 1 }));
+      setMessage("✅ Correct !");
+    } else {
+      setMessage(`❌ ${current.answer}\n\nℹ️ ${current.explanation}`);
+    }
     setTimeout(handleNextQuestion, 4000);
   };
 
   return (
     <div className="qcm-container">
-      {showResult ? <Results scores={scores} /> : (
+      {showResult ? (
+        <Results scores={scores} />
+      ) : (
         <div>
-          <h4 className="subtitle" style={{ fontSize: '10px', margin: '0 0 6px 0' }}>
-            CIB REST API & Infrastructure 🔹 {level === "basic"
+          <h4 className="subtitle" style={{ fontSize: "10px", margin: "0 0 6px 0" }}>
+            Architecture & Stack 🔹{" "}
+            {level === "basic"
               ? `Slide ${currentSlide + 1}/${basicSlides.length}`
               : `QCM ${level.toUpperCase()} — Q${currentQuestion + 1}/${questions[level].length}`}
           </h4>
-          {level === "basic"
-            ? <Flashcard slide={basicSlides[currentSlide]} />
-            : <QuestionCard question={questions[level][currentQuestion].question} options={questions[level][currentQuestion].options} onAnswerClick={handleAnswerClick} timeLeft={timeLeft} />}
-          {message && <p className="message" style={{ whiteSpace: 'pre-wrap', marginTop: '8px' }}>{message}</p>}
+          {level === "basic" ? (
+            <Flashcard slide={basicSlides[currentSlide]} />
+          ) : (
+            <QuestionCard
+              question={questions[level][currentQuestion].question}
+              options={questions[level][currentQuestion].options}
+              onAnswerClick={handleAnswerClick}
+              timeLeft={timeLeft}
+            />
+          )}
+          {message && (
+            <p className="message" style={{ whiteSpace: "pre-wrap", marginTop: "8px" }}>
+              {message}
+            </p>
+          )}
         </div>
       )}
     </div>
   );
 };
 
-export default CIBRestApiInfraQCM;
+export default Page12_Architecture;

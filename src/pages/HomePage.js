@@ -26,7 +26,7 @@ const HomePage = () => {
         {/* Bouton Projet 3 */}
         <Link to="/project3">
           <button className="home-page-button" id="project3-button">
-            3. Stage
+            3. Advande_Stag
           </button>
         </Link>
 
@@ -40,7 +40,7 @@ const HomePage = () => {
         {/* Bouton Projet 5 */}
         <Link to="/project5">
           <button className="home-page-button" id="project5-button">
-            5. fer Ami
+            
           </button>
         </Link>
 
@@ -82,7 +82,7 @@ const HomePage = () => {
         {/* Bouton Projet 11 */}
         <Link to="/project11">
           <button className="home-page-button" id="project11-button">
-            11. Amund*
+            11. Am*
           </button>
         </Link>
 

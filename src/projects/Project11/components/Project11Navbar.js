@@ -10,6 +10,10 @@ const Project11Navbar = () => {
       <Link to="/project11/page2">2. Page 2</Link>
       <Link to="/project11/page3">3. Page 3</Link>
       <Link to="/project11/page4">4. Page 4</Link>
+      <Link to="/project11/page5">5. Page 5</Link>
+      <Link to="/project11/page6">6. Page 6</Link>
+      <Link to="/project11/page7">7. Page 7</Link>
+      <Link to="/project11/page8">8. Page 8</Link>
     </nav>
   );
 };
