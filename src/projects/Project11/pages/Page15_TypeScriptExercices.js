@@ -1,8 +1,7 @@
-// src/projects/CIBPricing/MicroservicesFoundationsQCM.js
+// src/projects/Project3/pages/Page15_TypeScriptExercices.js
 
 import React, { useState, useEffect, useCallback } from "react";
 import "./Page.css";
-
 
 const basicSlides = [
   {
@@ -230,9 +229,7 @@ const questions = {
       ],
       "answer": "`as Config` : cfg.host est `string` (le type de Config). `satisfies Config` : cfg.host est `'localhost'` (literal type conservé) — validate sans changer le type inféré.",
       "explanation": "`as Config` : force le type à Config — on perd les types précis inférés (literal types). `satisfies Config` : valide que la valeur correspond à Config SANS changer le type inféré — cfg.host reste 'localhost' (literal). On a la validation ET la précision. as est aussi risqué car il ne vérifie pas les types incompatibles (double cast as unknown as T = contourne tout). Préférer satisfies quand possible."
-    }
-  ],
-  avance: [
+    },
     {
       "question": "[4.6 — Readonly] `const trade: Readonly<Trade> = { id: '1', isin: 'FR001', qty: 100 }; trade.qty = 200;` — que se passe-t-il ?",
       "options": [
@@ -288,9 +285,6 @@ const questions = {
       "answer": "B et C sont équivalents et tous les deux corrects.",
       "explanation": "Omit<Trade, 'id'> : exclude id, garde les autres. Plus maintenable : si on ajoute un champ à Trade, Omit l'inclut automatiquement. Pick<Trade, 'isin' | 'qty' | 'price' | 'desk'> : sélectionne les champs. Plus explicite mais à mettre à jour manuellement. Partiel<Trade> est faux — rendrait tous les champs optionnels. `createTrade({ id: 'xxx', ... })` → erreur TypeScript car id n'existe pas dans Omit<Trade, 'id'>."
     },
-      ],
-  expert: [
-    
     {
       "question": "[6.2 — Read] `function filterTrades(??): Trade[]` — quel est le bon type du paramètre prédicat ?",
       "options": [
@@ -378,21 +372,37 @@ const questions = {
       ],
       "answer": "Créer un nouvel objet : `const updated = { ...trade, qty: 200 }` — spread crée une copie avec le champ modifié.",
       "explanation": "Readonly<T> interdit la mutation directe — c'est voulu. Le pattern fonctionnel : ne jamais muter, créer un nouveau objet. `{ ...trade, qty: 200 }` crée un nouvel objet avec toutes les propriétés de trade sauf qty qui vaut 200. TypeScript infère le type du spread correctement. Object.assign mute l'objet source — contourne Readonly mais c'est un anti-pattern. Le cast `as Trade` contourne aussi mais masque le problème. Le spread est la solution idiomatique en TypeScript."
-    },
-  ]
+    }
+  ],
+  avance: []
 };
 
 const renderInlineTokens = (text, keyPrefix) => {
   const regex = /(\*\*.*?\*\*|`.*?`|\*.*?\*)/g;
   const parts = text.split(regex);
   return parts.map((part, idx) => {
-    if (part.startsWith("**") && part.endsWith("**")) return <strong key={`${keyPrefix}-${idx}`} style={{ display: 'inline', fontWeight: 'bold' }}>{part.slice(2, -2)}</strong>;
-    if (part.startsWith("`") && part.endsWith("`")) return (
-      <code key={`${keyPrefix}-${idx}`} style={{ display: 'inline', backgroundColor: '#eef2f7', padding: '1px 5px', borderRadius: '3px', fontFamily: 'monospace', color: '#e01e5a', fontWeight: 'bold', fontSize: '13px' }}>
-        {part.slice(1, -1)}
-      </code>
-    );
-    if (part.startsWith("*") && part.endsWith("*")) return <em key={`${keyPrefix}-${idx}`} style={{ display: 'inline' }}>{part.slice(1, -1)}</em>;
+    if (part.startsWith("**") && part.endsWith("**")) {
+      return <strong key={`${keyPrefix}-${idx}`} style={{ display: 'inline', fontWeight: 'bold' }}>{part.slice(2, -2)}</strong>;
+    }
+    if (part.startsWith("`") && part.endsWith("`")) {
+      return (
+        <code key={`${keyPrefix}-${idx}`} style={{
+          display: 'inline',
+          backgroundColor: '#eef2f7',
+          padding: '1px 5px',
+          borderRadius: '3px',
+          fontFamily: 'monospace',
+          color: '#e01e5a',
+          fontWeight: 'bold',
+          fontSize: '13px'
+        }}>
+          {part.slice(1, -1)}
+        </code>
+      );
+    }
+    if (part.startsWith("*") && part.endsWith("*")) {
+      return <em key={`${keyPrefix}-${idx}`} style={{ display: 'inline' }}>{part.slice(1, -1)}</em>;
+    }
     return part;
   });
 };
@@ -400,16 +410,24 @@ const renderInlineTokens = (text, keyPrefix) => {
 const renderFormattedText = (text) => {
   if (!text) return null;
   let cleanText = text
-    .replace(/\r?\n- /g, " ◆ ").replace(/\r?\n• /g, " ◆ ").replace(/\r?\n/g, " ")
-    .replace(/\.-\s*\*\*/g, " ◆ **").replace(/-\s*\*\*/g, " ◆ **");
+    .replace(/\r?\n- /g, " ◆ ")
+    .replace(/\r?\n• /g, " ◆ ")
+    .replace(/\r?\n/g, " ")
+    .replace(/\.-\s*\*\*/g, " ◆ **")
+    .replace(/-\s*\*\*/g, " ◆ **");
+
   if (cleanText.startsWith(" ◆ ")) cleanText = cleanText.substring(3);
   if (cleanText.startsWith("- ")) cleanText = cleanText.substring(2);
+
   const segments = cleanText.split(" ◆ ");
+
   return (
     <span style={{ display: 'block', lineHeight: '1.7' }}>
       {segments.map((segment, segIdx) => (
         <span key={segIdx} style={{ display: 'block', marginBottom: segIdx < segments.length - 1 ? '6px' : '0' }}>
-          {segIdx > 0 && <span style={{ color: '#1a73e8', fontWeight: 'bold', marginRight: '5px' }}>◆</span>}
+          {segIdx > 0 && (
+            <span style={{ color: '#1a73e8', fontWeight: 'bold', marginRight: '5px' }}>◆</span>
+          )}
           {renderInlineTokens(segment, `seg-${segIdx}`)}
         </span>
       ))}
@@ -443,43 +461,51 @@ const Flashcard = ({ slide }) => (
 );
 
 const Results = ({ scores }) => {
-  const totalScore = scores.moyen + scores.avance + scores.expert;
-  const totalQuestions = questions.moyen.length + questions.avance.length + questions.expert.length;
+  const total = scores.moyen;
+  const max = questions.moyen.length;
   return (
     <div className="results">
-      <h3>🎯 Score : {totalScore} / {totalQuestions}</h3>
-      <p>✅ Moyen : {scores.moyen}/{questions.moyen.length} | ✅ Avancé : {scores.avance}/{questions.avance.length} | ✅ Expert : {scores.expert}/{questions.expert.length}</p>
-      {totalScore >= Math.floor(totalQuestions * 0.6)
-        ? <h3 className="success">🚀 Fondations Microservices / JSON / async / LINQ maîtrisées !</h3>
-        : <p className="fail">📚 Révisez les slides — focus sur les points de confusion marqués ⚠️.</p>}
+      <h3>🎯 Score : {total} / {max}</h3>
+      <p>✅ Exercices TypeScript : {scores.moyen}/{max}</p>
+      {total >= Math.floor(max * 0.8)
+        ? <h3 className="success">🚀 TypeScript maîtrisé !</h3>
+        : total >= Math.floor(max * 0.6)
+        ? <p>⚠️ Quelques points à retravailler — reprends les slides.</p>
+        : <p className="fail">📚 Reprends les slides et reessaie.</p>
+      }
     </div>
   );
 };
 
-const MicroservicesFoundationsQCM = () => {
+const Page15_TypeScriptExercices = () => {
   const [level, setLevel] = useState("basic");
   const [currentSlide, setCurrentSlide] = useState(0);
   const [currentQuestion, setCurrentQuestion] = useState(0);
-  const [scores, setScores] = useState({ moyen: 0, avance: 0, expert: 0 });
+  const [scores, setScores] = useState({ moyen: 0, avance: 0 });
   const [timeLeft, setTimeLeft] = useState(25);
   const [showResult, setShowResult] = useState(false);
   const [message, setMessage] = useState("");
 
   const handleNextQuestion = useCallback(() => {
     const qs = questions[level];
-    if (currentQuestion + 1 < qs.length) { setCurrentQuestion(q => q + 1); setTimeLeft(25); setMessage(""); }
-    else {
-      if (level === "moyen") setLevel("avance");
-      else if (level === "avance") setLevel("expert");
-      else setShowResult(true);
-      setCurrentQuestion(0); setTimeLeft(25); setMessage("");
+    if (currentQuestion + 1 < qs.length) {
+      setCurrentQuestion(q => q + 1);
+      setTimeLeft(25);
+      setMessage("");
+    } else {
+      if (level === "moyen") { setShowResult(true); }
+      setCurrentQuestion(0);
+      setTimeLeft(25);
+      setMessage("");
     }
-  }, [level, currentQuestion]);;
+  }, [level, currentQuestion]);
 
   useEffect(() => {
     if (level !== "basic" && !showResult && !message) {
-      if (timeLeft > 0) { const t = setTimeout(() => setTimeLeft(t2 => t2 - 1), 1000); return () => clearTimeout(t); }
-      else handleNextQuestion();
+      if (timeLeft > 0) {
+        const t = setTimeout(() => setTimeLeft(t2 => t2 - 1), 1000);
+        return () => clearTimeout(t);
+      } else handleNextQuestion();
     }
   }, [timeLeft, level, showResult, message, handleNextQuestion]);
 
@@ -488,7 +514,10 @@ const MicroservicesFoundationsQCM = () => {
       const i = setInterval(() => {
         setCurrentSlide(prev => {
           if (prev + 1 < basicSlides.length) return prev + 1;
-          setLevel("moyen"); setCurrentQuestion(0); setTimeLeft(25); return 0;
+          setLevel("moyen");
+          setCurrentQuestion(0);
+          setTimeLeft(25);
+          return 0;
         });
       }, 20000);
       return () => clearInterval(i);
@@ -498,8 +527,12 @@ const MicroservicesFoundationsQCM = () => {
   const handleAnswerClick = (option) => {
     if (message) return;
     const current = questions[level][currentQuestion];
-    if (option === current.answer) { setScores(p => ({ ...p, [level]: p[level] + 1 })); setMessage("✅ Correct !"); }
-    else { setMessage(`❌ ${current.answer}\n\nℹ️ ${current.explanation}`); }
+    if (option === current.answer) {
+      setScores(p => ({ ...p, [level]: p[level] + 1 }));
+      setMessage("✅ Correct !");
+    } else {
+      setMessage(`❌ ${current.answer}\n\nℹ️ ${current.explanation}`);
+    }
     setTimeout(handleNextQuestion, 4000);
   };
 
@@ -508,13 +541,21 @@ const MicroservicesFoundationsQCM = () => {
       {showResult ? <Results scores={scores} /> : (
         <div>
           <h4 className="subtitle" style={{ fontSize: '10px', margin: '0 0 6px 0' }}>
-            Microservices · JSON · MSMQ · async · LINQ 🔹 {level === "basic"
+            TypeScript Exercices 🔹 {level === "basic"
               ? `Slide ${currentSlide + 1}/${basicSlides.length}`
-              : `QCM ${level.toUpperCase()} — Q${currentQuestion + 1}/${questions[level].length}`}
+              : `QCM ${level.toUpperCase()} — Q${currentQuestion + 1}/${questions[level].length}`
+            }
           </h4>
-          {level === "basic"
-            ? <Flashcard slide={basicSlides[currentSlide]} />
-            : <QuestionCard question={questions[level][currentQuestion].question} options={questions[level][currentQuestion].options} onAnswerClick={handleAnswerClick} timeLeft={timeLeft} />}
+          {level === "basic" ? (
+            <Flashcard slide={basicSlides[currentSlide]} />
+          ) : (
+            <QuestionCard
+              question={questions[level][currentQuestion].question}
+              options={questions[level][currentQuestion].options}
+              onAnswerClick={handleAnswerClick}
+              timeLeft={timeLeft}
+            />
+          )}
           {message && <p className="message" style={{ whiteSpace: 'pre-wrap', marginTop: '8px' }}>{message}</p>}
         </div>
       )}
@@ -522,4 +563,4 @@ const MicroservicesFoundationsQCM = () => {
   );
 };
 
-export default MicroservicesFoundationsQCM;
+export default Page15_TypeScriptExercices;
