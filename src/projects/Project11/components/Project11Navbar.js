@@ -15,6 +15,7 @@ const Project11Navbar = () => {
       <Link to="/project11/page7">7. choix1</Link>
       <Link to="/project11/page8">8. choix2</Link>
       <Link to="/project11/page9">9. # choix python</Link>
+      <Link to="/project11/page10">9. # pythAll</Link>
     </nav>
   );
 };

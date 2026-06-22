@@ -618,7 +618,7 @@ const CIBPricingPreTradeQCM = () => {
           setTimeLeft(25);
           return 0;
         });
-      }, 20000);
+      }, 15000);
       return () => clearInterval(i);
     }
   }, [level, showResult]);
