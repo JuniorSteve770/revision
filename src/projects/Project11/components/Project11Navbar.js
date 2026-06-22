@@ -10,10 +10,11 @@ const Project11Navbar = () => {
       <Link to="/project11/page2">2. Page 2</Link>
       <Link to="/project11/page3">3.  choix archi</Link>
       <Link to="/project11/page4">4. FastAPITestx</Link>
-      <Link to="/project11/page5">5. Page 5</Link>
+      <Link to="/project11/page5">5. ESG</Link>
       <Link to="/project11/page6">6. Page 6</Link>
-      <Link to="/project11/page7">7. Page 7</Link>
-      <Link to="/project11/page8">8. Page 8</Link>
+      <Link to="/project11/page7">7. choix1</Link>
+      <Link to="/project11/page8">8. choix2</Link>
+      <Link to="/project11/page9">9. # choix python</Link>
     </nav>
   );
 };
