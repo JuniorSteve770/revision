@@ -408,6 +408,24 @@ const Page1 = () => {
   const [showResult, setShowResult] = useState(false);
   const [message, setMessage] = useState("");
 
+  const handleNextQuestion = useCallback(() => {
+    const currentQuestions = questions[level];
+    if (currentQuestion + 1 < currentQuestions.length) {
+      setCurrentQuestion(currentQuestion + 1);
+      setTimeLeft(20);
+      setMessage("");
+    } else {
+      if (level === "moyen") {
+        setLevel("avance");
+      } else {
+        setShowResult(true);
+      }
+      setCurrentQuestion(0);
+      setTimeLeft(20);
+      setMessage("");
+    }
+  }, [level, currentQuestion]);
+
   // Timer pour les niveaux QCM
   useEffect(() => {
     if (level !== "basic" && !showResult && !message && timeLeft > 0) {
@@ -458,23 +476,7 @@ const handleAnswerClick = (option, index) => {
   setTimeout(handleNextQuestion, 2500);
 };
 
-  const handleNextQuestion = useCallback(() => {
-    const currentQuestions = questions[level];
-    if (currentQuestion + 1 < currentQuestions.length) {
-      setCurrentQuestion(currentQuestion + 1);
-      setTimeLeft(20);
-      setMessage("");
-    } else {
-      if (level === "moyen") {
-        setLevel("avance");
-      } else {
-        setShowResult(true);
-      }
-      setCurrentQuestion(0);
-      setTimeLeft(20);
-      setMessage("");
-    }
-  }, [level, currentQuestion]);;
+
 
   return (
     <div className="qcm-container">

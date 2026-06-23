@@ -10,6 +10,8 @@ const Project12Navbar = () => {
       <Link to="/project12/page2">2. Prcing-PrTrad</Link>
       <Link to="/project12/page3">3. Finance Intro</Link>
       <Link to="/project12/page4">4. Microservices</Link>
+      <Link to="/project12/page5">5. BA C#</Link>
+      <Link to="/project12/page6">Ba ALM</Link>
     </nav>
   );
 };
