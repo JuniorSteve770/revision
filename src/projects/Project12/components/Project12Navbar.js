@@ -12,6 +12,9 @@ const Project12Navbar = () => {
       <Link to="/project12/page4">4. Microservices</Link>
       <Link to="/project12/page5">5. BA C#</Link>
       <Link to="/project12/page6">Ba ALM</Link>
+      <Link to="/project12/page7">Path</Link>
+      <Link to="/project12/page8">Path2 </Link>
+      <Link to="/project12/page8">Path3 </Link>
     </nav>
   );
 };
