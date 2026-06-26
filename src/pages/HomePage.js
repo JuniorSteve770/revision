@@ -68,7 +68,7 @@ const HomePage = () => {
         {/* Bouton Projet 9 */}
         <Link to="/project9">
           <button className="home-page-button" id="project9-button">
-            9. Projet 9
+            9. 4/4each/while/ DataStruct
           </button>
         </Link>
 
