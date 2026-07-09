@@ -1,610 +1,514 @@
-// src/projects/BackendInterview/BackendInterviewQCM.js
+// src/projects/BackendInterview/MarketProtocolsQCM.js
 
 import React, { useState, useEffect, useCallback } from "react";
 import "./Page.css";
 
 const basicSlides = [
   {
-    question: "Les 4 boucles C# — Quand les utiliser ?",
+    question: "Vue d'ensemble — Les 4 protocoles en finance de marché",
     answer:
-      "◆ **for** : index numérique, nombre d'itérations connu\n```csharp\nfor (int i = 0; i < 10; i++) { ... }\n```\n◆ **foreach** : parcours complet d'une collection, sans index\n```csharp\nforeach (var item in collection) { ... }\n```\n◆ **while** : condition externe, nombre d'itérations inconnu\n```csharp\nwhile (condition) { ... }\n```\n◆ **do-while** : au moins une exécution garantie\n```csharp\ndo { ... } while (condition);\n```\n⚠️ Choisir la bonne boucle = déjà 50% du code juste",
+      "◆ **Définition** : 4 protocoles qui cohabitent dans un OMS selon le type de système à connecter\n◆ **REST + JSON** : entre applications récentes (microservices, API internes/externes)\n◆ **SOAP + XML** : avec les systèmes legacy (back-office historique, référentiels)\n◆ **FIX** : envoi d'ordres vers brokers, marchés, plateformes de trading\n◆ **WebSocket** : diffusion temps réel (cours, statuts d'ordres)\n◆ **Cas d'usage** : un OMS combine généralement les 4 — FIX vers les marchés, REST pour les apps modernes, SOAP vers le legacy, WebSocket vers les postes traders",
   },
-  // ==================== SLIDE 2: STRUCTURES ====================
   {
-    question: "Les 4 structures de données essentielles",
+    question: "REST — Les verbes HTTP",
     answer:
-      "◆ **Array** : taille fixe, accès O(1) par index\n```csharp\nint[] tab = new int[5];\n```\n◆ **List<T>** : taille dynamique, accès O(1) par index\n```csharp\nvar list = new List<int>(); list.Add(10);\n```\n◆ **Dictionary<K,V>** : association clé→valeur, accès O(1) par clé\n```csharp\nvar dict = new Dictionary<string, int>(); dict[\"Alice\"] = 30;\n```\n◆ **HashSet<T>** : unicité garantie, Contains O(1)\n```csharp\nvar set = new HashSet<int>(); set.Add(1); set.Add(1); // ignore\n```\n⚠️ Le mauvais choix coûte en performance",
+      "◆ **Définition** : REST utilise les verbes HTTP pour exprimer une action sur une ressource\n◆ **GET** : lire une ressource (idempotent)\n◆ **POST** : créer une ressource (non idempotent)\n◆ **PUT** : remplacer une ressource (idempotent)\n◆ **PATCH** : modifier partiellement (non idempotent en général)\n◆ **DELETE** : supprimer (idempotent)\n◆ **Cas d'usage** : POST /orders pour créer un ordre, GET /orders/{id} pour consulter son statut\n\n```csharp\n[HttpPost]\npublic async Task<ActionResult<OrderDto>> CreateOrder(CreateOrderRequest r)\n{\n    var order = await _orderService.CreateAsync(r);\n    return CreatedAtAction(nameof(GetOrder), new { id = order.Id }, order);\n}\n```\n⚠️ Idempotent = même résultat si on répète l'appel plusieurs fois",
   },
-  // ==================== SLIDE 3: PATTERN 1 ====================
   {
-    question: "Pattern 1 — Parsing & Transformation",
+    question: "REST — Client HttpClient en C#",
     answer:
-      "◆ **foreach** : parcourt la collection source\n◆ **for** : parcourt les sous-parties\n◆ **Add** : construit la structure résultante\n◆ **Piège** : for commence parfois à 1 pour ignorer un en-tête\n\n```csharp\nvar resultats = new List<(string, int)>();\n\nforeach (string ligne in donnees)\n{\n    string[] parts = ligne.Split(':');\n    string nom = parts[0];\n    int age = int.Parse(parts[1]);\n    resultats.Add((nom, age));\n}\n```\n⚠️ Pattern le plus fréquent dans les applications métier",
+      "◆ **Définition** : HttpClient est le client .NET standard pour consommer une API REST\n◆ **PostAsJsonAsync** : sérialise l'objet en JSON automatiquement\n◆ **ReadFromJsonAsync<T>** : désérialise la réponse\n◆ **EnsureSuccessStatusCode** : lève une exception si code ≥ 400\n◆ **Cas d'usage** : un front web appelle l'OMS pour passer un ordre depuis une page trader\n\n```csharp\nvar response = await client.PostAsJsonAsync(\"orders\", new CreateOrderRequest\n{\n    Symbol = \"AAPL\", Side = \"BUY\", Quantity = 100, Price = 189.50m\n});\nresponse.EnsureSuccessStatusCode();\nvar order = await response.Content.ReadFromJsonAsync<OrderDto>();\n```\n⚠️ System.Text.Json = plus performant que Newtonsoft.Json (moins d'allocations)",
   },
-  // ==================== SLIDE 4: PATTERN 2 ====================
   {
-    question: "Pattern 2 — Initialisation & Unicité",
+    question: "SOAP + XML — Pourquoi ça survit en finance",
     answer:
-      "◆ **for** : initialise N structures\n◆ **HashSet** : unicité garantie, Contains O(1)\n◆ **Indépendance** : chaque instance est séparée\n◆ **Piège** : HashSet = unicité, List = ordre\n\n```csharp\nint N = 5;\nvar groupes = new List<HashSet<int>>();\n\nfor (int i = 0; i < N; i++)\n    groupes.Add(new HashSet<int> { i });\n// Résultat : [{0}, {1}, {2}, {3}, {4}]\n```\n⚠️ HashSet = unicité, List = ordre",
+      "◆ **Définition** : SOAP est un protocole d'échange basé sur une enveloppe XML stricte, décrite par un contrat WSDL\n◆ **Enveloppe SOAP** : Envelope / Header / Body en XML\n◆ **WS-Security** : standards de sécurité enterprise natifs\n◆ **Cas d'usage** : interroger un référentiel produit ou un système de compensation vieux de 15-20 ans, trop critique pour être réécrit\n\n```xml\n<soapenv:Envelope xmlns:soapenv=\"...\">\n  <soapenv:Body>\n    <GetOrderStatusRequest>\n      <OrderId>ORD-2026-000123</OrderId>\n    </GetOrderStatusRequest>\n  </soapenv:Body>\n</soapenv:Envelope>\n```\n⚠️ SOAP = typage fort + contrat figé, REST = plus léger + plus rapide à développer",
   },
-  // ==================== SLIDE 5: PATTERN 3 ====================
   {
-    question: "Pattern 3 — Simulations & Matrices",
+    question: "SOAP — Consommer un service en C#",
     answer:
-      "◆ **for + for** : double boucle = deux dimensions\n◆ **j = i + 1** : évite les paires en double\n◆ **Simulation** : temps × espace\n◆ **Piège** : O(n²) peut être coûteux pour grandes collections\n\n```csharp\n// Matrice : lignes × colonnes\nfor (int l = 0; l < hauteur; l++)\n    for (int c = 0; c < largeur; c++)\n        grille[l, c] = 1;\n\n// Comparaison de paires (sans répétition)\nfor (int i = 0; i < n; i++)\n    for (int j = i + 1; j < n; j++)\n        if (elements[i] == elements[j])\n            Console.WriteLine(\"Doublon\");\n```\n⚠️ La double boucle est le pattern des problèmes à 2 dimensions",
+      "◆ **Définition** : deux façons de consommer un WSDL depuis C#\n◆ **Client généré** : depuis le WSDL via dotnet-svcutil ou Visual Studio\n◆ **Appel manuel** : via HttpClient + StringContent en dernier recours\n◆ **SOAPAction** : header requis pour indiquer l'opération appelée\n◆ **SOAP Fault** : équivalent des codes d'erreur HTTP côté SOAP\n◆ **Cas d'usage** : interroger le statut d'un ordre historique stocké dans un mainframe\n\n```csharp\nvar client = new LegacyOrderServiceClient(\n    LegacyOrderServiceClient.EndpointConfiguration.LegacyOrderServiceSoap);\nvar response = await client.GetOrderStatusAsync(\n    new GetOrderStatusRequest { OrderId = \"ORD-2026-000123\" });\n```\n⚠️ XmlSerializer vs DataContractSerializer : deux façons de (dé)sérialiser du XML en .NET",
   },
-  // ==================== SLIDE 6: PATTERN 4 ====================
   {
-    question: "Pattern 4 — Groupement & Indexation",
+    question: "FIX — Structure d'un message",
     answer:
-      "◆ **ContainsKey** : vérifier l'existence\n◆ **Add** : créer si absent\n◆ **TryGetValue** : plus performant (1 accès au lieu de 2)\n◆ **Applications** : groupement, comptage, indexation\n\n```csharp\nvar index = new Dictionary<string, List<int>>();\n\nforeach (var item in donnees)\n{\n    string cle = item.Categorie;\n    if (!index.ContainsKey(cle))\n        index[cle] = new List<int>();\n    index[cle].Add(item.Id);\n}\n\n// Version optimisée avec TryGetValue\nif (!index.TryGetValue(cle, out var liste))\n{\n    liste = new List<int>();\n    index[cle] = liste;\n}\nliste.Add(item.Id);\n```\n⚠️ ContainsKey + indexeur = 2 accès → TryGetValue = 1 accès",
+      "◆ **Définition** : FIX = protocole texte tag=valeur, conçu en 1992 pour la basse latence\n◆ **Format** : tag=valeur séparés par SOH (\\x01)\n◆ **Tag 35 (MsgType)** : D=New Order, 8=Execution Report, F=Cancel Request\n◆ **Tag 11 (ClOrdID)** : identifiant client de l'ordre\n◆ **Tag 55/54/38/44** : Symbol / Side / OrderQty / Price\n◆ **Cas d'usage** : un buy-side envoie un ordre limité sur AAPL à son broker\n\n```\n8=FIX.4.4|35=D|49=CLIENT12|56=BROKER03|11=ORD00001|\n55=AAPL|54=1|38=100|40=2|44=189.50|10=128|\n```",
   },
-  // ==================== SLIDE 7: PATTERN 5 ====================
   {
-    question: "Pattern 5 — Agrégation Imbriquée",
+    question: "FIX — Cycle de vie d'un ordre (OrdStatus, tag 39)",
     answer:
-      "◆ **Trois niveaux** : groupes → membres → données\n◆ **Complexité** : O(n³)\n◆ **Application** : propagation dans réseaux\n◆ **Piège** : O(n³) à éviter sur grandes collections\n\n```csharp\nforeach (var groupe in groupes.Values)\n{\n    if (groupe.Count < 2) continue;\n    var toutes = new HashSet<int>();\n\n    foreach (int membre in groupe)\n        foreach (int info in donnees[membre])\n            toutes.Add(info);\n\n    foreach (int membre in groupe)\n        donnees[membre] = new HashSet<int>(toutes);\n}\n```\n⚠️ La triple boucle est souvent refactorisable avec LINQ",
+      "◆ **Définition** : le tag 39 (OrdStatus) reflète l'état courant d'un ordre côté marché/broker\n◆ **0 = New** : ordre reçu et accepté\n◆ **1 = Partially filled** : exécution partielle\n◆ **2 = Filled** : exécution complète\n◆ **4 = Canceled** : ordre annulé\n◆ **8 = Rejected** : ordre rejeté\n◆ **Cas d'usage** : suivre en direct l'avancement d'un ordre volumineux exécuté par tranches\n\n```\nNew (0) → PartiallyFilled (1) → Filled (2)\n       ou → Canceled (4) / Rejected (8)\n```\n⚠️ C'est LA question la plus posée en entretien sur FIX",
   },
-  // ==================== SLIDE 8: PATTERN 6 ====================
   {
-    question: "Pattern 6 — Validation & Sortie Anticipée",
+    question: "FIX — Session layer vs Application layer",
     answer:
-      "◆ **break** : sort de la boucle courante seulement\n◆ **return** : sort de toute la méthode\n◆ **continue** : passe à l'itération suivante\n◆ **Gain** : évite de parcourir inutilement\n\n```csharp\nbool tousPositifs = true;\nfor (int i = 0; i < tableau.Length; i++)\n{\n    if (tableau[i] <= 0)\n    {\n        tousPositifs = false;\n        break;\n    }\n}\n\nbool TousPositifs(int[] tab)\n{\n    foreach (int v in tab)\n        if (v <= 0) return false;\n    return true;\n}\n```\n⚠️ break = sort de la boucle, return = sort de la méthode",
+      "◆ **Définition** : FIX sépare la gestion de connexion (session) de l'information métier (application)\n◆ **Messages de session** : Logon(A), Heartbeat(0), Logout(5), ResendRequest(2), SequenceReset(4)\n◆ **Messages applicatifs** : NewOrderSingle(D), ExecutionReport(8), OrderCancelRequest(F), OrderCancelReplaceRequest(G)\n◆ **MsgSeqNum (tag 34)** : garantit qu'aucun message n'est perdu\n◆ **Cas d'usage** : après une coupure réseau, la session redémarre et un ResendRequest rejoue les messages manqués\n\n```csharp\npublic void SendNewOrder(string symbol, char side, decimal qty, decimal price)\n{\n    var order = new QuickFix.FIX44.NewOrderSingle(\n        new ClOrdID(Guid.NewGuid().ToString()),\n        new Side(side), new TransactTime(DateTime.UtcNow),\n        new OrdType(OrdType.LIMIT));\n    Session.SendToTarget(order, _sessionId);\n}\n```\n⚠️ QuickFIX/n = moteur FIX le plus utilisé en .NET (on ne parse jamais FIX à la main)",
   },
-  // ==================== SLIDE 9: COMPLEXITE ====================
   {
-    question: "Complexités & Optimisation",
+    question: "WebSocket — Push vs Pull",
     answer:
-      "◆ **O(1)** : Array, Dictionary, HashSet\n◆ **O(n)** : List.Contains\n◆ **O(n²)** : double boucle\n◆ **Optimisation** : pré-calculer avec HashSet pour réduire O(n²) → O(n)\n\n```csharp\n// O(n²) — double boucle\nfor (int i = 0; i < n; i++)\n    for (int j = 0; j < n; j++)\n        // n² opérations\n\n// O(n²) → O(n) avec HashSet\nvar set = new HashSet<int>(listeB);\nforeach (int a in listeA)\n    if (set.Contains(a))\n        intersection.Add(a);\n\n// Gain : 1 000 000 opérations → 2 000 opérations\n```\n⚠️ Les structures de données transforment la complexité d'un algorithme",
+      "◆ **Définition** : WebSocket ouvre une connexion bidirectionnelle persistante après un handshake HTTP (upgrade HTTP→WS)\n◆ **REST** = pull : le client demande, le serveur répond\n◆ **WebSocket** = push : le serveur pousse dès qu'il y a un événement\n◆ **wss://** : WebSocket sécurisé (TLS)\n◆ **Cas d'usage** : diffuser en continu les variations de prix d'un instrument sur l'écran d'un trader\n\n```csharp\nawait socket.SendAsync(bytes, WebSocketMessageType.Text, true, ct);\n// côté client\nvar result = await client.ReceiveAsync(buffer, CancellationToken.None);\n```\n⚠️ Alternatives : SSE (unidirectionnel), gRPC streaming, long polling, SignalR (abstraction .NET)",
   },
-  // ==================== SLIDE 10: METHODOLOGIE ====================
-{
-  question: "Comment reconnaître un pattern ? — Méthode en 6 questions",
-  answer:
-    "◆ **1. Que reçoit le programme ?**\nEntrée : texte, tableau, grille, fichier, collection...\n\n◆ **2. Que veut-on obtenir ?**\nRésultat : liste, dictionnaire, booléen, nombre, structure...\n\n◆ **3. Que faut-il faire ?**\nLire ? Compter ? Chercher ? Grouper ? Simuler ? Transformer ?\n\n◆ **4. Quelle structure choisir ?**\nArray (fixe) ? List (dynamique) ? Dictionary (indexation) ? HashSet (unicité) ?\n\n◆ **5. Quelle boucle utiliser ?**\nfor (index) ? foreach (parcours) ? while (condition externe) ?\n\n◆ **6. Quelle est la complexité ?**\nO(1) (constant) ? O(n) (linéaire) ? O(n²) (quadratique) ? O(n³) (cubique) ?\n\n```csharp\n// Exemple d'application :\n// Entrée : liste de chaînes \"Prénom:Age\"\n// Sortie : Dictionary<string, int> avec les âges\n// Action : parser chaque ligne → Split(':')\n// Structure : Dictionary<string, int>\n// Boucle : foreach sur la liste\n// Complexité : O(n) (une passe sur n éléments)\n```\n⚠️ 80% du problème est résolu quand on a répondu à ces 6 questions",
-},
+  {
+    question: "Synthèse comparative — Quel protocole pour quel besoin ?",
+    answer:
+      "◆ **Définition** : chaque protocole répond à un besoin précis dans l'architecture de trading\n◆ **REST** : stateless, requête/réponse, apps modernes\n◆ **SOAP** : stateless, requête/réponse, legacy/back-office\n◆ **FIX** : stateful (contrôle de séquence), session persistante, ordres/exécutions\n◆ **WebSocket** : stateful, connexion ouverte, cours/statuts temps réel\n◆ **Cas d'usage** : savoir dessiner ce schéma à l'oral vaut souvent plus que la syntaxe de chaque techno\n\n```\n[Front Trader] --REST/WS--> [OMS .NET] --FIX--> [Brokers/Marchés]\n                                  |--SOAP--> [Legacy/Back-office]\n```",
+  },
 ];
-
 
 const questions = {
   moyen: [
-    // ==================== SECTION A: CHOIX DE LA BOUCLE (6 questions) ====================
+    // ==================== SECTION A: REST ====================
     {
       question:
-        "[Boucles] Vous devez parcourir une liste de 1000 clients et afficher leur nom. Vous n'avez pas besoin d'index. Quelle boucle choisissez-vous ?",
+        "[REST] Quelle est la principale caractéristique d'une requête PUT par rapport à une requête PATCH ?",
       options: [
-        "for (int i = 0; i < clients.Count; i++)",
-        "foreach (var client in clients) — plus lisible, sans index",
-        "while (i < clients.Count)",
-        "do-while (i < clients.Count)",
+        "PUT et PATCH sont strictement identiques",
+        "PUT sert uniquement à créer, PATCH uniquement à lire",
+        "PUT remplace intégralement la ressource, PATCH la modifie partiellement",
+        "PUT est idempotent, PATCH ne l'est jamais dans aucun cas",
       ],
-      answer: "foreach (var client in clients) — plus lisible, sans index",
+      answer: "PUT remplace intégralement la ressource, PATCH la modifie partiellement",
       explanation:
-        "foreach est le choix naturel quand on parcourt TOUS les éléments d'une collection SANS avoir besoin d'un index. Le code est plus lisible et moins sujet aux erreurs d'index.",
+        "PUT remplace la ressource entière (donc idempotent : renvoyer la même requête donne le même résultat). PATCH applique une modification partielle et n'est en général pas idempotent.",
     },
     {
       question:
-        "[Boucles] Vous devez afficher les nombres de 0 à 99 (100 itérations). Quelle boucle est la plus adaptée ?",
+        "[REST] Qu'est-ce que la notion de 'statelessness' (sans état) en REST ?",
       options: [
-        "for (int i = 0; i < 100; i++) — nombre d'itérations connu, index nécessaire",
-        "foreach (int i in Enumerable.Range(0, 100))",
-        "while (i < 100)",
-        "do-while (i < 100)",
+        "Chaque requête est autonome et contient toute l'information nécessaire, sans dépendre d'une session serveur",
+        "Le serveur garde en mémoire l'historique de toutes les requêtes du client",
+        "Le client ne peut envoyer qu'une seule requête par connexion TCP",
+        "REST ne peut pas gérer l'authentification",
       ],
-      answer: "for (int i = 0; i < 100; i++) — nombre d'itérations connu, index nécessaire",
+      answer: "Chaque requête est autonome et contient toute l'information nécessaire, sans dépendre d'une session serveur",
       explanation:
-        "for est la boucle idéale quand le nombre d'itérations est connu à l'avance et qu'on a besoin d'un index. C'est le cas le plus classique pour for.",
+        "Le principe stateless signifie que le serveur ne conserve aucun contexte entre deux requêtes. Chaque appel doit porter toute l'info nécessaire (ex: token d'authentification dans le header).",
     },
     {
       question:
-        "[Boucles] Vous devez lire un fichier ligne par ligne jusqu'à la fin. Vous ne connaissez pas le nombre de lignes à l'avance. Quelle boucle utilisez-vous ?",
+        "[REST] Que fait la méthode HttpClient.PostAsJsonAsync en C# ?",
       options: [
-        "for (int i = 0; i < 1000; i++) — on suppose 1000 lignes",
-        "foreach (string ligne in File.ReadLines(fichier))",
-        "while ((ligne = fichier.ReadLine()) != null) — condition externe",
-        "do-while (ligne != null) — exécution garantie une fois",
+        "Elle télécharge un fichier JSON depuis le serveur",
+        "Elle convertit une réponse XML en JSON",
+        "Elle envoie une requête GET avec les paramètres en query string",
+        "Elle sérialise automatiquement l'objet en JSON et envoie une requête POST",
       ],
-      answer: "while ((ligne = fichier.ReadLine()) != null) — condition externe",
+      answer: "Elle sérialise automatiquement l'objet en JSON et envoie une requête POST",
       explanation:
-        "while est adapté quand la condition de sortie dépend d'un état externe (fin de fichier, saisie utilisateur). On ne sait pas combien d'itérations il y aura.",
+        "PostAsJsonAsync (extension de HttpClient) sérialise l'objet C# passé en paramètre en JSON, puis envoie une requête HTTP POST avec ce JSON comme corps de la requête.",
     },
     {
       question:
-        "[Boucles] Vous devez demander un mot de passe à l'utilisateur jusqu'à ce qu'il soit correct. L'utilisateur doit pouvoir essayer au moins une fois. Quelle boucle est la plus adaptée ?",
-      options: [
-        "for (int i = 0; i < 3; i++) — on limite à 3 essais",
-        "while (motDePasse != \"secret\") — condition vérifiée avant la saisie",
-        "do { saisie = Console.ReadLine(); } while (saisie != \"secret\") — au moins une tentative garantie",
-        "foreach (string tentative in essais) — liste d'essais prédéfinis",
-      ],
-      answer: "do { saisie = Console.ReadLine(); } while (saisie != \"secret\") — au moins une tentative garantie",
+        "[REST] Quel code HTTP est typiquement renvoyé après une création réussie via POST ?",
+      options: ["301 Moved Permanently", "200 OK", "201 Created", "204 No Content"],
+      answer: "201 Created",
       explanation:
-        "do-while garantit que le code s'exécute au moins une fois. C'est parfait pour les saisies utilisateur où on veut laisser une chance même si la condition est déjà fausse.",
-    },
-    {
-      question:
-        "[Boucles] Dans ce code, qu'affiche la boucle ?\n\n```for (int i = 5; i > 0; i--)\n    Console.Write(i + \" \");\n```",
-      options: [
-        "1 2 3 4 5 (croissant)",
-        "5 4 3 2 1 (décroissant)",
-        "4 3 2 1 (i commence à 5 mais décrémenté avant affichage)",
-        "5 4 3 2 1 0 (s'arrête après 0)",
-      ],
-      answer: "5 4 3 2 1 (décroissant)",
-      explanation:
-        "La boucle commence à 5, affiche i, puis décrémente. Elle continue tant que i > 0. Donc elle affiche 5,4,3,2,1. L'ordre est décroissant.",
-    },
-    {
-      question:
-        "[Boucles] Quelle est l'erreur dans ce code ?\n\n```string[] noms = { \"Alice\", \"Bob\", \"Charlie\" };\nfor (int i = 0; i <= noms.Length; i++)\n    Console.WriteLine(noms[i]);\n```",
-      options: [
-        "Aucune erreur, le code fonctionne parfaitement",
-        "La condition `i <= noms.Length` provoque un index hors limites (i = noms.Length → IndexOutOfRangeException)",
-        "Il manque l'incrémentation de i",
-        "Il faut utiliser foreach et non for",
-      ],
-      answer: "La condition `i <= noms.Length` provoque un index hors limites (i = noms.Length → IndexOutOfRangeException)",
-      explanation:
-        "Pour un tableau de longueur 3, les indices valides sont 0, 1, 2. La condition `i <= noms.Length` (i <= 3) permet i=3, ce qui provoque une IndexOutOfRangeException. Il faut utiliser `<` et non `<=`.",
+        "201 Created indique que la ressource a été créée avec succès. La réponse contient généralement un header Location pointant vers la nouvelle ressource (via CreatedAtAction en ASP.NET Core).",
     },
 
-    // ==================== SECTION B: CHOIX DE LA STRUCTURE (6 questions) ====================
+    // ==================== SECTION B: SOAP / XML ====================
     {
       question:
-        "[Structures] Vous devez stocker les jours de la semaine (7 éléments fixes, ne change jamais). Quelle structure est la plus adaptée ?",
+        "[SOAP] Pourquoi une banque garde-t-elle encore des services SOAP en production aujourd'hui ?",
       options: [
-        "List<string> — flexible mais surdimensionné",
-        "Array (string[] jours = new string[7]) — taille fixe, parfait",
-        "Dictionary<int, string> — associatif, inutile ici",
-        "HashSet<string> — unicité, mais pas d'ordre garanti",
+        "Parce que JSON n'est pas supporté par .NET",
+        "Parce que SOAP n'existe que depuis 2020",
+        "Parce que SOAP est plus rapide que REST en toutes circonstances",
+        "Parce que réécrire des systèmes critiques (compensation, référentiels) est risqué et coûteux, et que le contrat WSDL est figé",
       ],
-      answer: "Array (string[] jours = new string[7]) — taille fixe, parfait",
+      answer: "Parce que réécrire des systèmes critiques (compensation, référentiels) est risqué et coûteux, et que le contrat WSDL est figé",
       explanation:
-        "Array est la structure idéale quand la taille est fixe et connue à l'avance. Elle ne change jamais. C'est plus léger qu'une List et l'accès est O(1).",
+        "Les systèmes legacy en SOAP sont souvent des back-offices ou référentiels critiques et certifiés. Le risque et le coût de migration sont trop élevés par rapport au bénéfice, donc ils restent en place.",
+    },
+    {
+      question: "[SOAP] Que décrit un fichier WSDL ?",
+      options: [
+        "Les logs d'erreurs du service",
+        "Le contrat du service SOAP : opérations disponibles, types de données, format des messages",
+        "Le style visuel de l'application cliente",
+        "La configuration réseau du serveur",
+      ],
+      answer: "Le contrat du service SOAP : opérations disponibles, types de données, format des messages",
+      explanation:
+        "WSDL (Web Services Description Language) est un document XML qui décrit précisément le contrat d'un service SOAP : quelles opérations sont exposées, quels types de données elles attendent et renvoient.",
     },
     {
       question:
-        "[Structures] Vous devez stocker une liste de courses qui peut grandir (ajouts fréquents). Quelle structure est la plus adaptée ?",
-      options: [
-        "Array (taille fixe) — impossible d'ajouter au-delà de la taille",
-        "List<string> — taille dynamique, Add() en fin est O(1) amorti",
-        "Dictionary<int, string> — associatif, inutile pour une liste simple",
-        "HashSet<string> — unicité, mais on peut avoir des doublons dans une liste de courses",
-      ],
-      answer: "List<string> — taille dynamique, Add() en fin est O(1) amorti",
+        "[SOAP] Quel est l'équivalent, côté SOAP, des codes d'erreur HTTP (400, 500...) côté REST ?",
+      options: ["Le SOAP Header", "Le SOAPAction", "Le WSDL", "Le SOAP Fault"],
+      answer: "Le SOAP Fault",
       explanation:
-        "List<T> est la structure standard pour les collections de taille variable. Add() en fin est O(1) amorti, et on peut accéder par index en O(1). C'est le choix polyvalent.",
+        "Un SOAP Fault est un élément XML spécial retourné dans le Body de la réponse SOAP pour signaler une erreur (code, message, détail), jouant un rôle analogue aux codes HTTP 4xx/5xx en REST.",
     },
     {
       question:
-        "[Structures] Vous devez associer le nom d'un employé à son salaire (recherche par nom rapide). Quelle structure est la plus adaptée ?",
+        "[SOAP] En C#, quelle est une façon standard de consommer un service SOAP décrit par un WSDL ?",
       options: [
-        "List<(string, decimal)> — recherche O(n) linéaire",
-        "Dictionary<string, decimal> — accès par clé O(1), parfait",
-        "HashSet<(string, decimal)> — unicité, mais pas d'accès par clé",
-        "Array (nom, salaire) — taille fixe, pas adapté",
+        "SOAP n'est pas consommable depuis C#",
+        "Utiliser WebSocket avec un handshake spécial",
+        "Utiliser uniquement System.Text.Json",
+        "Générer un client via dotnet-svcutil ou 'Add Connected Service' dans Visual Studio",
       ],
-      answer: "Dictionary<string, decimal> — accès par clé O(1), parfait",
+      answer: "Générer un client via dotnet-svcutil ou 'Add Connected Service' dans Visual Studio",
       explanation:
-        "Dictionary<K,V> offre un accès O(1) par clé. C'est la structure idéale pour les associations clé → valeur (nom → salaire). La recherche par nom est instantanée.",
-    },
-    {
-      question:
-        "[Structures] Vous devez stocker des identifiants d'utilisateurs sans doublons et vérifier rapidement si un identifiant existe déjà. Quelle structure est la plus adaptée ?",
-      options: [
-        "List<int> — Contains est O(n), lent sur grandes collections",
-        "HashSet<int> — Contains O(1), unicité garantie automatiquement",
-        "Array<int> — taille fixe, pas de vérification de doublon",
-        "Dictionary<int, bool> — fonctionne mais surdimensionné (on n'a pas besoin de valeur)",
-      ],
-      answer: "HashSet<int> — Contains O(1), unicité garantie automatiquement",
-      explanation:
-        "HashSet<T> est conçu pour l'unicité et les tests d'appartenance rapides. Contains est O(1) et Add ignore automatiquement les doublons. C'est la structure standard pour ce besoin.",
-    },
-    {
-      question:
-        "[Structures] Vous devez regrouper des commandes par pays. Chaque pays peut avoir plusieurs commandes. Quelle structure est la plus adaptée ?",
-      options: [
-        "Dictionary<string, List<Commande>> — clé = pays, valeur = liste de commandes",
-        "List<Commande> avec filtrage par pays — O(n) à chaque recherche",
-        "HashSet<Commande> — pas de regroupement par pays",
-        "Array de (pays, commande) — taille fixe, pas évolutif",
-      ],
-      answer: "Dictionary<string, List<Commande>> — clé = pays, valeur = liste de commandes",
-      explanation:
-        "C'est le pattern de groupement par clé (Pattern 4). La clé est le pays, la valeur est une liste de commandes. On peut ajouter des commandes et récupérer la liste d'un pays en O(1).",
-    },
-    {
-      question:
-        "[Structures] Quelle est la complexité de Contains() sur une List<T> de taille n ?",
-      options: [
-        "O(1) — accès constant comme Dictionary",
-        "O(log n) — recherche dichotomique",
-        "O(n) — recherche linéaire, doit parcourir toute la liste",
-        "O(n²) — double boucle implicite",
-      ],
-      answer: "O(n) — recherche linéaire, doit parcourir toute la liste",
-      explanation:
-        "List<T>.Contains() effectue une recherche linéaire : elle parcourt les éléments un par un jusqu'à trouver la valeur. En moyenne, elle parcourt la moitié de la liste, donc O(n). HashSet est O(1) pour Contains.",
+        "La méthode standard consiste à générer un client fortement typé à partir du WSDL, via l'outil dotnet-svcutil ou la fonctionnalité 'Add Connected Service' de Visual Studio.",
     },
 
-    // ==================== SECTION C: IDENTIFICATION DES PATTERNS (6 questions) ====================
+    // ==================== SECTION C: FIX ====================
     {
-      question:
-        "[Patterns] Quel pattern est utilisé dans ce code ?\n\n```var resultats = new List<int>();\nforeach (string ligne in fichier)\n{\n    string[] parts = ligne.Split(',');\n    for (int i = 1; i < parts.Length; i++)\n        resultats.Add(int.Parse(parts[i]));\n}\n```",
+      question: "[FIX] À quoi correspond le tag 35 (MsgType) dans un message FIX ?",
       options: [
-        "Pattern 2 — for + HashSet (initialisation)",
-        "Pattern 1 — foreach + for + Add (parsing & transformation)",
-        "Pattern 3 — for + for (simulation matricielle)",
-        "Pattern 6 — boucle + break (validation)",
+        "Le prix de l'ordre",
+        "L'identifiant unique du message",
+        "Le nom du broker destinataire",
+        "Le type du message : D=New Order Single, 8=Execution Report, F=Cancel Request...",
       ],
-      answer: "Pattern 1 — foreach + for + Add (parsing & transformation)",
+      answer: "Le type du message : D=New Order Single, 8=Execution Report, F=Cancel Request...",
       explanation:
-        "Ce code parse des données texte (lignes CSV) et les transforme en entiers. foreach parcourt les lignes, for parcourt les champs (en commençant à 1 pour ignorer l'en-tête), et Add construit la liste résultat. C'est le Pattern 1.",
+        "Le tag 35 (MsgType) indique la nature du message applicatif : 'D' pour un nouvel ordre, '8' pour un rapport d'exécution, 'F' pour une demande d'annulation, 'G' pour un remplacement, etc.",
+    },
+    {
+      question: "[FIX] Quel est le rôle du tag 34 (MsgSeqNum) dans une session FIX ?",
+      options: [
+        "Il identifie le symbole tradé",
+        "Il sert uniquement à l'authentification initiale",
+        "Il indique le prix de l'ordre",
+        "Il numérote les messages pour garantir qu'aucun n'est perdu et permettre un ResendRequest en cas de trou",
+      ],
+      answer: "Il numérote les messages pour garantir qu'aucun n'est perdu et permettre un ResendRequest en cas de trou",
+      explanation:
+        "Le MsgSeqNum permet de détecter les pertes de messages : si un destinataire constate un trou dans la séquence, il envoie un ResendRequest pour obtenir les messages manquants.",
+    },
+    {
+      question: "[FIX] Quel est le cycle de vie typique d'un ordre via le tag 39 (OrdStatus) ?",
+      options: [
+        "Canceled(4) → New(0) → PartiallyFilled(1)",
+        "Filled(2) → New(0) → Rejected(8)",
+        "New(0) → PartiallyFilled(1) → Filled(2), ou New(0) → Canceled(4)/Rejected(8)",
+        "Le tag 39 n'existe pas en FIX",
+      ],
+      answer: "New(0) → PartiallyFilled(1) → Filled(2), ou New(0) → Canceled(4)/Rejected(8)",
+      explanation:
+        "Un ordre part de New (accepté), peut passer par PartiallyFilled (exécution partielle) puis Filled (exécution complète), ou être Canceled/Rejected à tout moment avant complétion totale.",
     },
     {
       question:
-        "[Patterns] Quel pattern est utilisé dans ce code ?\n\n```int N = 10;\nvar groupes = new List<HashSet<int>>();\nfor (int i = 0; i < N; i++)\n    groupes.Add(new HashSet<int> { i });\n```",
+        "[FIX] Quelle est la différence entre les messages de 'session layer' et 'application layer' en FIX ?",
       options: [
-        "Pattern 1 — parsing et transformation",
-        "Pattern 2 — for + HashSet (initialisation de N groupes indépendants)",
-        "Pattern 4 — groupement par clé",
-        "Pattern 5 — agrégation imbriquée",
+        "Les messages applicatifs ne sont utilisés que pour l'authentification",
+        "Les messages de session sont en XML, les messages applicatifs en JSON",
+        "Il n'y a pas de différence, tous les messages FIX sont identiques",
+        "Les messages de session (Logon, Heartbeat, Logout) gèrent la connexion, les messages applicatifs (NewOrderSingle, ExecutionReport) portent le métier",
       ],
-      answer: "Pattern 2 — for + HashSet (initialisation de N groupes indépendants)",
+      answer: "Les messages de session (Logon, Heartbeat, Logout) gèrent la connexion, les messages applicatifs (NewOrderSingle, ExecutionReport) portent le métier",
       explanation:
-        "Ce code crée N HashSet indépendants, chacun contenant son propre index. C'est l'initialisation de structures par une boucle for, avec HashSet pour l'unicité. C'est le Pattern 2.",
+        "La couche session gère la vivacité et la fiabilité de la connexion (Logon, Heartbeat, Logout, ResendRequest). La couche applicative transporte l'information métier : ordres, exécutions, annulations.",
+    },
+    {
+      question: "[FIX] Pourquoi utilise-t-on FIX plutôt que REST pour l'envoi d'ordres vers les marchés ?",
+      options: [
+        "FIX ne nécessite aucune connexion réseau",
+        "REST n'existe pas encore dans les systèmes de trading",
+        "FIX est plus lisible pour un humain que JSON",
+        "FIX offre une latence plus faible, un format compact, et un contrôle de séquence garantissant qu'aucun ordre n'est perdu",
+      ],
+      answer: "FIX offre une latence plus faible, un format compact, et un contrôle de séquence garantissant qu'aucun ordre n'est perdu",
+      explanation:
+        "FIX a été conçu spécifiquement pour le trading : format texte compact, très faible latence, et fiabilité de session via le MsgSeqNum — des propriétés critiques pour l'envoi d'ordres.",
+    },
+    {
+      question: "[FIX] Que représente le tag 44 (Price) dans un message NewOrderSingle avec OrdType=2 (Limit) ?",
+      options: [
+        "Le prix de clôture de la veille",
+        "Les frais de courtage",
+        "Le prix n'est jamais transmis en FIX",
+        "Le prix limite auquel l'ordre doit être exécuté",
+      ],
+      answer: "Le prix limite auquel l'ordre doit être exécuté",
+      explanation:
+        "Pour un ordre à cours limité (OrdType=2), le tag 44 (Price) précise le prix limite. Pour un ordre au marché (OrdType=1), ce tag n'est généralement pas nécessaire.",
+    },
+  ],
+
+  avance: [
+    // ==================== SECTION D: WEBSOCKET ====================
+    {
+      question:
+        "[WebSocket] Quelle est la différence fondamentale entre REST et WebSocket pour la diffusion de cours en temps réel ?",
+      options: [
+        "Il n'y a aucune différence de modèle entre les deux",
+        "WebSocket ne peut pas transporter de JSON",
+        "REST fonctionne en mode push, WebSocket en mode pull",
+        "REST fonctionne en mode pull (le client demande), WebSocket en mode push (le serveur envoie dès qu'un événement survient)",
+      ],
+      answer: "REST fonctionne en mode pull (le client demande), WebSocket en mode push (le serveur envoie dès qu'un événement survient)",
+      explanation:
+        "En REST, le client doit initier chaque requête (pull), ce qui est inefficace pour du temps réel (polling). WebSocket maintient une connexion ouverte permettant au serveur de pousser (push) les mises à jour dès qu'elles surviennent.",
+    },
+    {
+      question: "[WebSocket] Comment s'établit une connexion WebSocket ?",
+      options: [
+        "Il n'y a pas de handshake, la connexion est directe en TCP brut",
+        "Via un appel SOAP initial",
+        "Via un message FIX de type Logon",
+        "Via un handshake HTTP qui est ensuite mis à niveau (upgrade) vers le protocole WebSocket",
+      ],
+      answer: "Via un handshake HTTP qui est ensuite mis à niveau (upgrade) vers le protocole WebSocket",
+      explanation:
+        "La connexion WebSocket démarre par une requête HTTP classique contenant un header 'Upgrade: websocket'. Si le serveur accepte, la connexion bascule en mode WebSocket, persistante et bidirectionnelle.",
     },
     {
       question:
-        "[Patterns] Quel pattern est utilisé dans ce code ?\n\n```for (int l = 0; l < hauteur; l++)\n    for (int c = 0; c < largeur; c++)\n        grille[l, c] = (l + c) % 2 == 0 ? 1 : 0;\n```",
-      options: [
-        "Pattern 3 — for + for (simulation / matrice)",
-        "Pattern 5 — triple foreach (agrégation)",
-        "Pattern 4 — groupement avec Dictionary",
-        "Pattern 1 — parsing de données",
-      ],
-      answer: "Pattern 3 — for + for (simulation / matrice)",
+        "[WebSocket] Quelle abstraction .NET permet de gérer automatiquement le fallback WebSocket / SSE / long-polling ?",
+      options: ["AutoMapper", "Entity Framework", "SignalR", "QuickFIX/n"],
+      answer: "SignalR",
       explanation:
-        "La double boucle (for + for) est le pattern des problèmes à deux dimensions. Ici, elle remplit une grille (matrice) avec un motif en damier. C'est le Pattern 3.",
+        "SignalR est la librairie .NET qui abstrait la communication temps réel : elle utilise WebSocket quand disponible, et bascule automatiquement sur SSE ou long-polling sinon, tout en gérant la reconnexion.",
     },
     {
       question:
-        "[Patterns] Quel pattern est utilisé dans ce code ?\n\n```var index = new Dictionary<string, List<int>>();\nforeach (var item in donnees)\n{\n    if (!index.ContainsKey(item.Categorie))\n        index[item.Categorie] = new List<int>();\n    index[item.Categorie].Add(item.Id);\n}\n```",
+        "[WebSocket] Pourquoi implémente-t-on un mécanisme de ping/pong (heartbeat) sur une connexion WebSocket ?",
       options: [
-        "Pattern 2 — for + HashSet (initialisation)",
-        "Pattern 1 — parsing (foreach + for + Add)",
-        "Pattern 4 — foreach + ContainsKey + Add (groupement par clé)",
-        "Pattern 6 — validation avec break",
+        "Ce mécanisme n'existe pas en WebSocket",
+        "Pour accélérer le transfert de données",
+        "Pour chiffrer les données échangées",
+        "Pour détecter qu'une connexion est morte/inactive et déclencher une reconnexion",
       ],
-      answer: "Pattern 4 — foreach + ContainsKey + Add (groupement par clé)",
+      answer: "Pour détecter qu'une connexion est morte/inactive et déclencher une reconnexion",
       explanation:
-        "Ce code groupe des éléments par catégorie. Pour chaque élément, on vérifie si la clé existe déjà (ContainsKey), on crée une liste si elle n'existe pas, puis on ajoute l'élément. C'est le Pattern 4 classique.",
-    },
-    {
-      question:
-        "[Patterns] Quel pattern est utilisé dans ce code ?\n\n```foreach (var groupe in groupes)\n{\n    if (groupe.Count < 2) continue;\n    var fusion = new HashSet<int>();\n    foreach (int membre in groupe)\n        foreach (int val in donnees[membre])\n            fusion.Add(val);\n    foreach (int membre in groupe)\n        donnees[membre] = new HashSet<int>(fusion);\n}\n```",
-      options: [
-        "Pattern 3 — for + for (double boucle simple)",
-        "Pattern 5 — triple foreach (agrégation imbriquée, 3 niveaux)",
-        "Pattern 4 — groupement avec Dictionary",
-        "Pattern 1 — parsing de données",
-      ],
-      answer: "Pattern 5 — triple foreach (agrégation imbriquée, 3 niveaux)",
-      explanation:
-        "Ce code traverse une hiérarchie à trois niveaux : groupes → membres → données. Il collecte toutes les données d'un groupe et les distribue à tous les membres. C'est le Pattern 5 (agrégation imbriquée).",
-    },
-    {
-      question:
-        "[Patterns] Quel pattern est utilisé dans ce code ?\n\n```bool tousPositifs = true;\nfor (int i = 0; i < tableau.Length; i++)\n{\n    if (tableau[i] <= 0)\n    {\n        tousPositifs = false;\n        break;\n    }\n}\n```",
-      options: [
-        "Pattern 6 — boucle + break (validation et sortie anticipée)",
-        "Pattern 3 — simulation avec double boucle",
-        "Pattern 1 — parsing et transformation",
-        "Pattern 2 — initialisation de structures",
-      ],
-      answer: "Pattern 6 — boucle + break (validation et sortie anticipée)",
-      explanation:
-        "Ce code vérifie une condition sur tous les éléments. Dès qu'un élément ne satisfait pas la condition, on utilise break pour sortir de la boucle. C'est le Pattern 6 (validation avec sortie anticipée).",
+        "Un ping/pong régulier permet de vérifier que la connexion est toujours active. En l'absence de pong dans un délai donné, le client ou le serveur considère la connexion perdue et tente une reconnexion.",
     },
 
-    // ==================== SECTION D: PIEGES & BUGS (8 questions) ====================
+    // ==================== SECTION E: SYNTHESE ====================
     {
-      question:
-        "[Piège] Quel est le bug dans ce code ?\n\n```string[] mots = { \"chat\", \"chien\", \"oiseau\", \"poisson\" };\nforeach (string mot in mots)\n{\n    if (i % 2 == 0)\n        Console.WriteLine(mot);\n}\n```",
-      options: [
-        "La condition `i % 2 == 0` utilise `i` qui n'est pas défini dans foreach",
-        "Le code affiche tous les mots alors qu'il devrait afficher uniquement les pairs",
-        "Il manque une incrémentation de i",
-        "Le code est correct, il n'y a pas d'erreur",
-      ],
-      answer: "La condition `i % 2 == 0` utilise `i` qui n'est pas défini dans foreach",
+      question: "[Synthèse] Dans un OMS typique, quel protocole est utilisé pour envoyer un ordre vers un broker ou un marché ?",
+      options: ["WebSocket", "REST", "SOAP", "FIX"],
+      answer: "FIX",
       explanation:
-        "foreach ne donne pas accès à un index. La variable `i` n'est pas déclarée. Si on a besoin d'un index, on doit utiliser for (int i = 0; i < mots.Length; i++) et accéder à mots[i].",
+        "FIX est le standard historique et quasi-universel pour l'envoi d'ordres et la réception d'exécutions entre buy-side, sell-side (brokers) et marchés (bourses, MTF, dark pools).",
     },
     {
       question:
-        "[Piège] Quel est le bug dans ce code ?\n\n```var occurrences = new Dictionary<string, int>();\nstring[] mots = { \"le\", \"chat\", \"le\", \"chien\" };\nforeach (string mot in mots)\n{\n    occurrences[mot]++; // BUG\n}\n```",
-      options: [
-        "La syntaxe occurrences[mot]++ est invalide en C#",
-        "Dictionary lève une KeyNotFoundException car la clé n'existe pas encore",
-        "Il faut utiliser un HashSet au lieu d'un Dictionary",
-        "Aucune erreur, le code fonctionne",
-      ],
-      answer: "Dictionary lève une KeyNotFoundException car la clé n'existe pas encore",
+        "[Synthèse] Quel protocole est le plus adapté pour pousser en continu les mises à jour du carnet d'ordres vers le poste d'un trader ?",
+      options: ["FTP", "SOAP", "WebSocket", "REST"],
+      answer: "WebSocket",
       explanation:
-        "On ne peut pas accéder à `occurrences[mot]` si la clé n'existe pas dans le Dictionary. Il faut vérifier avec ContainsKey ou TryGetValue avant d'incrémenter. Sinon, KeyNotFoundException.",
+        "WebSocket maintient une connexion persistante permettant au serveur de pousser les mises à jour du carnet d'ordres en temps réel, sans que le client ait à interroger le serveur en boucle (polling).",
     },
     {
       question:
-        "[Piège] Ce code a un problème de performance. Lequel ?\n\n```var vus = new List<int>();\nforeach (int item in collection)\n{\n    if (!vus.Contains(item))\n        vus.Add(item);\n}\n```",
-      options: [
-        "List.Contains() est O(n), donc la boucle est O(n²) — utiliser HashSet à la place",
-        "Le code est correct, aucune optimisation nécessaire",
-        "Il faut utiliser un Dictionary, pas une List",
-        "Il faut utiliser foreach sur vus, pas sur collection",
-      ],
-      answer: "List.Contains() est O(n), donc la boucle est O(n²) — utiliser HashSet à la place",
+        "[Synthèse] Quel protocole choisirait-on pour interfacer une nouvelle application web avec un vieux système de référentiel produit datant des années 2000 ?",
+      options: ["Aucun, c'est impossible", "FIX", "WebSocket", "SOAP"],
+      answer: "SOAP",
       explanation:
-        "List.Contains() est O(n). Pour chaque élément de la collection, on fait une recherche dans vus. Le coût total est O(n²). Solution : utiliser HashSet<int> dont Contains est O(1), ramenant le tout à O(n).",
+        "Les systèmes legacy des années 2000 exposent très souvent des services SOAP avec contrat WSDL. C'est le protocole naturel pour s'y interfacer sans réécrire le système historique.",
     },
     {
       question:
-        "[Piège] Que se passe-t-il dans ce code ?\n\n```var liste = new List<int> { 1, 2, 3 };\nforeach (int item in liste)\n{\n    if (item == 2)\n        liste.Remove(item);\n}\n```",
+        "[Synthèse] Parmi REST, SOAP, FIX et WebSocket, lesquels sont 'stateful' (nécessitent le maintien d'un état de connexion/session) ?",
       options: [
-        "Le code fonctionne normalement",
-        "InvalidOperationException — on modifie la collection pendant son parcours",
-        "Seul l'élément 2 est supprimé",
-        "La boucle ignore la suppression et continue",
+        "Seul REST est stateful",
+        "Les 4 protocoles sont stateless",
+        "REST et SOAP",
+        "FIX et WebSocket",
       ],
-      answer: "InvalidOperationException — on modifie la collection pendant son parcours",
+      answer: "FIX et WebSocket",
       explanation:
-        "On ne peut pas modifier une collection (ajouter, supprimer) pendant un foreach. Cela lève une InvalidOperationException. Il faut utiliser for (int i = liste.Count - 1; i >= 0; i--) pour supprimer en parcourant à l'envers.",
+        "REST et SOAP sont conçus comme stateless (chaque requête est autonome). FIX maintient une session avec contrôle de séquence (MsgSeqNum), et WebSocket maintient une connexion ouverte persistante : les deux sont stateful.",
     },
     {
-      question:
-        "[Piège] Quelle est la sortie de ce code ?\n\n```int[] tab = { 1, 2, 3, 4, 5 };\nfor (int i = 0; i < tab.Length; i++)\n{\n    if (tab[i] == 3) break;\n    Console.Write(tab[i] + \" \");\n}\n```",
+      question: "[Synthèse] Quel est le format de sérialisation utilisé respectivement par REST et par SOAP ?",
       options: [
-        "1 2 3 4 5",
-        "1 2 3",
-        "1 2 (break sort avant d'afficher 3)",
-        "1 2 4 5",
+        "Les deux utilisent uniquement du texte tag=valeur",
+        "REST utilise XML, SOAP utilise JSON",
+        "Les deux utilisent uniquement JSON",
+        "REST utilise JSON, SOAP utilise XML",
       ],
-      answer: "1 2 (break sort avant d'afficher 3)",
+      answer: "REST utilise JSON, SOAP utilise XML",
       explanation:
-        "break sort de la boucle immédiatement. Quand i=2 (tab[2]=3), la condition est vraie, break est exécuté, et la boucle se termine sans afficher 3, 4, ou 5.",
-    },
-    {
-      question:
-        "[Piège] Quelle est la différence entre break et continue dans une boucle ?",
-      options: [
-        "break sort de la boucle, continue passe à l'itération suivante",
-        "continue sort de la boucle, break passe à l'itération suivante",
-        "break et continue font la même chose",
-        "break sort de la méthode entière, continue sort de la boucle",
-      ],
-      answer: "break sort de la boucle, continue passe à l'itération suivante",
-      explanation:
-        "break : sort immédiatement de la boucle (fin de la boucle). continue : saute le reste du bloc actuel et passe à l'itération suivante. return sort de toute la méthode.",
-    },
-    {
-      question:
-        "[Piège] Dans ce code, quelle ligne cause un problème ?\n\n```var dict = new Dictionary<string, int>();\n// Ligne 1\ndict[\"Alice\"] = 30;\n// Ligne 2\nint age = dict[\"Bob\"];\n// Ligne 3\ndict[\"Charlie\"] = 25;\n```",
-      options: [
-        "Ligne 1 : la syntaxe est incorrecte pour ajouter une clé",
-        "Ligne 2 : la clé \"Bob\" n'existe pas → KeyNotFoundException",
-        "Ligne 3 : on ne peut pas ajouter après une lecture",
-        "Aucune erreur, le code est correct",
-      ],
-      answer: "Ligne 2 : la clé \"Bob\" n'existe pas → KeyNotFoundException",
-      explanation:
-        "Accéder à dict[\"Bob\"] sans vérifier que la clé existe lève une KeyNotFoundException. Il faut utiliser ContainsKey ou TryGetValue. L'ajout avec l'indexeur (dict[\"Alice\"] = 30) est correct.",
-    },
-    {
-      question:
-        "[Piège] Ce code parse un CSV mais a un bug. Lequel ?\n\n```string[] lignes = { \"Nom,Age,Ville\", \"Alice,30,Paris\", \"Bob,25,Lyon\" };\nforeach (string ligne in lignes)\n{\n    string[] parts = ligne.Split(',');\n    string nom = parts[0];\n    int age = int.Parse(parts[1]);\n    Console.WriteLine($\"{nom} a {age} ans\");\n}\n```",
-      options: [
-        "Le code ignore l'en-tête et tente de parser \"Nom\" en int → FormatException",
-        "Le code est correct, il fonctionne parfaitement",
-        "Il manque une vérification des bornes sur parts",
-        "Il faut utiliser un Dictionary, pas une List",
-      ],
-      answer: "Le code ignore l'en-tête et tente de parser \"Nom\" en int → FormatException",
-      explanation:
-        "La première ligne est un en-tête (\"Nom,Age,Ville\"). Le code tente de parser \"Age\" (la chaîne \"Age\") en int, ce qui lève une FormatException. Il faut ignorer l'en-tête avec Skip(1) ou vérifier le contenu.",
+        "REST s'appuie typiquement sur JSON (léger, lisible, facilement mappable en objets C#), tandis que SOAP repose sur une enveloppe XML stricte définie par le contrat WSDL.",
     },
 
-    // ==================== SECTION E: COMPLEXITE & OPTIMISATION (4 questions) ====================
+    // ==================== SECTION F: DECODAGE FIX ====================
     {
       question:
-        "[Complexité] Quelle est la complexité de ce code ?\n\n```for (int i = 0; i < n; i++)\n    for (int j = 0; j < n; j++)\n        if (listeA[i] == listeB[j]) intersection.Add(listeA[i]);\n```",
+        "[FIX - Décodage] Voici un message FIX :\n`8=FIX.4.4|35=8|11=ORD00001|17=EXEC001|39=1|151=40|14=60|55=AAPL|10=201|`\nQue signifie ce message ?",
       options: [
-        "O(n) — linéaire",
-        "O(n log n) — logarithmique-linéaire",
-        "O(n²) — quadratique (double boucle)",
-        "O(1) — constant",
+        "Un message de Logon de session",
+        "Une demande d'annulation d'ordre",
+        "Un nouvel ordre (New Order Single) sur AAPL",
+        "Un rapport d'exécution (35=8) indiquant un fill partiel (39=1) avec 40 titres restants (151) et 60 déjà exécutés (14)",
       ],
-      answer: "O(n²) — quadratique (double boucle)",
+      answer: "Un rapport d'exécution (35=8) indiquant un fill partiel (39=1) avec 40 titres restants (151) et 60 déjà exécutés (14)",
       explanation:
-        "La double boucle imbriquée parcourt n × n = n² paires. C'est O(n²). Pour n=1000, cela fait 1 000 000 opérations.",
+        "Tag 35=8 signifie ExecutionReport. Tag 39=1 signifie PartiallyFilled. Tag 151 (LeavesQty) = quantité restante = 40. Tag 14 (CumQty) = quantité cumulée exécutée = 60. C'est donc un fill partiel sur un ordre AAPL.",
     },
     {
       question:
-        "[Complexité] Comment optimiser ce code O(n²) en O(n) ?\n\n```foreach (int a in listeA)\n    foreach (int b in listeB)\n        if (a == b) intersection.Add(a);\n```",
+        "[FIX - Décodage] Un client envoie un message avec MsgSeqNum (34) = 105, mais le dernier numéro reçu par le serveur était 102. Que doit-il se passer ?",
       options: [
-        "Remplacer listeA par un HashSet",
-        "Remplacer listeB par un HashSet et parcourir listeA avec Contains",
-        "Remplacer les deux listes par des Arrays",
-        "C'est impossible, la complexité est inhérente au problème",
+        "Le message 105 est automatiquement renuméroté en 103",
+        "La session FIX est immédiatement et définitivement fermée sans possibilité de reprise",
+        "Le serveur ignore silencieusement le trou et traite le message 105 normalement",
+        "Le serveur envoie un ResendRequest(2) pour demander les messages 103 et 104 manquants avant de traiter 105",
       ],
-      answer: "Remplacer listeB par un HashSet et parcourir listeA avec Contains",
+      answer: "Le serveur envoie un ResendRequest(2) pour demander les messages 103 et 104 manquants avant de traiter 105",
       explanation:
-        "En convertissant listeB en HashSet, Contains devient O(1). Puis on parcourt listeA une seule fois (O(n)) et on vérifie l'appartenance en O(1). Gain : O(n²) → O(n).",
+        "Le contrôle de séquence FIX détecte le trou (103, 104 manquants) et déclenche un ResendRequest pour garantir qu'aucun message n'est perdu avant de continuer le traitement normal du flux.",
     },
     {
       question:
-        "[Complexité] HashSet<T>.Contains() a quelle complexité ?",
+        "[FIX - Décodage] Quelle est la différence entre `OrderCancelRequest (F)` et `OrderCancelReplaceRequest (G)` ?",
       options: [
-        "O(1) en moyenne (grâce à la table de hachage)",
-        "O(log n) (arbre équilibré)",
-        "O(n) (recherche linéaire)",
-        "O(n²) (recherche quadratique)",
+        "G ne peut être utilisé que pour les ordres au marché",
+        "F sert à créer un ordre, G à le supprimer",
+        "F et G font exactement la même chose",
+        "F annule complètement l'ordre, G modifie un ordre existant (ex: changer le prix ou la quantité) sans l'annuler",
       ],
-      answer: "O(1) en moyenne (grâce à la table de hachage)",
+      answer: "F annule complètement l'ordre, G modifie un ordre existant (ex: changer le prix ou la quantité) sans l'annuler",
       explanation:
-        "HashSet utilise une table de hachage. Contains est O(1) en moyenne, ce qui le rend très efficace pour les tests d'appartenance. C'est l'avantage principal par rapport à List qui est O(n).",
+        "OrderCancelRequest (F) demande l'annulation totale de l'ordre. OrderCancelReplaceRequest (G), aussi appelé 'Cancel/Replace', permet de modifier certains paramètres (prix, quantité) d'un ordre déjà en marché sans perdre sa priorité totalement.",
+    },
+  ],
+
+  expert: [
+    // ==================== SECTION G: SCENARIOS COMBINES ====================
+    {
+      question:
+        "[Scénario combiné] Un trader passe un ordre depuis l'interface web de l'OMS. L'ordre part vers le marché, puis le statut doit s'afficher en direct sur l'écran du trader. Quelle chaîne de protocoles est la plus cohérente ?",
+      options: [
+        "Web → WebSocket vers l'OMS → SOAP vers le marché → REST pour le statut",
+        "Web → SOAP vers l'OMS → REST vers le marché → FIX pour le statut",
+        "Web → FIX vers l'OMS → WebSocket vers le marché → SOAP pour le statut",
+        "Web → REST vers l'OMS → FIX vers le marché → WebSocket pour pousser le statut au trader",
+      ],
+      answer: "Web → REST vers l'OMS → FIX vers le marché → WebSocket pour pousser le statut au trader",
+      explanation:
+        "L'app web moderne communique en REST avec l'OMS. L'OMS envoie ensuite l'ordre au marché via FIX (protocole d'ordres). Enfin, l'OMS pousse la mise à jour de statut au trader via WebSocket (temps réel), plutôt que de faire du polling REST.",
     },
     {
       question:
-        "[Complexité] Quelle est la complexité de List<T>.Add() en fin de liste (cas normal) ?",
+        "[Scénario combiné] L'OMS doit vérifier l'identité d'un client auprès d'un vieux système KYC datant de 2008, avant d'accepter un ordre reçu en FIX. Quel protocole utilise-t-on probablement pour cette vérification ?",
       options: [
-        "O(1) amorti (l'allocation supplémentaire est rare)",
-        "O(log n) (recherche de la position)",
-        "O(n) (copie complète de la liste)",
-        "O(n²) (quadratique)",
+        "Aucun protocole n'est nécessaire, l'OMS accède directement à la base de données",
+        "FIX, car c'est le seul protocole disponible en finance",
+        "WebSocket, car il faut une réponse en temps réel",
+        "SOAP, car les vieux systèmes d'entreprise de cette époque exposent typiquement des services avec contrat WSDL",
       ],
-      answer: "O(1) amorti (l'allocation supplémentaire est rare)",
+      answer: "SOAP, car les vieux systèmes d'entreprise de cette époque exposent typiquement des services avec contrat WSDL",
       explanation:
-        "List.Add() est O(1) amorti. Quand la capacité interne est dépassée, une nouvelle allocation plus grande est faite (O(n)), mais cela arrive rarement. En moyenne, l'ajout est très rapide.",
+        "Un système KYC legacy de 2008 est un candidat typique pour une interface SOAP : c'était le standard d'interopérabilité d'entreprise à cette époque, avec contrat WSDL et souvent des exigences de sécurité WS-Security.",
+    },
+    {
+      question:
+        "[Scénario combiné] Pourquoi ne diffuse-t-on généralement PAS les cours de marché (market data) via une API REST classique ?",
+      options: [
+        "Parce que REST ne peut pas être utilisé en HTTPS",
+        "Parce que les cours de marché doivent obligatoirement être en XML",
+        "Parce que REST ne supporte pas le format JSON pour les prix",
+        "Parce que REST est un modèle pull, inadapté à un flux de données qui change en continu ; WebSocket (push) est bien plus efficace",
+      ],
+      answer: "Parce que REST est un modèle pull, inadapté à un flux de données qui change en continu ; WebSocket (push) est bien plus efficace",
+      explanation:
+        "Faire du polling REST pour des cours qui bougent plusieurs fois par seconde générerait une charge énorme et une latence inacceptable. WebSocket permet au serveur de pousser chaque tick dès qu'il survient.",
     },
 
-    // ==================== SECTION F: TRYGETVALUE & LINQ (4 questions) ====================
+    // ==================== SECTION H: BUGS DANS DU CODE MIXTE ====================
     {
       question:
-        "[Modernisation] Quelle est l'avantage de TryGetValue sur ContainsKey + indexeur ?",
+        "[Bug à repérer] Quel est le problème dans ce code C# ?\n\n```csharp\nvar response = await client.PostAsJsonAsync(\"orders\", request);\nvar order = await response.Content.ReadFromJsonAsync<OrderDto>();\nif (order.Status == \"REJECTED\") { ... }\n```",
       options: [
-        "TryGetValue est plus lisible uniquement",
-        "TryGetValue effectue 1 accès au Dictionary au lieu de 2 (plus performant)",
-        "TryGetValue évite les exceptions, ContainsKey non",
-        "TryGetValue est obsolète, il faut utiliser ContainsKey",
+        "ReadFromJsonAsync ne fonctionne que pour les requêtes GET",
+        "PostAsJsonAsync ne peut pas être utilisé avec await",
+        "Il n'y a aucun problème, le code est correct",
+        "Il manque un `response.EnsureSuccessStatusCode()` (ou vérification équivalente) avant de lire le contenu — en cas d'erreur HTTP, order peut être null ou invalide",
       ],
-      answer: "TryGetValue effectue 1 accès au Dictionary au lieu de 2 (plus performant)",
+      answer: "Il manque un `response.EnsureSuccessStatusCode()` (ou vérification équivalente) avant de lire le contenu — en cas d'erreur HTTP, order peut être null ou invalide",
       explanation:
-        "ContainsKey + indexeur = 2 accès au Dictionary. TryGetValue = 1 seul accès. C'est plus performant et plus concis. Les deux sont sûrs (pas d'exception).",
+        "Si le serveur répond 400/500, le body ne contiendra pas un OrderDto valide et la désérialisation échouera ou renverra un objet incohérent. Il faut vérifier le code de statut (EnsureSuccessStatusCode ou IsSuccessStatusCode) avant de traiter la réponse.",
     },
     {
       question:
-        "[Modernisation] Que fait ce code LINQ ?\n\n```var resultat = collection.Where(x => x > 0).Select(x => x * 2).ToList();\n```",
+        "[Bug à repérer] Quel est le problème dans ce code d'appel SOAP ?\n\n```csharp\nvar content = new StringContent(xml, Encoding.UTF8, \"text/xml\");\nvar response = await httpClient.PostAsync(\"https://legacy.bank.com/OrderService.asmx\", content);\n```",
       options: [
-        "Filtre les éléments positifs, puis les multiplie par 2, et convertit en List",
-        "Multiplie tous les éléments par 2, puis filtre les positifs",
-        "Filtre les éléments pairs seulement",
-        "Trie la collection par ordre croissant",
+        "text/xml n'est pas un content-type valide",
+        "Il faut utiliser GET et non POST pour SOAP",
+        "StringContent ne peut pas envoyer du XML",
+        "Il manque le header SOAPAction, souvent requis par le serveur pour identifier l'opération SOAP appelée",
       ],
-      answer: "Filtre les éléments positifs, puis les multiplie par 2, et convertit en List",
+      answer: "Il manque le header SOAPAction, souvent requis par le serveur pour identifier l'opération SOAP appelée",
       explanation:
-        "Where filtre (garde les > 0). Select transforme (multiplie par 2). ToList convertit le résultat en List. L'ordre des opérations est : filtrage, puis transformation.",
+        "De nombreux services SOAP (notamment ASMX .NET) exigent un header SOAPAction indiquant quelle opération du contrat WSDL est invoquée. Sans lui, le serveur peut rejeter la requête ou ne pas savoir quelle méthode exécuter.",
     },
     {
       question:
-        "[Modernisation] Comment remplacer ce code par LINQ ?\n\n```var groupes = new Dictionary<string, List<int>>();\nforeach (var item in items)\n{\n    if (!groupes.ContainsKey(item.Categorie))\n        groupes[item.Categorie] = new List<int>();\n    groupes[item.Categorie].Add(item.Id);\n}\n```",
+        "[Bug à repérer] Quel est le problème dans cette boucle de réception WebSocket ?\n\n```csharp\nwhile (true)\n{\n    var result = await client.ReceiveAsync(buffer, CancellationToken.None);\n    var tick = JsonSerializer.Deserialize<PriceTick>(Encoding.UTF8.GetString(buffer, 0, result.Count));\n}\n```",
       options: [
-        "var groupes = items.GroupBy(x => x.Categorie).ToDictionary(g => g.Key, g => g.Select(x => x.Id).ToList());",
-        "var groupes = items.Select(x => x.Categorie).Distinct().ToDictionary(c => c, c => new List<int>());",
-        "var groupes = items.OrderBy(x => x.Categorie).GroupBy(x => x.Categorie);",
-        "Impossible en LINQ, il faut garder la boucle",
+        "Deserialize doit obligatoirement être appelé de façon synchrone",
+        "ReceiveAsync ne peut pas être utilisé dans une boucle while",
+        "Aucun problème, le code est parfaitement robuste en production",
+        "Il n'y a aucune gestion de la déconnexion (WebSocketState.Closed) ni de reconnexion automatique, ni de CancellationToken réel pour arrêter proprement la boucle",
       ],
-      answer: "var groupes = items.GroupBy(x => x.Categorie).ToDictionary(g => g.Key, g => g.Select(x => x.Id).ToList());",
+      answer: "Il n'y a aucune gestion de la déconnexion (WebSocketState.Closed) ni de reconnexion automatique, ni de CancellationToken réel pour arrêter proprement la boucle",
       explanation:
-        "GroupBy fait le regroupement. ToDictionary transforme chaque groupe en une clé (la catégorie) et une valeur (la liste des Id). C'est l'équivalent LINQ du Pattern 4.",
+        "En production, il faut vérifier l'état du socket (client.State == WebSocketState.Open), gérer les messages de type Close, implémenter une logique de reconnexion en cas de coupure, et utiliser un vrai CancellationToken plutôt que CancellationToken.None.",
     },
     {
       question:
-        "[Modernisation] Quelle est la différence entre LINQ et une boucle for/foreach ?",
+        "[Bug à repérer] Dans ce pseudo-code d'envoi FIX, quel élément critique manque ?\n\n```csharp\nvar order = new NewOrderSingle(new ClOrdID(orderId), new Side(side),\n    new TransactTime(DateTime.UtcNow), new OrdType(OrdType.LIMIT));\norder.Symbol = new Symbol(\"AAPL\");\norder.OrderQty = new OrderQty(100);\nSession.SendToTarget(order, sessionId);\n```",
       options: [
-        "LINQ est toujours plus rapide que les boucles",
-        "LINQ est déclaratif (on dit CE QU'ON VEUT), les boucles sont impératives (on dit COMMENT LE FAIRE)",
-        "LINQ ne fonctionne que sur les List, pas sur les Array",
-        "Il n'y a pas de différence, LINQ est juste une syntaxe différente",
+        "SendToTarget ne peut être appelé qu'une seule fois par session",
+        "TransactTime doit toujours être en heure locale, jamais en UTC",
+        "Le ClOrdID ne devrait jamais être un GUID",
+        "Le prix (Price, tag 44) n'est pas défini alors que OrdType=LIMIT l'exige — l'ordre sera probablement rejeté",
       ],
-      answer: "LINQ est déclaratif (on dit CE QU'ON VEUT), les boucles sont impératives (on dit COMMENT LE FAIRE)",
+      answer: "Le prix (Price, tag 44) n'est pas défini alors que OrdType=LIMIT l'exige — l'ordre sera probablement rejeté",
       explanation:
-        "LINQ : on décrit le résultat souhaité (Where, Select, GroupBy). Boucles : on décrit chaque étape (if, ajout, variable intermédiaire). LINQ est plus lisible pour les transformations simples.",
+        "Un ordre à cours limité (OrdType.LIMIT) doit obligatoirement porter un Price (tag 44). Sans lui, le message est structurellement incomplet et sera très probablement rejeté par le broker ou le marché.",
     },
 
-    // ==================== SECTION G: CAS PRATIQUES (6 questions) ====================
+    // ==================== SECTION I: COMPARAISONS APPROFONDIES ====================
     {
       question:
-        "[Cas pratique] Vous avez un fichier CSV. Vous devez ignorer la première ligne (en-tête). Comment faire ?",
+        "[Comparaison] Un ordre FIX rejeté (OrdStatus=8) et une réponse REST 400 Bad Request jouent un rôle similaire. Quelle nuance les distingue malgré tout ?",
       options: [
-        "foreach (string ligne in lignes) { if (ligne == lignes[0]) continue; ... }",
-        "foreach (string ligne in lignes.Skip(1)) { ... } (LINQ)",
-        "for (int i = 0; i < lignes.Length; i++) { ... } — vérifier i == 0",
-        "Toutes les réponses ci-dessus sont correctes",
+        "FIX ne peut jamais rejeter un ordre, uniquement l'annuler",
+        "REST 400 signifie toujours une erreur réseau, jamais une erreur métier",
+        "Elles sont strictement identiques dans tous les cas d'usage",
+        "Le rejet FIX (35=8, 39=8) reste un message applicatif métier échangé DANS une session déjà établie, alors qu'un 400 REST est une réponse au niveau du protocole de transport HTTP pour CETTE requête précise",
       ],
-      answer: "Toutes les réponses ci-dessus sont correctes",
+      answer: "Le rejet FIX (35=8, 39=8) reste un message applicatif métier échangé DANS une session déjà établie, alors qu'un 400 REST est une réponse au niveau du protocole de transport HTTP pour CETTE requête précise",
       explanation:
-        "Toutes ces méthodes permettent d'ignorer l'en-tête. Skip(1) est la plus élégante avec LINQ. La condition `if (ligne == lignes[0])` fonctionne mais est moins robuste (si le même contenu apparaît ailleurs).",
+        "En FIX, le rejet d'ordre est un message métier (ExecutionReport avec OrdStatus=Rejected) circulant dans une session déjà ouverte et durable. En REST, chaque requête HTTP est indépendante et le code 400 est une réponse ponctuelle au niveau transport, sans notion de session persistante.",
     },
     {
       question:
-        "[Cas pratique] Vous devez créer un index des mots par première lettre. Quelle structure choisissez-vous ?",
+        "[Comparaison] Pourquoi dit-on que FIX et WebSocket sont tous deux 'stateful', mais pour des raisons différentes ?",
       options: [
-        "Dictionary<char, List<string>> — clé = lettre, valeur = liste de mots",
-        "List<(char, string)> — recherche linéaire par lettre",
-        "HashSet<(char, string)> — unicité, mais pas de regroupement",
-        "Array de 26 listes (une par lettre) — moins flexible",
+        "Aucun des deux n'est réellement stateful",
+        "FIX est stateful car il utilise XML, WebSocket car il utilise JSON",
+        "Les deux sont stateful pour exactement la même raison technique",
+        "FIX est stateful à cause du contrôle de séquence (MsgSeqNum) sur une session logique ; WebSocket est stateful car il maintient une connexion réseau ouverte en continu",
       ],
-      answer: "Dictionary<char, List<string>> — clé = lettre, valeur = liste de mots",
+      answer: "FIX est stateful à cause du contrôle de séquence (MsgSeqNum) sur une session logique ; WebSocket est stateful car il maintient une connexion réseau ouverte en continu",
       explanation:
-        "C'est le Pattern 4 classique : on groupe par clé. La clé est la première lettre, la valeur est la liste des mots commençant par cette lettre. La recherche par lettre est O(1).",
+        "FIX maintient un état logique de session (numérotation, heartbeat, capacité de resynchronisation même après reconnexion TCP). WebSocket, lui, est stateful essentiellement parce que la connexion réseau elle-même reste ouverte tant que la session dure.",
     },
     {
-      question:
-        "[Cas pratique] Vous devez vérifier si une collection ne contient QUE des éléments positifs (et s'arrêter dès qu'un négatif est trouvé). Quel pattern utilisez-vous ?",
+      question: "[Comparaison] Un système Drop Copy en FIX sert à quoi dans une architecture de trading ?",
       options: [
-        "Pattern 1 — parsing avec foreach + for",
-        "Pattern 4 — groupement avec Dictionary",
-        "Pattern 6 — boucle avec return/break (validation et sortie anticipée)",
-        "Pattern 3 — simulation avec double boucle",
+        "À remplacer totalement le protocole WebSocket",
+        "À sauvegarder le code source de l'application FIX",
+        "À copier-coller manuellement les ordres dans un tableur",
+        "À dupliquer le flux des exécutions vers le middle/back-office, sans que ce dernier participe activement au trading",
       ],
-      answer: "Pattern 6 — boucle avec return/break (validation et sortie anticipée)",
+      answer: "À dupliquer le flux des exécutions vers le middle/back-office, sans que ce dernier participe activement au trading",
       explanation:
-        "On parcourt la collection jusqu'à trouver un négatif. Dès qu'on en trouve un, on retourne false (return) ou on break. C'est le Pattern 6 : validation avec sortie anticipée.",
-    },
-    {
-      question:
-        "[Cas pratique] Pour un tournoi round-robin (chaque équipe affronte chaque autre), comment itérer sur toutes les paires sans répétition ?",
-      options: [
-        "for (int i = 0; i < n; i++) for (int j = 0; j < n; j++)",
-        "for (int i = 0; i < n; i++) for (int j = i + 1; j < n; j++)",
-        "foreach (var e1 in equipes) foreach (var e2 in equipes)",
-        "C'est impossible en C#, il faut utiliser LINQ",
-      ],
-      answer: "for (int i = 0; i < n; i++) for (int j = i + 1; j < n; j++)",
-      explanation:
-        "Pour éviter les doublons (équipe A vs équipe B est la même que B vs A), on fait démarrer j à i+1. Ainsi, on ne parcourt que les paires uniques, sans répétitions ni doublons.",
-    },
-    {
-      question:
-        "[Cas pratique] Vous devez compter les occurrences de chaque mot dans un texte. Quelle est l'approche correcte ?",
-      options: [
-        "Dictionary<string, int> avec ContainsKey pour initialiser à 0 avant d'incrémenter",
-        "List<string> avec Contains pour vérifier l'existence",
-        "HashSet<string> pour stocker les mots uniques seulement",
-        "Array de 26 lettres pour les premières lettres",
-      ],
-      answer: "Dictionary<string, int> avec ContainsKey pour initialiser à 0 avant d'incrémenter",
-      explanation:
-        "Le Pattern 4 s'applique : on groupe par mot (clé) et on incrémente le compteur (valeur). Il faut initialiser la clé à 0 avant d'incrémenter, sinon KeyNotFoundException.",
-    },
-    {
-      question:
-        "[Cas pratique] Dans le problème du Gossip, pourquoi utilise-t-on un HashSet pour les gossip plutôt qu'une List ?",
-      options: [
-        "Pour éviter d'avoir deux fois le même gossip (unicité) et pour tester l'appartenance rapidement (Contains O(1))",
-        "Parce que HashSet est plus rapide à itérer avec foreach",
-        "Parce que HashSet est plus facile à initialiser",
-        "Parce que List ne stocke que des entiers, HashSet stocke des chaînes",
-      ],
-      answer: "Pour éviter d'avoir deux fois le même gossip (unicité) et pour tester l'appartenance rapidement (Contains O(1))",
-      explanation:
-        "HashSet est parfait pour les gossips : il élimine automatiquement les doublons (lors de la fusion de groupes) et permet de vérifier rapidement si un gossip est connu (Contains O(1)).",
+        "Le Drop Copy est une session FIX en lecture seule qui reçoit une copie de tous les messages d'exécution, permettant au middle-office et au back-office de suivre l'activité de trading pour la comptabilité, le contrôle des risques et le règlement-livraison, sans jamais émettre d'ordres eux-mêmes.",
     },
   ],
 };
-
-
 
 const renderInlineTokens = (text, keyPrefix) => {
   const regex = /(\*\*.*?\*\*|`.*?`|\*.*?\*)/g;
@@ -697,14 +601,14 @@ const Results = ({ scores }) => {
       <h3>🎯 Score : {totalScore} / {totalQuestions}</h3>
       <p>✅ Moyen : {scores.moyen}/{questions.moyen.length} | ✅ Avancé : {scores.avance}/{questions.avance.length} | ✅ Expert : {scores.expert}/{questions.expert.length}</p>
       {totalScore >= Math.floor(totalQuestions * 0.6)
-        ? <h3 className="success">🚀 Excellent ! Backend development maîtrisé.</h3>
-        : <p className="fail">📚 Révisez les concepts backend fondamentaux et avancés.</p>
+        ? <h3 className="success">🚀 Excellent ! Protocoles de trading maîtrisés.</h3>
+        : <p className="fail">📚 Révisez le cycle de vie des ordres FIX et la synthèse comparative.</p>
       }
     </div>
   );
 };
 
-const BackendInterviewQCM = () => {
+const MarketProtocolsQCM = () => {
   const [level, setLevel] = useState("basic");
   const [currentSlide, setCurrentSlide] = useState(0);
   const [currentQuestion, setCurrentQuestion] = useState(0);
@@ -770,7 +674,7 @@ const BackendInterviewQCM = () => {
       {showResult ? <Results scores={scores} /> : (
         <div>
           <h4 className="subtitle" style={{ fontSize: '10px', margin: '0 0 6px 0' }}>
-            Backend Interview 🔹 {level === "basic"
+            Protocoles Finance de Marché 🔹 {level === "basic"
               ? `Slide ${currentSlide + 1}/${basicSlides.length}`
               : `QCM ${level.toUpperCase()} — Q${currentQuestion + 1}/${questions[level].length}`
             }
@@ -792,4 +696,4 @@ const BackendInterviewQCM = () => {
   );
 };
 
-export default BackendInterviewQCM;
+export default MarketProtocolsQCM;

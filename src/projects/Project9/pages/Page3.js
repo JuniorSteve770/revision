@@ -177,7 +177,8 @@ const questions = {
       explanation:
         "Si après 480 minutes tous les chauffeurs ne connaissent pas tous les ragots, on considère que c'est impossible et on retourne -1. C'est une limite de temps pour éviter une boucle infinie.",
     },
-
+          ],
+  avance: [
     // ==================== SECTION C: REGROUPEMENT CONDITIONNEL (4 questions) ====================
     {
       question:
@@ -311,6 +312,8 @@ const questions = {
       explanation:
         "On collecte d'abord tous les ragots dans un HashSet pour éviter de modifier les collections pendant l'itération, ET pour garantir que tous les chauffeurs reçoivent exactement le même ensemble fusionné.",
     },
+      ],
+  expert: [
 
     // ==================== SECTION E: VALIDATION & SORTIE (4 questions) ====================
     {
