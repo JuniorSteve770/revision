@@ -1,452 +1,483 @@
-// src/projects/CIBPricing/CIBRestApiInfraQCM.js
+// src/projects/BackendInterview/CollectionsConcurrencyQCM.js
 
 import React, { useState, useEffect, useCallback } from "react";
 import "./Page.css";
 
 const basicSlides = [
-  // ==================== SLIDE 1: STRUCTURE DU PROBLEME ====================
   {
-    question: "Gossiping Drivers — Structure du problème",
+    question: "Vue d'ensemble — Collections & Concurrence en C#",
     answer:
-      "◆ **Énoncé** : N chauffeurs de bus circulent sur des routes cycliques\n◆ **Règle** : à chaque minute, les chauffeurs au même arrêt échangent tous leurs ragots\n◆ **Objectif** : trouver en combien de minutes tous les chauffeurs connaissent tous les ragots\n◆ **Limite** : 480 minutes maximum, sinon retourner -1\n◆ **Entrée** : chaque ligne = 'nombre d'arrêts suivis des arrêts'\n◆ **Sortie** : nombre de minutes ou -1\n\n```csharp\n// Exemple d'entrée :\n// \"3 1 2 3\"  → chauffeur 0 : arrêts 1,2,3\n// \"3 2 3 4\"  → chauffeur 1 : arrêts 2,3,4\n// \"3 3 4 5\"  → chauffeur 2 : arrêts 3,4,5\n// Résultat attendu : 5\n```\n⚠️ Le problème combine parsing, simulation, regroupement et agrégation",
+      "◆ **Définition** : deux familles d'outils qui déterminent la performance d'un code C# — les structures de données (collections) et les modèles d'exécution (threads/Task/async)\n◆ **Collections** : List, Dictionary, HashSet — le choix impacte directement la complexité algorithmique\n◆ **Threads** : exécution parallèle bas niveau, pour du calcul CPU-bound\n◆ **Task / async-await** : abstraction moderne au-dessus des threads, idéale pour l'I/O (réseau, disque, DB)\n◆ **Cas d'usage** : un OMS qui traite des milliers d'ordres par seconde doit combiner les deux familles pour rester performant",
   },
-  // ==================== SLIDE 2: PATTERN 1 & 2 ====================
   {
-    question: "Pattern 1 & 2 — Parsing + Initialisation",
+    question: "List<T> vs Dictionary<K,V> vs HashSet<T>",
     answer:
-      "◆ **Pattern 1 — foreach + for : parsing du texte**\n```csharp\nforeach (string line in testInput) // chaque ligne\n{\n    string[] parts = line.Split(' ');\n    var arrets = new List<int>();\n    for (int i = 1; i < parts.Length; i++) // i=1 : ignore le 1er élément\n        arrets.Add(int.Parse(parts[i]));\n    routes.Add(arrets.ToArray());\n}\n```\n◆ **Pattern 2 — for seul : initialisation**\n```csharp\nfor (int i = 0; i < nombreDeChauffeurs; i++)\n    gossipsConnus.Add(new HashSet<int> { i }); // chaque chauffeur connaît son propre gossip\n```\n◆ **foreach** : parcourt la collection source\n◆ **for** : parcourt les sous-parties (i=1 pour ignorer l'en-tête)\n◆ **for seul** : initialisation de N structures indépendantes\n\n⚠️ for commence à 1 pour ignorer le nombre d'arrêts (en-tête)",
+      "◆ **Définition** : trois collections aux complexités très différentes selon l'opération\n◆ **List<T>** : accès par index O(1), Contains O(n)\n◆ **Dictionary<K,V>** : accès par clé O(1), idéal pour une association clé→valeur\n◆ **HashSet<T>** : Contains O(1), garantit l'unicité automatiquement\n◆ **Cas d'usage** : Dictionary pour indexer des ordres par ClOrdID, HashSet pour dédupliquer des symboles reçus en flux\n\n```csharp\nvar ordersById = new Dictionary<string, Order>();\nvar seenSymbols = new HashSet<string>();\n```",
   },
-  // ==================== SLIDE 3: PATTERN 3 ====================
   {
-    question: "Pattern 3 — Simulation temporelle (for + for)",
+    question: "Pièges classiques des collections",
     answer:
-      "◆ **for + for imbriqués** : temps × entités\n◆ **Boucle externe** : chaque minute (0 à 479)\n◆ **Boucle interne** : chaque chauffeur\n◆ **Calcul** : position = minute % longueur_route (cyclique)\n\n```csharp\nfor (int minute = 0; minute < 480; minute++)\n{\n    var positionDeChaqueChauffeur = new int[nombreDeChauffeurs];\n\n    for (int i = 0; i < nombreDeChauffeurs; i++)\n    {\n        int positionDansLaRoute = minute % routes[i].Length;\n        positionDeChaqueChauffeur[i] = routes[i][positionDansLaRoute];\n    }\n    // ... traitement des positions ...\n}\n```\n◆ **Double boucle** : O(480 × N) = O(N) constant\n◆ **Simulation** : temps × entités\n◆ **Calcul cyclique** : `%` pour boucler sur la route\n\n⚠️ La boucle externe est le temps, la boucle interne est l'espace",
+      "◆ **Définition** : erreurs fréquentes qui cassent la performance ou plantent en production\n◆ **Modifier pendant un foreach** : InvalidOperationException — parcourir à l'envers avec for pour supprimer\n◆ **List.Contains en boucle** : transforme un algorithme en O(n²), remplacer par HashSet\n◆ **ContainsKey + indexeur** : 2 accès au Dictionary, préférer TryGetValue (1 seul accès)\n◆ **Cas d'usage** : dédupliquer 100 000 IDs avec HashSet.Contains plutôt que List.Contains évite un ralentissement massif\n\n```csharp\nif (!dict.TryGetValue(key, out var value)) { ... }\n```",
   },
-  // ==================== SLIDE 4: PATTERN 4 ====================
   {
-    question: "Pattern 4 — Regroupement conditionnel (for + if)",
+    question: "Threads & multithreading — les bases",
     answer:
-      "◆ **for + if** : regroupement par arrêt (create-if-absent)\n◆ **Objectif** : regrouper les chauffeurs par arrêt\n◆ **Clé** : numéro d'arrêt\n◆ **Valeur** : liste des chauffeurs à cet arrêt\n\n```csharp\nvar chauffeursParArret = new Dictionary<int, List<int>>();\n\nfor (int i = 0; i < nombreDeChauffeurs; i++)\n{\n    int arret = positionDeChaqueChauffeur[i];\n    if (!chauffeursParArret.ContainsKey(arret))\n        chauffeursParArret[arret] = new List<int>();\n    chauffeursParArret[arret].Add(i);\n}\n```\n◆ **ContainsKey** : vérifier si la clé existe\n◆ **Add** : créer la liste si absente\n◆ **Add** : ajouter le chauffeur à la liste\n\n⚠️ ContainsKey + indexeur = 2 accès → peut être optimisé avec TryGetValue",
+      "◆ **Définition** : un Thread est un fil d'exécution indépendant géré par l'OS ; le multithreading permet d'exécuter plusieurs tâches en parallèle sur plusieurs cœurs\n◆ **lock** : garantit qu'une seule section critique est exécutée à la fois (mutex logique)\n◆ **Coût** : créer un Thread manuellement est coûteux (allocation mémoire, changement de contexte)\n◆ **Cas d'usage** : calcul intensif (pricing, risk) réparti sur plusieurs cœurs CPU\n\n```csharp\nprivate readonly object _lock = new object();\nlock (_lock) { compteur++; }\n```",
   },
-  // ==================== SLIDE 5: PATTERN 5 ====================
   {
-    question: "Pattern 5 — Agrégation et fusion (foreach + foreach + foreach)",
+    question: "Race conditions & Deadlocks",
     answer:
-      "◆ **foreach + if/continue + foreach + foreach** : cœur algorithmique\n◆ **Étape 1** : filtrer les groupes de 1 (continue)\n◆ **Étape 2** : collecter tous les ragots du groupe (double foreach)\n◆ **Étape 3** : distribuer à tout le groupe (foreach)\n\n```csharp\nforeach (var groupe in chauffeursParArret.Values)\n{\n    if (groupe.Count < 2) continue; // filtre\n\n    var tousLesGossips = new HashSet<int>();\n\n    // Collecter tous les ragots du groupe\n    foreach (int chauffeur in groupe)\n        foreach (int gossip in gossipsConnus[chauffeur])\n            tousLesGossips.Add(gossip);\n\n    // Distribuer à tout le groupe\n    foreach (int chauffeur in groupe)\n        gossipsConnus[chauffeur] = new HashSet<int>(tousLesGossips);\n}\n```\n◆ **continue** : ignore les groupes de 1 (pas de partage possible)\n◆ **Double foreach** : collecte toutes les données\n◆ **HashSet** : élimine automatiquement les doublons\n\n⚠️ La triple boucle est le cœur du problème — O(n³) mais acceptable ici",
+      "◆ **Définition** : deux bugs classiques du multithreading\n◆ **Race condition** : plusieurs threads modifient la même donnée sans synchronisation → résultat imprévisible\n◆ **Deadlock** : deux threads s'attendent mutuellement, bloqués indéfiniment (ex: lock A puis B, et B puis A dans l'autre thread)\n◆ **Cas d'usage** : un compteur de positions partagé entre threads sans lock donnera un total faux sous forte charge\n◆ **Prévention** : toujours verrouiller les ressources partagées dans le même ordre",
   },
-  // ==================== SLIDE 6: PATTERN 6 & 7 ====================
   {
-    question: "Pattern 6 & 7 — Validation + Sortie anticipée",
+    question: "ThreadPool — le pool de threads sous-jacent",
     answer:
-      "◆ **Pattern 6 — for + if + break : validation**\n```csharp\nbool toutLeMondeSaitTout = true;\nfor (int i = 0; i < nombreDeChauffeurs; i++)\n{\n    if (gossipsConnus[i].Count < nombreDeChauffeurs)\n    {\n        toutLeMondeSaitTout = false;\n        break; // inutile de continuer\n    }\n}\n```\n◆ **Pattern 7 — if + for : affichage**\n```csharp\nif (toutLeMondeSaitTout)\n{\n    Console.WriteLine($\"Résultat : {minute} minutes\");\n    for (int i = 0; i < nombreDeChauffeurs; i++)\n        Console.WriteLine($\"Route {i} : {string.Join(\", \", routes[i])}\");\n    return;\n}\n```\n◆ **break** : sort de la boucle dès qu'un chauffeur ne sait pas tout\n◆ **return** : sort de toute la méthode\n◆ **if + for** : affichage conditionnel avec boucle\n\n⚠️ break = sort de la boucle, return = sort de la méthode",
+      "◆ **Définition** : un pool de threads réutilisables géré par le CLR, évite le coût de création/destruction répétée de threads\n◆ **Task.Run** : soumet du travail au ThreadPool plutôt que de créer un Thread manuel\n◆ **Cas d'usage** : exécuter un calcul CPU-bound sans bloquer le thread principal (UI ou requête HTTP)\n\n```csharp\nawait Task.Run(() => CalculerRisque(portefeuille));\n```\n⚠️ Le ThreadPool a une taille limitée — l'y bloquer avec du code I/O (attente réseau) l'épuise inutilement",
+  },
+  {
+    question: "Task — WhenAll, WhenAny, ContinueWith",
+    answer:
+      "◆ **Définition** : Task représente une opération asynchrone dont on peut composer/orchestrer l'exécution\n◆ **Task.WhenAll** : attend que toutes les tasks soient terminées\n◆ **Task.WhenAny** : se déclenche dès qu'une seule task se termine\n◆ **ContinueWith** : enchaîne une action après la fin d'une task (moins utilisé depuis async/await)\n◆ **Cas d'usage** : interroger 3 brokers en parallèle et attendre les 3 réponses avant d'agréger le meilleur prix\n\n```csharp\nvar prices = await Task.WhenAll(GetPriceAsync(\"BrokerA\"), GetPriceAsync(\"BrokerB\"));\n```",
+  },
+  {
+    question: "async/await — principes",
+    answer:
+      "◆ **Définition** : sucre syntaxique qui permet d'écrire du code asynchrone de façon linéaire, sans bloquer le thread appelant\n◆ **I/O-bound** (réseau, DB, fichier) : utiliser async/await, libère le thread pendant l'attente\n◆ **CPU-bound** (calcul intensif) : utiliser Task.Run pour paralléliser sur le ThreadPool\n◆ **Cas d'usage** : appeler une API REST ou une base de données sans geler le thread qui aurait pu traiter une autre requête\n\n```csharp\npublic async Task<OrderDto> GetOrderAsync(string id)\n{\n    var order = await _db.Orders.FindAsync(id);\n    return Map(order);\n}\n```",
+  },
+  {
+    question: "Pièges classiques async/await",
+    answer:
+      "◆ **Définition** : erreurs fréquentes qui cassent la fiabilité ou provoquent des deadlocks\n◆ **async void** : à éviter sauf pour les event handlers — les exceptions ne peuvent pas être awaited/catchées normalement\n◆ **.Result / .Wait()** : bloque le thread appelant et peut provoquer un deadlock (contexte de synchronisation ASP.NET/UI)\n◆ **ConfigureAwait(false)** : évite de capturer le contexte de synchronisation, utile dans les librairies\n◆ **Cas d'usage** : dans un contrôleur ASP.NET, toujours `await`, jamais `.Result`, pour ne pas geler la requête\n\n```csharp\n// ❌ risque de deadlock\nvar order = GetOrderAsync(id).Result;\n// ✅\nvar order = await GetOrderAsync(id);\n```",
+  },
+  {
+    question: "Combos performance — écrire du code C# rapide",
+    answer:
+      "◆ **Définition** : la vitesse d'exécution vient de la combinaison structure de données + modèle d'exécution adaptés au problème\n◆ **Règle 1** : bonne structure d'abord (HashSet pour Contains, Dictionary pour lookup) — souvent plus impactant que la parallélisation\n◆ **Règle 2** : I/O-bound → async/await ; CPU-bound → Parallel.For / Task.Run\n◆ **Règle 3** : éviter les allocations inutiles dans les boucles chaudes (pas de LINQ dans un hot path critique)\n◆ **Cas d'usage** : transformer une double boucle O(n²) de comparaison en O(n) avec un HashSet, puis paralléliser le traitement CPU-bound restant avec Parallel.ForEach\n\n```csharp\nvar setB = new HashSet<int>(listeB); // O(n)\nParallel.ForEach(listeA, a => { if (setB.Contains(a)) ... }); // O(n) + parallèle\n```",
   },
 ];
 
 const questions = {
   moyen: [
-    // ==================== SECTION A: PARSING & INITIALISATION (6 questions) ====================
+    // ==================== SECTION A: COLLECTIONS ====================
     {
-      question:
-        "[Parsing] Dans le parsing du Gossiping Drivers, pourquoi la boucle for commence-t-elle à i=1 ?\n\n```csharp\nfor (int i = 1; i < parts.Length; i++)\n    arrets.Add(int.Parse(parts[i]));\n```",
-      options: [
-        "Pour ignorer le premier arrêt qui est toujours 0",
-        "Pour ignorer le nombre d'arrêts (en-tête) et ne garder que les arrêts",
-        "Parce que les indices commencent à 1 en C#",
-        "Pour ignorer les arrêts en double",
-      ],
-      answer: "Pour ignorer le nombre d'arrêts (en-tête) et ne garder que les arrêts",
+      question: "[Collections] Quelle structure choisir pour retrouver un ordre par son identifiant en O(1) ?",
+      options: ["List<Order>", "HashSet<Order>", "Array<Order>", "Dictionary<string, Order>"],
+      answer: "Dictionary<string, Order>",
       explanation:
-        "La première valeur de chaque ligne est le nombre d'arrêts. Les valeurs suivantes sont les arrêts eux-mêmes. On commence à i=1 pour ignorer ce nombre et ne garder que les arrêts.",
+        "Dictionary<K,V> offre un accès O(1) par clé. Pour retrouver un ordre par son ID rapidement, c'est la structure adaptée, contrairement à List ou Array qui nécessiteraient un parcours O(n).",
     },
     {
-      question:
-        "[Parsing] Quelle combinaison de structures est utilisée dans le parsing du code Gossiping Drivers ?",
+      question: "[Collections] Pourquoi HashSet<T> est-il préférable à List<T> pour tester l'appartenance d'un élément (Contains) ?",
       options: [
-        "foreach + for (parcours ligne puis colonnes)",
-        "for + foreach (parcours colonnes puis ligne)",
-        "while + for (condition externe puis index)",
-        "foreach seul",
+        "HashSet ne peut contenir que des types numériques",
+        "List.Contains() est toujours plus rapide que HashSet.Contains()",
+        "Il n'y a aucune différence de performance",
+        "HashSet.Contains() est O(1) en moyenne alors que List.Contains() est O(n)",
       ],
-      answer: "foreach + for (parcours ligne puis colonnes)",
+      answer: "HashSet.Contains() est O(1) en moyenne alors que List.Contains() est O(n)",
       explanation:
-        "Le parsing utilise foreach pour parcourir les lignes, et for pour parcourir les colonnes (arrêts) de chaque ligne. C'est le pattern 1 : foreach + for + Add.",
+        "HashSet utilise une table de hachage, rendant Contains quasi instantané en moyenne. List doit parcourir ses éléments un par un, donc Contains coûte O(n).",
     },
     {
-      question:
-        "[Initialisation] Que fait ce code d'initialisation ?\n\n```csharp\nfor (int i = 0; i < nombreDeChauffeurs; i++)\n    gossipsConnus.Add(new HashSet<int> { i });\n```",
+      question: "[Collections] Quelle est la complexité de List<T>.Add() en fin de liste, dans le cas général ?",
       options: [
-        "Crée une liste de chauffeurs vides",
-        "Initialise chaque chauffeur avec son propre gossip (lui-même)",
-        "Crée un HashSet contenant tous les chauffeurs",
-        "Initialise les routes de chaque chauffeur",
+        "O(n²), car la liste est réallouée à chaque ajout",
+        "O(log n), via une structure d'arbre équilibré",
+        "O(n), car chaque élément est recopié",
+        "O(1) amorti, car la capacité interne est redimensionnée rarement",
       ],
-      answer: "Initialise chaque chauffeur avec son propre gossip (lui-même)",
+      answer: "O(1) amorti, car la capacité interne est redimensionnée rarement",
       explanation:
-        "Chaque chauffeur commence avec un seul gossip : le sien (représenté par son index i). Le HashSet { i } contient initialement uniquement l'index du chauffeur.",
+        "List<T> maintient une capacité interne plus grande que sa taille actuelle. L'ajout est O(1) la plupart du temps ; la réallocation (O(n)) ne survient qu'occasionnellement, d'où le terme 'amorti'.",
     },
     {
-      question:
-        "[Parsing] Quelle est la structure de la variable routes après le parsing ?\n\n```csharp\nroutes.Add(arrets.ToArray());\n```",
+      question: "[Collections] Que se passe-t-il si on supprime un élément d'une List<T> pendant un foreach dessus ?",
       options: [
-        "List<int[]> — une liste de tableaux d'entiers (chaque tableau = route d'un chauffeur)",
-        "List<List<int>> — une liste de listes d'entiers",
-        "int[,] — une matrice 2D",
-        "Dictionary<int, int[]> — dictionnaire indexé par chauffeur",
+        "L'élément suivant est automatiquement ignoré sans erreur",
+        "Rien, foreach gère nativement les suppressions",
+        "Une InvalidOperationException est levée, car la collection a été modifiée pendant son énumération",
+        "Seuls les éléments pairs sont affectés",
       ],
-      answer: "List<int[]> — une liste de tableaux d'entiers (chaque tableau = route d'un chauffeur)",
+      answer: "Une InvalidOperationException est levée, car la collection a été modifiée pendant son énumération",
       explanation:
-        "routes est une List<int[]>. Chaque élément est un tableau d'entiers représentant la route (les arrêts) d'un chauffeur. `arrets.ToArray()` convertit la List<int> en int[].",
-    },
-    {
-      question:
-        "[Parsing] Que se passe-t-il si une ligne d'entrée est vide dans le parsing ?",
-      options: [
-        "La ligne est ignorée silencieusement",
-        "Le programme lève une exception (parts.Length = 0, for ne s'exécute pas)",
-        "Le programme ajoute une route vide",
-        "Le programme continue normalement",
-      ],
-      answer: "Le programme lève une exception (parts.Length = 0, for ne s'exécute pas)",
-      explanation:
-        "Si une ligne est vide, `parts.Length = 0`. La boucle for ne s'exécute pas (i=1; i<0; false). Aucune route n'est ajoutée, ce qui cause une incohérence plus tard.",
-    },
-    {
-      question:
-        "[Initialisation] Pourquoi utilise-t-on un HashSet pour stocker les ragots plutôt qu'une List ?",
-      options: [
-        "HashSet est plus rapide pour l'itération",
-        "HashSet garantit l'unicité des ragots (pas de doublons)",
-        "HashSet est plus facile à initialiser",
-        "HashSet stocke les éléments dans l'ordre",
-      ],
-      answer: "HashSet garantit l'unicité des ragots (pas de doublons)",
-      explanation:
-        "HashSet élimine automatiquement les doublons. Lors de la fusion des ragots, on ne veut pas de doublons. HashSet est parfait pour cette utilisation.",
+        "foreach utilise un énumérateur qui détecte toute modification de la collection sous-jacente pendant le parcours et lève une exception. Pour supprimer en itérant, il faut utiliser une boucle for à l'envers.",
     },
 
-    // ==================== SECTION B: SIMULATION TEMPORELLE (4 questions) ====================
+    // ==================== SECTION B: THREADS ====================
     {
-      question:
-        "[Simulation] Quelle combinaison de structures est utilisée pour la simulation temporelle ?",
+      question: "[Threads] À quoi sert le mot-clé `lock` en C# ?",
       options: [
-        "for + for (temps × entités)",
-        "foreach + for (lignes × colonnes)",
-        "while + for (condition × entités)",
-        "do-while + for (exécution garantie × entités)",
+        "À garantir qu'une seule section de code (critique) est exécutée par un seul thread à la fois",
+        "À accélérer l'exécution d'une boucle",
+        "À empêcher la garbage collection d'un objet",
+        "À convertir du code synchrone en code asynchrone",
       ],
-      answer: "for + for (temps × entités)",
+      answer: "À garantir qu'une seule section de code (critique) est exécutée par un seul thread à la fois",
       explanation:
-        "La simulation utilise une double boucle for : la boucle externe parcourt les minutes (temps), la boucle interne parcourt les chauffeurs (entités). C'est le pattern 3.",
+        "lock (sucre syntaxique pour Monitor.Enter/Exit) protège une section critique : un seul thread peut y entrer à la fois, évitant les race conditions sur une ressource partagée.",
     },
     {
-      question:
-        "[Simulation] Que fait cette ligne de calcul ?\n\n```csharp\nint positionDansLaRoute = minute % routes[i].Length;\n```",
+      question: "[Threads] Qu'est-ce qu'une race condition ?",
       options: [
-        "Calcule la position du chauffeur de manière cyclique (boucle sur la route)",
-        "Calcule la position du chauffeur de manière aléatoire",
-        "Calcule la position du chauffeur en fonction de la minute",
-        "Calcule la position du chauffeur en fonction de son index",
+        "Une erreur de compilation liée aux threads",
+        "Une situation où plusieurs threads accèdent et modifient une donnée partagée sans synchronisation, produisant un résultat imprévisible",
+        "Un thread qui s'exécute plus vite que prévu",
+        "Un deadlock entre deux processus",
       ],
-      answer: "Calcule la position du chauffeur de manière cyclique (boucle sur la route)",
+      answer: "Une situation où plusieurs threads accèdent et modifient une donnée partagée sans synchronisation, produisant un résultat imprévisible",
       explanation:
-        "L'opérateur `%` (modulo) fait boucler la position sur la longueur de la route. Si la route a 3 arrêts, minute=0→0, 1→1, 2→2, 3→0, 4→1, etc. C'est un déplacement cyclique.",
+        "Une race condition survient quand le résultat d'un programme dépend de l'ordre d'exécution non garanti de threads concurrents accédant à une même ressource, souvent sans lock.",
     },
     {
-      question:
-      "[Simulation] Quelle est la complexité de la simulation si N = nombre de chauffeurs ?",
+      question: "[Threads] Quelle est la cause typique d'un deadlock ?",
       options: [
-        "O(N) — linéaire",
-        "O(480 × N) — constant car 480 est fixe",
-        "O(N²) — quadratique",
-        "O(480) — constant",
+        "L'utilisation excessive de foreach",
+        "Un thread qui ne fait aucun appel réseau",
+        "Deux threads qui acquièrent les mêmes locks dans un ordre inversé, s'attendant mutuellement indéfiniment",
+        "L'absence totale de threads dans l'application",
       ],
-      answer: "O(480 × N) — constant car 480 est fixe",
+      answer: "Deux threads qui acquièrent les mêmes locks dans un ordre inversé, s'attendant mutuellement indéfiniment",
       explanation:
-        "La boucle externe est fixe (480 minutes). La boucle interne est O(N). La complexité totale est O(480 × N), mais comme 480 est une constante, on peut dire O(N).",
+        "Un deadlock classique se produit quand le thread 1 tient le lock A et attend le lock B, tandis que le thread 2 tient le lock B et attend le lock A. Aucun ne peut avancer.",
     },
     {
-      question:
-        "[Simulation] Pourquoi la limite de 480 minutes est-elle importante ?",
+      question: "[Threads] Pourquoi préfère-t-on généralement le ThreadPool (via Task.Run) à la création manuelle de Thread ?",
       options: [
-        "C'est une limite arbitraire sans importance",
-        "C'est la limite maximum avant de déclarer l'échec (retourner -1)",
-        "C'est le temps moyen pour que tous les ragots se propagent",
-        "C'est le nombre maximum de routes possibles",
+        "Un Thread manuel s'exécute toujours plus vite",
+        "Le ThreadPool réutilise des threads existants, évitant le coût de création/destruction répétée",
+        "Le ThreadPool ne peut exécuter qu'un seul thread à la fois",
+        "Il n'y a aucune différence pratique entre les deux",
       ],
-      answer: "C'est la limite maximum avant de déclarer l'échec (retourner -1)",
+      answer: "Le ThreadPool réutilise des threads existants, évitant le coût de création/destruction répétée",
       explanation:
-        "Si après 480 minutes tous les chauffeurs ne connaissent pas tous les ragots, on considère que c'est impossible et on retourne -1. C'est une limite de temps pour éviter une boucle infinie.",
+        "Créer un Thread manuellement a un coût non négligeable (allocation, changement de contexte). Le ThreadPool maintient un pool de threads réutilisables, ce qui est bien plus efficace pour de nombreuses tâches courtes.",
     },
-          ],
+
+    // ==================== SECTION C: TASK ====================
+    {
+      question: "[Task] À quoi sert principalement Task.Run() ?",
+      options: [
+        "À exécuter du code de façon synchrone et bloquante",
+        "À supprimer une Task en cours",
+        "À soumettre un travail CPU-bound au ThreadPool sans bloquer le thread appelant",
+        "À créer une connexion réseau"
+      ],
+      answer: "À soumettre un travail CPU-bound au ThreadPool sans bloquer le thread appelant",
+      explanation:
+        "Task.Run() délègue l'exécution d'une fonction au ThreadPool, idéal pour du calcul intensif (CPU-bound) qu'on ne veut pas exécuter sur le thread principal.",
+    },
+    {
+      question: "[Task] Quelle est la différence entre Task.WhenAll et Task.WhenAny ?",
+      options: [
+        "WhenAll attend que toutes les tasks se terminent, WhenAny se déclenche dès qu'une seule est terminée",
+        "WhenAll et WhenAny sont strictement identiques",
+        "WhenAny attend toutes les tasks, WhenAll s'arrête à la première",
+        "WhenAll ne peut prendre qu'une seule task en paramètre",
+      ],
+      answer: "WhenAll attend que toutes les tasks se terminent, WhenAny se déclenche dès qu'une seule est terminée",
+      explanation:
+        "Task.WhenAll(tasks) retourne une Task qui se complète quand toutes les tasks passées sont terminées. Task.WhenAny(tasks) se complète dès que la première d'entre elles se termine.",
+    },
+    {
+      question: "[Task] Comment sont typiquement propagées les exceptions levées dans une Task, lorsqu'on utilise await ?",
+      options: [
+        "Elles sont silencieusement ignorées",
+        "Elles ne peuvent jamais être catchées",
+        "L'exception d'origine est directement relancée (unwrapped) au point d'await, capturable via try/catch classique",
+        "Elles font planter le processus immédiatement sans possibilité de gestion",
+      ],
+      answer: "L'exception d'origine est directement relancée (unwrapped) au point d'await, capturable via try/catch classique",
+      explanation:
+        "Contrairement à .Wait()/.Result qui enveloppent l'exception dans une AggregateException, await 'déballe' l'exception d'origine, ce qui permet de la catcher normalement avec un try/catch.",
+    },
+
+    // ==================== SECTION D: ASYNC/AWAIT ====================
+    {
+      question: "[async/await] Pourquoi utilise-t-on async/await pour des opérations I/O-bound (réseau, base de données) ?",
+      options: [
+        "Parce que cela accélère le calcul CPU",
+        "Parce que cela libère le thread pendant l'attente, permettant de traiter d'autres requêtes en parallèle",
+        "Parce que async/await est requis pour compiler du C#",
+        "Parce que cela empêche toute exception de se produire",
+      ],
+      answer: "Parce que cela libère le thread pendant l'attente, permettant de traiter d'autres requêtes en parallèle",
+      explanation:
+        "Pendant une opération I/O-bound (attente réseau, disque, DB), le thread n'a rien à faire. async/await libère ce thread pour qu'il traite autre chose, au lieu de rester bloqué à attendre.",
+    },
+    {
+      question: "[async/await] Pourquoi une méthode `async void` est-elle généralement déconseillée (sauf pour les event handlers) ?",
+      options: [
+        "Parce que async void s'exécute deux fois plus lentement",
+        "Parce qu'elle ne peut pas être compilée en C#",
+        "Parce que les exceptions levées dans une méthode async void ne peuvent pas être capturées normalement par l'appelant",
+        "Parce qu'elle empêche l'utilisation de HttpClient",
+      ],
+      answer: "Parce que les exceptions levées dans une méthode async void ne peuvent pas être capturées normalement par l'appelant",
+      explanation:
+        "Une méthode async void ne retourne pas de Task, donc l'appelant ne peut pas await ni catcher ses exceptions via un try/catch classique. Elles remontent directement au SynchronizationContext, souvent en faisant planter l'application.",
+    },
+    {
+      question: "[async/await] Pourquoi appeler `.Result` ou `.Wait()` sur une Task peut-il provoquer un deadlock dans une application ASP.NET classique ?",
+      options: [
+        "Parce que .Result et .Wait() bloquent le thread appelant, qui peut être le même thread nécessaire pour reprendre l'exécution après l'await interne",
+        "Parce que .Result ne fonctionne que dans les applications console",
+        "Parce que .Wait() supprime automatiquement la Task",
+        "Ce risque n'existe pas en C#",
+      ],
+      answer: "Parce que .Result et .Wait() bloquent le thread appelant, qui peut être le même thread nécessaire pour reprendre l'exécution après l'await interne",
+      explanation:
+        "Dans un contexte avec SynchronizationContext (ASP.NET classique, UI), bloquer avec .Result peut empêcher le thread de revenir exécuter la suite de la Task après son await interne, créant un deadlock classique.",
+    },
+  ],
+
   avance: [
-    // ==================== SECTION C: REGROUPEMENT CONDITIONNEL (4 questions) ====================
+    // ==================== SECTION E: COLLECTIONS AVANCE ====================
     {
-      question:
-        "[Regroupement] Quelle combinaison de structures est utilisée pour le regroupement par arrêt ?",
+      question: "[Collections] Pourquoi TryGetValue est-il préférable à ContainsKey suivi de l'indexeur ?",
       options: [
-        "foreach + ContainsKey + Add",
-        "for + ContainsKey + Add",
-        "while + ContainsKey + Add",
-        "do-while + ContainsKey + Add",
+        "TryGetValue ne fonctionne que sur les List<T>",
+        "ContainsKey + indexeur effectuent 2 accès au Dictionary, TryGetValue n'en effectue qu'un seul",
+        "ContainsKey est déprécié en C#",
+        "Il n'y a aucune différence de performance mesurable",
       ],
-      answer: "for + ContainsKey + Add",
+      answer: "ContainsKey + indexeur effectuent 2 accès au Dictionary, TryGetValue n'en effectue qu'un seul",
       explanation:
-        "Le regroupement utilise for pour parcourir les chauffeurs, ContainsKey pour vérifier l'existence de la clé, et Add pour créer la liste ou ajouter le chauffeur. C'est le pattern 4.",
+        "ContainsKey(key) puis dict[key] effectuent deux recherches dans la table de hachage. TryGetValue combine la vérification et la récupération en un seul accès, plus performant.",
     },
     {
-      question:
-        "[Regroupement] Dans ce code, que représente la variable `arret` ?\n\n```csharp\nint arret = positionDeChaqueChauffeur[i];\n```",
+      question: "[Collections] Que signifie 'O(1) en moyenne' pour HashSet<T>.Contains(), et pourquoi ce n'est pas garanti dans le pire cas ?",
       options: [
-        "L'index du chauffeur",
-        "Le numéro de l'arrêt où se trouve le chauffeur à cette minute",
-        "La route du chauffeur",
-        "Le nombre d'arrêts du chauffeur",
+        "HashSet.Contains est toujours O(n), 'en moyenne' est trompeur",
+        "En cas de collisions de hachage nombreuses, la complexité peut se dégrader vers O(n) dans le pire cas théorique",
+        "O(1) en moyenne signifie que la structure est réinitialisée à chaque appel",
+        "Cela ne concerne que les HashSet contenant des types de référence",
       ],
-      answer: "Le numéro de l'arrêt où se trouve le chauffeur à cette minute",
+      answer: "En cas de collisions de hachage nombreuses, la complexité peut se dégrader vers O(n) dans le pire cas théorique",
       explanation:
-        "`positionDeChaqueChauffeur[i]` contient le numéro de l'arrêt où le chauffeur i se trouve à cette minute. C'est la position actuelle du chauffeur.",
+        "HashSet repose sur une fonction de hachage. Avec une bonne fonction de hachage et une distribution uniforme, Contains est O(1) en moyenne. En cas de mauvaises fonctions de hachage ou d'attaques ciblées, les collisions peuvent dégrader la performance vers O(n).",
     },
     {
-      question:
-        "[Regroupement] Pourquoi utilise-t-on un Dictionary<int, List<int>> pour regrouper les chauffeurs par arrêt ?",
+      question: "[Collections] Dans quel contexte une LinkedList<T> peut-elle être préférable à une List<T> ?",
       options: [
-        "Pour trier les chauffeurs par ordre alphabétique",
-        "Pour associer chaque arrêt (clé) à la liste des chauffeurs qui s'y trouvent (valeur)",
-        "Pour compter le nombre total de chauffeurs",
-        "Pour stocker les routes de chaque chauffeur",
+        "Quand on a besoin d'un accès O(1) par index",
+        "Quand on fait beaucoup d'insertions/suppressions au milieu de la collection, sans besoin d'accès par index",
+        "LinkedList<T> est toujours strictement supérieure à List<T>",
+        "Quand on veut garantir l'unicité des éléments",
       ],
-      answer: "Pour associer chaque arrêt (clé) à la liste des chauffeurs qui s'y trouvent (valeur)",
+      answer: "Quand on fait beaucoup d'insertions/suppressions au milieu de la collection, sans besoin d'accès par index",
       explanation:
-        "La clé est le numéro de l'arrêt, la valeur est la liste des chauffeurs présents à cet arrêt. C'est une structure de groupement classique (Pattern 4).",
-    },
-    {
-      question:
-        "[Regroupement] Que ferait ce code si on utilisait TryGetValue à la place de ContainsKey ?",
-      options: [
-        "Il serait plus lent",
-        "Il ferait 1 accès au lieu de 2 (plus performant)",
-        "Il ne fonctionnerait pas",
-        "Il serait plus difficile à lire",
-      ],
-      answer: "Il ferait 1 accès au lieu de 2 (plus performant)",
-      explanation:
-        "ContainsKey + indexeur = 2 accès au Dictionary. TryGetValue = 1 seul accès. C'est plus performant et plus concis. Les deux sont sûrs (pas d'exception).",
+        "LinkedList<T> permet une insertion/suppression O(1) à un endroit donné (via un nœud), sans décalage des éléments, contrairement à List<T> où insérer au milieu coûte O(n). En contrepartie, elle perd l'accès O(1) par index.",
     },
 
-    // ==================== SECTION D: AGREGATION & FUSION (6 questions) ====================
+    // ==================== SECTION F: THREADS AVANCE ====================
     {
-      question:
-        "[Fusion] Quelle combinaison de structures est utilisée pour la fusion des ragots ?",
+      question: "[Threads] Que représente réellement le mot-clé `lock` en C# au niveau du compilateur ?",
       options: [
-        "foreach + if/continue + foreach + foreach",
-        "for + if/break + for + for",
-        "while + if/continue + for + for",
-        "do-while + if/continue + foreach",
+        "Un appel direct au système d'exploitation, sans lien avec .NET",
+        "Du sucre syntaxique équivalent à Monitor.Enter(obj) / Monitor.Exit(obj) dans un try/finally",
+        "Une instruction qui n'a aucun effet réel en release",
+        "Un remplacement de async/await",
       ],
-      answer: "foreach + if/continue + foreach + foreach",
+      answer: "Du sucre syntaxique équivalent à Monitor.Enter(obj) / Monitor.Exit(obj) dans un try/finally",
       explanation:
-        "La fusion utilise foreach pour parcourir les groupes, if/continue pour filtrer les groupes de 1, puis double foreach pour collecter et distribuer les ragots. C'est le pattern 5.",
+        "Le mot-clé lock est compilé en un appel à Monitor.Enter, encapsulé dans un try/finally garantissant Monitor.Exit même en cas d'exception, ce qui évite un verrou qui resterait bloqué.",
     },
     {
-      question:
-        "[Fusion] Que fait `if (groupe.Count < 2) continue;` dans la fusion ?",
+      question: "[Threads] À quoi sert le mot-clé `volatile` en C# ?",
       options: [
-        "Ignorer les groupes de 1 (pas de partage possible)",
-        "Ignorer les groupes de 2",
-        "Arrêter la boucle",
-        "Sortir de toute la méthode",
+        "À accélérer la compilation",
+        "À empêcher toute optimisation du compilateur ou du CPU qui mettrait en cache une valeur localement, garantissant sa visibilité entre threads",
+        "À convertir un champ en propriété automatiquement",
+        "À rendre un objet thread-safe complètement",
       ],
-      answer: "Ignorer les groupes de 1 (pas de partage possible)",
+      answer: "À empêcher toute optimisation du compilateur ou du CPU qui mettrait en cache une valeur localement, garantissant sa visibilité entre threads",
       explanation:
-        "Si un groupe a moins de 2 chauffeurs, il n'y a personne avec qui échanger. `continue` saute ce groupe et passe au suivant. C'est un filtre d'optimisation.",
+        "volatile indique que le champ peut être modifié par plusieurs threads simultanément et empêche certaines optimisations (réordonnancement, mise en cache dans un registre) qui rendraient les changements invisibles à d'autres threads.",
     },
     {
-      question:
-        "[Fusion] Dans la collecte des ragots, pourquoi utilise-t-on un HashSet pour `tousLesGossips` ?",
+      question: "[Threads] Pourquoi utiliser la classe Interlocked plutôt qu'un lock pour incrémenter un simple compteur partagé ?",
       options: [
-        "Pour trier les ragots par ordre croissant",
-        "Pour éliminer automatiquement les doublons",
-        "Pour stocker les ragots dans l'ordre d'arrivée",
-        "Pour compter le nombre de ragots",
+        "Interlocked est plus lisible mais toujours plus lent",
+        "Interlocked fournit des opérations atomiques bas niveau (ex: Interlocked.Increment), plus légères qu'un lock complet pour des opérations simples",
+        "Interlocked remplace complètement le multithreading",
+        "Il n'y a aucun avantage, lock est toujours préférable",
       ],
-      answer: "Pour éliminer automatiquement les doublons",
+      answer: "Interlocked fournit des opérations atomiques bas niveau (ex: Interlocked.Increment), plus légères qu'un lock complet pour des opérations simples",
       explanation:
-        "En collectant les ragots de plusieurs chauffeurs, il peut y avoir des doublons. HashSet élimine automatiquement les doublons, garantissant que chaque ragot n'apparaît qu'une fois.",
+        "Interlocked.Increment/Decrement/Exchange utilisent des instructions CPU atomiques dédiées, évitant le coût d'acquisition/libération d'un lock complet pour des opérations aussi simples qu'incrémenter un compteur.",
+    },
+
+    // ==================== SECTION G: TASK AVANCE ====================
+    {
+      question: "[Task] À quoi sert ConfigureAwait(false) et dans quel contexte l'utilise-t-on typiquement ?",
+      options: [
+        "Il annule la Task immédiatement",
+        "Il force l'exécution synchrone de la Task",
+        "Il évite de capturer le contexte de synchronisation d'origine, utile dans le code de librairie pour améliorer la performance et éviter certains deadlocks",
+        "Il n'a aucun effet en .NET moderne",
+      ],
+      answer: "Il évite de capturer le contexte de synchronisation d'origine, utile dans le code de librairie pour améliorer la performance et éviter certains deadlocks",
+      explanation:
+        "ConfigureAwait(false) indique que la suite du code après l'await n'a pas besoin de reprendre sur le SynchronizationContext d'origine (thread UI, contexte ASP.NET classique), ce qui réduit les changements de contexte inutiles et certains risques de deadlock.",
     },
     {
-      question:
-        "[Fusion] Que fait la distribution des ragots ?\n\n```csharp\nforeach (int chauffeur in groupe)\n    gossipsConnus[chauffeur] = new HashSet<int>(tousLesGossips);\n```",
+      question: "[Task] Quelle est la relation entre Task et Thread ?",
       options: [
-        "Ajoute les ragots à chaque chauffeur du groupe",
-        "Remplace les ragots de chaque chauffeur par l'ensemble fusionné",
-        "Supprime les ragots de chaque chauffeur",
-        "Crée une copie des ragots pour chaque chauffeur",
+        "Task et Thread sont des synonymes stricts",
+        "Task est une abstraction de plus haut niveau représentant une opération asynchrone, qui s'exécute généralement sur un thread du ThreadPool, sans y être forcément lié en permanence",
+        "Une Task crée toujours un nouveau Thread dédié",
+        "Thread est une sous-classe de Task en .NET",
       ],
-      answer: "Remplace les ragots de chaque chauffeur par l'ensemble fusionné",
+      answer: "Task est une abstraction de plus haut niveau représentant une opération asynchrone, qui s'exécute généralement sur un thread du ThreadPool, sans y être forcément lié en permanence",
       explanation:
-        "Chaque chauffeur du groupe reçoit une copie de l'ensemble fusionné. Il ne s'agit pas d'un ajout, mais d'un remplacement total par le nouvel ensemble.",
+        "Une Task ne correspond pas à un Thread dédié. Le CLR peut suspendre/reprendre son exécution sur différents threads du ThreadPool au fil du temps, notamment autour des points d'await.",
     },
     {
-      question:
-        "[Fusion] Quelle est la complexité de la fusion des ragots dans le pire cas ?",
+      question: "[Task] Quelle est la différence essentielle entre Task.Delay(1000) et Thread.Sleep(1000) ?",
       options: [
-        "O(n) — linéaire",
-        "O(n²) — quadratique",
-        "O(n³) — cubique (3 boucles imbriquées)",
-        "O(log n) — logarithmique",
+        "Task.Delay bloque le thread, Thread.Sleep ne bloque rien",
+        "Task.Delay ne libère pas le thread pendant l'attente, contrairement à Thread.Sleep",
+        "Task.Delay est non-bloquant (le thread est libéré pendant l'attente), alors que Thread.Sleep bloque le thread appelant pendant toute la durée",
+        "Les deux sont strictement identiques en performance",
       ],
-      answer: "O(n³) — cubique (3 boucles imbriquées)",
+      answer: "Task.Delay est non-bloquant (le thread est libéré pendant l'attente), alors que Thread.Sleep bloque le thread appelant pendant toute la durée",
       explanation:
-        "La fusion utilise 3 boucles imbriquées : groupes → membres → données. C'est O(n³) dans le pire cas. Cependant, le nombre de chauffeurs est limité, donc acceptable.",
+        "await Task.Delay(1000) libère le thread pendant l'attente (il peut traiter autre chose), alors que Thread.Sleep(1000) bloque complètement le thread appelant, qui reste inutilisé pendant toute la durée.",
+    },
+
+    // ==================== SECTION H: ASYNC/AWAIT AVANCE ====================
+    {
+      question: "[async/await] Pourquoi dit-on qu'on doit choisir entre async/await et Task.Run selon que le travail est I/O-bound ou CPU-bound ?",
+      options: [
+        "Parce que async/await est réservé aux applications web uniquement",
+        "Parce que Task.Run(calcul) offloade un vrai travail CPU sur le ThreadPool, tandis qu'await sur une opération I/O ne consomme pas de thread pendant l'attente elle-même",
+        "Parce que les deux approches sont interchangeables sans aucune conséquence",
+        "Parce que Task.Run ne fonctionne que pour les appels réseau",
+      ],
+      answer: "Parce que Task.Run(calcul) offloade un vrai travail CPU sur le ThreadPool, tandis qu'await sur une opération I/O ne consomme pas de thread pendant l'attente elle-même",
+      explanation:
+        "Pour du CPU-bound, Task.Run utilise réellement un thread du pool pendant le calcul. Pour de l'I/O-bound (réseau, disque), l'opération asynchrone sous-jacente ne mobilise généralement pas de thread pendant l'attente — le mélange des deux approches est une source classique d'inefficacité.",
     },
     {
-      question:
-        "[Fusion] Pourquoi la collecte et la distribution sont-elles faites en deux étapes séparées ?",
+      question: "[async/await] Que génère concrètement le compilateur C# à partir d'une méthode marquée async ?",
       options: [
-        "Pour des raisons de performance",
-        "Pour éviter de modifier la collection pendant l'itération",
-        "Pour garantir que tous les chauffeurs reçoivent exactement le même ensemble",
-        "Les deux B et C sont corrects",
+        "Rien de spécial, async est purement documentaire",
+        "Une machine à états (state machine) qui gère la suspension et la reprise de l'exécution autour des points d'await",
+        "Un nouveau Thread dédié à chaque appel",
+        "Une copie synchrone de la méthode, exécutée en parallèle"
       ],
-      answer: "Les deux B et C sont corrects",
+      answer: "Une machine à états (state machine) qui gère la suspension et la reprise de l'exécution autour des points d'await",
       explanation:
-        "On collecte d'abord tous les ragots dans un HashSet pour éviter de modifier les collections pendant l'itération, ET pour garantir que tous les chauffeurs reçoivent exactement le même ensemble fusionné.",
+        "Le compilateur transforme une méthode async en une machine à états qui capture le contexte d'exécution à chaque await, permet de suspendre le travail, et de le reprendre plus tard sans bloquer de thread pendant l'attente.",
     },
+    {
+      question: "[async/await] Si une exception est levée dans une méthode async profondément imbriquée dans une chaîne d'appels avec await, comment se comporte-t-elle ?",
+      options: [
+        "Elle est automatiquement journalisée puis ignorée",
+        "Elle bloque définitivement l'application sans remonter",
+        "Elle se propage naturellement à travers chaque niveau d'await, comme une exception synchrone classique, jusqu'à être catchée ou remonter à l'appelant final",
+        "Elle est convertie en valeur de retour null",
       ],
+      answer: "Elle se propage naturellement à travers chaque niveau d'await, comme une exception synchrone classique, jusqu'à être catchée ou remonter à l'appelant final",
+      explanation:
+        "Grâce à await, les exceptions se propagent de façon similaire au code synchrone : chaque niveau peut la catcher avec un try/catch classique, ou la laisser remonter à l'appelant suivant, sans avoir besoin de gérer une AggregateException.",
+    },
+  ],
+
   expert: [
-
-    // ==================== SECTION E: VALIDATION & SORTIE (4 questions) ====================
+    // ==================== SECTION I: BUGS A REPERER ====================
     {
       question:
-        "[Validation] Quelle combinaison de structures est utilisée pour la vérification globale ?",
+        "[Bug à repérer] Quel est le problème de performance dans ce code qui traite un flux d'ordres réseau ?\n\n```csharp\npublic async Task ProcessOrderAsync(Order order)\n{\n    var result = await Task.Run(() => _httpClient.PostAsJsonAsync(\"orders\", order));\n}\n```",
       options: [
-        "for + if + break (sortie anticipée)",
-        "foreach + if + continue",
-        "while + if + break",
-        "do-while + if + return",
+        "Task.Run est obligatoire pour tout appel HttpClient",
+        "Il manque un await devant PostAsJsonAsync",
+        "PostAsJsonAsync est I/O-bound : l'envelopper dans Task.Run gaspille inutilement un thread du ThreadPool pendant l'attente réseau",
+        "Ce code est parfaitement optimal",
       ],
-      answer: "for + if + break (sortie anticipée)",
+      answer: "PostAsJsonAsync est I/O-bound : l'envelopper dans Task.Run gaspille inutilement un thread du ThreadPool pendant l'attente réseau",
       explanation:
-        "La vérification utilise for pour parcourir les chauffeurs, if pour tester la condition, et break pour sortir de la boucle dès qu'un chauffeur ne sait pas tout. C'est le pattern 6.",
+        "PostAsJsonAsync est déjà asynchrone et I/O-bound. L'entourer de Task.Run mobilise un thread du ThreadPool pour rien pendant l'attente réseau — il suffit d'awaiter directement l'appel HTTP.",
     },
     {
       question:
-        "[Validation] Que fait `break` dans ce code ?\n\n```csharp\nif (gossipsConnus[i].Count < nombreDeChauffeurs)\n{\n    toutLeMondeSaitTout = false;\n    break;\n}\n```",
+        "[Bug à repérer] Que risque ce code exécuté dans un event handler WinForms/WPF ?\n\n```csharp\nprivate async void Button_Click(object sender, EventArgs e)\n{\n    var data = await FetchRiskyDataAsync();\n    if (data == null) throw new InvalidOperationException(\"Data manquante\");\n}\n```",
       options: [
-        "Sort de toute la méthode (return)",
-        "Sort de la boucle for uniquement",
-        "Passe à l'itération suivante (continue)",
-        "Ignore la condition et continue",
+        "Rien, ce code est sûr car async void est le seul modificateur autorisé pour les event handlers",
+        "Le bouton devient inutilisable après le premier clic",
+        "L'exception FetchRiskyDataAsync ne pourra jamais être levée",
+        "Si l'exception est levée, elle ne peut pas être catchée par un try/catch appelant classique — elle remontera directement au SynchronizationContext et fera potentiellement planter l'application",
       ],
-      answer: "Sort de la boucle for uniquement",
+      answer: "Si l'exception est levée, elle ne peut pas être catchée par un try/catch appelant classique — elle remontera directement au SynchronizationContext et fera potentiellement planter l'application",
       explanation:
-        "`break` sort de la boucle for uniquement. On a déjà trouvé un chauffeur qui ne sait pas tout, donc on peut arrêter de vérifier les autres. C'est une optimisation.",
+        "async void est acceptable pour un event handler, mais toute exception non catchée À L'INTÉRIEUR de la méthode remonte au SynchronizationContext plutôt qu'à un appelant, souvent avec un crash. Il faut envelopper le corps dans un try/catch interne.",
     },
     {
       question:
-        "[Validation] Quand le programme retourne-t-il -1 dans le problème du Gossiping Drivers ?",
+        "[Bug à repérer] Quel est le problème de cette recherche de doublons sur deux grandes listes ?\n\n```csharp\nvar doublons = new List<int>();\nforeach (int a in listeA)\n    foreach (int b in listeB)\n        if (a == b) doublons.Add(a);\n```",
       options: [
-        "Quand tous les chauffeurs savent tout",
-        "Quand la limite de 480 minutes est atteinte sans que tous sachent tout",
-        "Quand une erreur de parsing se produit",
-        "Quand il n'y a qu'un seul chauffeur",
+        "Le code est déjà optimal, aucune amélioration possible",
+        "Complexité O(n×m) : pour de grandes listes, convertir listeB en HashSet<int> ramène le tout à O(n+m)",
+        "Il faut absolument paralléliser avec Task.Run pour corriger le problème",
+        "List<int> ne peut pas contenir de doublons",
       ],
-      answer: "Quand la limite de 480 minutes est atteinte sans que tous sachent tout",
+      answer: "Complexité O(n×m) : pour de grandes listes, convertir listeB en HashSet<int> ramène le tout à O(n+m)",
       explanation:
-        "Si après 480 minutes tous les chauffeurs ne connaissent pas tous les ragots, on considère que c'est impossible et on retourne -1. C'est la condition d'échec.",
-    },
-    {
-      question:
-        "[Validation] Quelle est la différence entre `break` et `return` dans ce problème ?",
-      options: [
-        "break sort de la boucle, return sort de toute la méthode",
-        "break sort de la méthode, return sort de la boucle",
-        "break et return font la même chose",
-        "break est utilisé pour les erreurs, return pour les succès",
-      ],
-      answer: "break sort de la boucle, return sort de toute la méthode",
-      explanation:
-        "break sort uniquement de la boucle courante (on continue après la boucle). return sort de toute la méthode (fin d'exécution). break est utilisé pour la vérification, return pour le résultat final.",
+        "La bonne structure de données résout le problème avant même de penser à la parallélisation : `var setB = new HashSet<int>(listeB); foreach (int a in listeA) if (setB.Contains(a)) doublons.Add(a);` ramène la complexité de O(n×m) à O(n+m).",
     },
 
-    // ==================== SECTION F: SYNTHESE (6 questions) ====================
+    // ==================== SECTION J: COMBOS PERFORMANCE ====================
     {
       question:
-        "[Synthèse] Quel est le rôle du pattern `foreach + for` dans le code Gossiping Drivers ?",
+        "[Optimisation] Vous devez traiter 1 million d'enregistrements en appliquant un calcul CPU intensif indépendant sur chacun. Quelle approche est la plus adaptée ?",
       options: [
-        "Parser les données d'entrée (texte → structures)",
-        "Simuler le temps minute par minute",
-        "Fusionner les ragots entre chauffeurs",
-        "Afficher le résultat final",
+        "Un simple foreach séquentiel, car la parallélisation n'apporte jamais de gain",
+        "async/await sur chaque enregistrement, car async accélère toujours le CPU",
+        "Parallel.ForEach (ou PLINQ) pour répartir le calcul CPU-bound sur plusieurs cœurs du ThreadPool",
+        "Créer manuellement 1 million de Thread, un par enregistrement",
       ],
-      answer: "Parser les données d'entrée (texte → structures)",
+      answer: "Parallel.ForEach (ou PLINQ) pour répartir le calcul CPU-bound sur plusieurs cœurs du ThreadPool",
       explanation:
-        "`foreach + for` est utilisé pour parser les données d'entrée : foreach parcourt les lignes, for parcourt les arrêts de chaque ligne. C'est le pattern 1 (parsing).",
+        "Pour un travail CPU-bound massivement parallélisable et indépendant, Parallel.ForEach (ou PLINQ avec .AsParallel()) exploite efficacement plusieurs cœurs via le ThreadPool, sans le coût prohibitif de créer un Thread par élément.",
     },
     {
       question:
-        "[Synthèse] Quel est le rôle du pattern `for + for` dans le code Gossiping Drivers ?",
+        "[Optimisation] Votre OMS doit interroger 5 brokers différents via HTTP pour obtenir leurs meilleurs prix, puis choisir le meilleur. Quelle approche minimise le temps total d'attente ?",
       options: [
-        "Parser les données d'entrée",
-        "Simuler les positions des chauffeurs minute par minute",
-        "Fusionner les ragots entre chauffeurs",
-        "Initialiser les structures de données",
+        "Appeler les 5 brokers séquentiellement avec await, l'un après l'autre",
+        "Lancer les 5 appels sans await puis les attendre tous ensemble avec Task.WhenAll",
+        "Utiliser 5 Thread manuels dédiés à chaque appel",
+        "Utiliser Task.Run pour chaque appel HTTP",
       ],
-      answer: "Simuler les positions des chauffeurs minute par minute",
+      answer: "Lancer les 5 appels sans await puis les attendre tous ensemble avec Task.WhenAll",
       explanation:
-        "`for + for` est utilisé pour la simulation temporelle : boucle externe = minutes, boucle interne = chauffeurs. C'est le pattern 3 (simulation).",
+        "En lançant les 5 tasks HTTP sans await immédiat puis en les combinant avec Task.WhenAll, elles s'exécutent en parallèle logique (I/O-bound), et le temps total est proche du plus lent des 5 appels plutôt que la somme des 5.",
     },
     {
       question:
-        "[Synthèse] Quel est le rôle du pattern `for + if + ContainsKey` dans le code Gossiping Drivers ?",
+        "[Optimisation] Dans un hot path (code exécuté des millions de fois par seconde), pourquoi évite-t-on souvent LINQ (Where, Select...) au profit d'une boucle for classique ?",
       options: [
-        "Parser les données d'entrée",
-        "Regrouper les chauffeurs par arrêt (create-if-absent)",
-        "Fusionner les ragots entre chauffeurs",
-        "Valider la condition de fin",
+        "LINQ est interdit par le compilateur dans les boucles",
+        "LINQ génère des allocations supplémentaires (délégués, énumérateurs, itérateurs) qui peuvent peser sur la performance et la pression du Garbage Collector à très haute fréquence",
+        "LINQ ne fonctionne pas avec les collections génériques",
+        "Une boucle for est toujours plus lisible, c'est la seule raison",
       ],
-      answer: "Regrouper les chauffeurs par arrêt (create-if-absent)",
+      answer: "LINQ génère des allocations supplémentaires (délégués, énumérateurs, itérateurs) qui peuvent peser sur la performance et la pression du Garbage Collector à très haute fréquence",
       explanation:
-        "`for + if + ContainsKey` est utilisé pour regrouper les chauffeurs par arrêt. C'est le pattern 4 : pour chaque chauffeur, on vérifie si l'arrêt existe, on le crée si nécessaire, puis on ajoute le chauffeur.",
+        "Dans un chemin critique exécuté à très haute fréquence (ex: traitement de market data tick par tick), les allocations induites par LINQ (closures, itérateurs) peuvent générer une pression GC mesurable ; une boucle for évite ces allocations.",
     },
     {
       question:
-        "[Synthèse] Quel est le rôle du pattern `foreach + if/continue + foreach + foreach` dans le code Gossiping Drivers ?",
+        "[Optimisation] Plusieurs threads doivent lire et écrire simultanément dans un dictionnaire partagé de positions de trading. Quelle structure est la plus adaptée pour éviter à la fois les race conditions et un goulot d'étranglement excessif ?",
       options: [
-        "Parser les données d'entrée",
-        "Simuler les positions des chauffeurs",
-        "Fusionner les ragots entre chauffeurs d'un même groupe",
-        "Valider la condition de fin",
+        "Un Dictionary<K,V> classique sans aucune synchronisation",
+        "Un Dictionary<K,V> protégé par un seul lock global autour de chaque accès, même en lecture",
+        "ConcurrentDictionary<K,V>, conçu pour un accès concurrent thread-safe avec un verrouillage plus fin que verrouiller tout le dictionnaire",
+        "Une List<KeyValuePair<K,V>> parcourue linéairement à chaque accès",
       ],
-      answer: "Fusionner les ragots entre chauffeurs d'un même groupe",
+      answer: "ConcurrentDictionary<K,V>, conçu pour un accès concurrent thread-safe avec un verrouillage plus fin que verrouiller tout le dictionnaire",
       explanation:
-        "Ce pattern est le cœur algorithmique : il filtre les groupes de 1, collecte tous les ragots du groupe, puis les distribue à tous les membres. C'est le pattern 5.",
-    },
-    {
-      question:
-        "[Synthèse] Quel est le rôle du pattern `for + if + break` dans le code Gossiping Drivers ?",
-      options: [
-        "Parser les données d'entrée",
-        "Simuler les positions des chauffeurs",
-        "Fusionner les ragots entre chauffeurs",
-        "Vérifier si tous les chauffeurs savent tout (sortie anticipée)",
-      ],
-      answer: "Vérifier si tous les chauffeurs savent tout (sortie anticipée)",
-      explanation:
-        "`for + if + break` est utilisé pour vérifier si tous les chauffeurs connaissent tous les ragots. Dès qu'un chauffeur ne sait pas tout, on break pour éviter des vérifications inutiles. C'est le pattern 6.",
-    },
-    {
-      question:
-        "[Synthèse] Quelle est la condition d'arrêt du problème du Gossiping Drivers ?",
-      options: [
-        "Tous les chauffeurs sont au même arrêt",
-        "Tous les chauffeurs connaissent tous les ragots (Count == nombreDeChauffeurs)",
-        "Tous les chauffeurs ont parcouru leur route complète",
-        "La minute atteint 480",
-      ],
-      answer: "Tous les chauffeurs connaissent tous les ragots (Count == nombreDeChauffeurs)",
-      explanation:
-        "Le problème est résolu quand chaque chauffeur (gossipsConnus[i]) connaît tous les ragots, c'est-à-dire quand le nombre de ragots connus est égal au nombre total de chauffeurs.",
+        "ConcurrentDictionary utilise un verrouillage interne fin (par segment) plutôt qu'un verrou global, offrant de bien meilleures performances qu'un Dictionary protégé par un lock unique dans un contexte fortement concurrent.",
     },
   ],
 };
@@ -461,9 +492,14 @@ const renderInlineTokens = (text, keyPrefix) => {
     if (part.startsWith("`") && part.endsWith("`")) {
       return (
         <code key={`${keyPrefix}-${idx}`} style={{
-          display: 'inline', backgroundColor: '#eef2f7', padding: '1px 5px',
-          borderRadius: '3px', fontFamily: 'monospace', color: '#e01e5a',
-          fontWeight: 'bold', fontSize: '13px'
+          display: 'inline',
+          backgroundColor: '#eef2f7',
+          padding: '1px 5px',
+          borderRadius: '3px',
+          fontFamily: 'monospace',
+          color: '#e01e5a',
+          fontWeight: 'bold',
+          fontSize: '13px'
         }}>
           {part.slice(1, -1)}
         </code>
@@ -479,16 +515,24 @@ const renderInlineTokens = (text, keyPrefix) => {
 const renderFormattedText = (text) => {
   if (!text) return null;
   let cleanText = text
-    .replace(/\r?\n- /g, " ◆ ").replace(/\r?\n• /g, " ◆ ").replace(/\r?\n/g, " ")
-    .replace(/\.-\s*\*\*/g, " ◆ **").replace(/-\s*\*\*/g, " ◆ **");
+    .replace(/\r?\n- /g, " ◆ ")
+    .replace(/\r?\n• /g, " ◆ ")
+    .replace(/\r?\n/g, " ")
+    .replace(/\.-\s*\*\*/g, " ◆ **")
+    .replace(/-\s*\*\*/g, " ◆ **");
+
   if (cleanText.startsWith(" ◆ ")) cleanText = cleanText.substring(3);
   if (cleanText.startsWith("- ")) cleanText = cleanText.substring(2);
+
   const segments = cleanText.split(" ◆ ");
+
   return (
     <span style={{ display: 'block', lineHeight: '1.7' }}>
       {segments.map((segment, segIdx) => (
         <span key={segIdx} style={{ display: 'block', marginBottom: segIdx < segments.length - 1 ? '6px' : '0' }}>
-          {segIdx > 0 && <span style={{ color: '#1a73e8', fontWeight: 'bold', marginRight: '5px' }}>◆</span>}
+          {segIdx > 0 && (
+            <span style={{ color: '#1a73e8', fontWeight: 'bold', marginRight: '5px' }}>◆</span>
+          )}
           {renderInlineTokens(segment, `seg-${segIdx}`)}
         </span>
       ))}
@@ -529,13 +573,14 @@ const Results = ({ scores }) => {
       <h3>🎯 Score : {totalScore} / {totalQuestions}</h3>
       <p>✅ Moyen : {scores.moyen}/{questions.moyen.length} | ✅ Avancé : {scores.avance}/{questions.avance.length} | ✅ Expert : {scores.expert}/{questions.expert.length}</p>
       {totalScore >= Math.floor(totalQuestions * 0.6)
-        ? <h3 className="success">🚀 Infrastructure REST API CIB maîtrisée — Mission MAPS prête !</h3>
-        : <p className="fail">📚 Révisez l'API REST, le multithreading C# et l'architecture microservices CIB.</p>}
+        ? <h3 className="success">🚀 Excellent ! Collections & Concurrence maîtrisées.</h3>
+        : <p className="fail">📚 Révisez les pièges async/await et les combos d'optimisation.</p>
+      }
     </div>
   );
 };
 
-const CIBRestApiInfraQCM = () => {
+const CollectionsConcurrencyQCM = () => {
   const [level, setLevel] = useState("basic");
   const [currentSlide, setCurrentSlide] = useState(0);
   const [currentQuestion, setCurrentQuestion] = useState(0);
@@ -546,19 +591,26 @@ const CIBRestApiInfraQCM = () => {
 
   const handleNextQuestion = useCallback(() => {
     const qs = questions[level];
-    if (currentQuestion + 1 < qs.length) { setCurrentQuestion(q => q + 1); setTimeLeft(25); setMessage(""); }
-    else {
-      if (level === "moyen") setLevel("avance");
-      else if (level === "avance") setLevel("expert");
-      else setShowResult(true);
-      setCurrentQuestion(0); setTimeLeft(25); setMessage("");
+    if (currentQuestion + 1 < qs.length) {
+      setCurrentQuestion(q => q + 1);
+      setTimeLeft(25);
+      setMessage("");
+    } else {
+      if (level === "moyen") { setLevel("avance"); }
+      else if (level === "avance") { setLevel("expert"); }
+      else { setShowResult(true); }
+      setCurrentQuestion(0);
+      setTimeLeft(25);
+      setMessage("");
     }
   }, [level, currentQuestion]);
 
   useEffect(() => {
     if (level !== "basic" && !showResult && !message) {
-      if (timeLeft > 0) { const t = setTimeout(() => setTimeLeft(t2 => t2 - 1), 1000); return () => clearTimeout(t); }
-      else handleNextQuestion();
+      if (timeLeft > 0) {
+        const t = setTimeout(() => setTimeLeft(t2 => t2 - 1), 1000);
+        return () => clearTimeout(t);
+      } else handleNextQuestion();
     }
   }, [timeLeft, level, showResult, handleNextQuestion, message]);
 
@@ -567,7 +619,10 @@ const CIBRestApiInfraQCM = () => {
       const i = setInterval(() => {
         setCurrentSlide(prev => {
           if (prev + 1 < basicSlides.length) return prev + 1;
-          setLevel("moyen"); setCurrentQuestion(0); setTimeLeft(25); return 0;
+          setLevel("moyen");
+          setCurrentQuestion(0);
+          setTimeLeft(25);
+          return 0;
         });
       }, 20000);
       return () => clearInterval(i);
@@ -577,8 +632,12 @@ const CIBRestApiInfraQCM = () => {
   const handleAnswerClick = (option) => {
     if (message) return;
     const current = questions[level][currentQuestion];
-    if (option === current.answer) { setScores(p => ({ ...p, [level]: p[level] + 1 })); setMessage("✅ Correct !"); }
-    else { setMessage(`❌ ${current.answer}\n\nℹ️ ${current.explanation}`); }
+    if (option === current.answer) {
+      setScores(p => ({ ...p, [level]: p[level] + 1 }));
+      setMessage("✅ Correct !");
+    } else {
+      setMessage(`❌ ${current.answer}\n\nℹ️ ${current.explanation}`);
+    }
     setTimeout(handleNextQuestion, 4000);
   };
 
@@ -587,13 +646,21 @@ const CIBRestApiInfraQCM = () => {
       {showResult ? <Results scores={scores} /> : (
         <div>
           <h4 className="subtitle" style={{ fontSize: '10px', margin: '0 0 6px 0' }}>
-            CIB REST API & Infrastructure 🔹 {level === "basic"
+            Collections & Concurrence C# 🔹 {level === "basic"
               ? `Slide ${currentSlide + 1}/${basicSlides.length}`
-              : `QCM ${level.toUpperCase()} — Q${currentQuestion + 1}/${questions[level].length}`}
+              : `QCM ${level.toUpperCase()} — Q${currentQuestion + 1}/${questions[level].length}`
+            }
           </h4>
-          {level === "basic"
-            ? <Flashcard slide={basicSlides[currentSlide]} />
-            : <QuestionCard question={questions[level][currentQuestion].question} options={questions[level][currentQuestion].options} onAnswerClick={handleAnswerClick} timeLeft={timeLeft} />}
+          {level === "basic" ? (
+            <Flashcard slide={basicSlides[currentSlide]} />
+          ) : (
+            <QuestionCard
+              question={questions[level][currentQuestion].question}
+              options={questions[level][currentQuestion].options}
+              onAnswerClick={handleAnswerClick}
+              timeLeft={timeLeft}
+            />
+          )}
           {message && <p className="message" style={{ whiteSpace: 'pre-wrap', marginTop: '8px' }}>{message}</p>}
         </div>
       )}
@@ -601,4 +668,4 @@ const CIBRestApiInfraQCM = () => {
   );
 };
 
-export default CIBRestApiInfraQCM;
+export default CollectionsConcurrencyQCM;
