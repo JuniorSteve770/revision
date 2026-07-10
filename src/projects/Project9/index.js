@@ -5,6 +5,9 @@ import Project9Navbar from './components/Project9Navbar';
 import Page1 from './pages/Page1';
 import Page2 from './pages/Page2';
 import Page3 from './pages/Page3';
+import Page3_01 from './pages/Page3_01';
+import Page3_02 from './pages/Page3_02';
+import Page3_03 from './pages/Page3_03';
 import Page4 from './pages/Page4';
 import Page5 from './pages/Page5';
 import Page6 from './pages/Page6';
@@ -19,6 +22,9 @@ const Project9 = () => {
         <Route path="/" element={<Page1 />} />
         <Route path="/page2" element={<Page2 />} />
         <Route path="/page3" element={<Page3 />} />
+        <Route path="/page3_01" element={<Page3_01 />} />
+        <Route path="/page3_02" element={<Page3_02 />} />
+        <Route path="/page3_03" element={<Page3_03 />} />
         <Route path="/page4" element={<Page4 />} />
         <Route path="/page5" element={<Page5 />} />
         <Route path="/page6" element={<Page6 />} />

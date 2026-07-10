@@ -9,6 +9,8 @@ const Project7Navbar = () => {
       <Link to="/project7">1. SQL</Link>
       <Link to="/project7/page1_1">1.1. SQL</Link>
       <Link to="/project7/page1_1">1.2. sqlSenior</Link>
+      <Link to="/project7/page1_11">1.3. SQL*</Link>
+      <Link to="/project7/page1_12">1.4. SQL*identy*</Link>
       <Link to="/project7/page2">2. AWS</Link>
       <Link to="/project7/page2_2">2.2 AWS exo</Link>
       <Link to="/project7/page3">3. Aws + ai</Link>

@@ -68,7 +68,7 @@ const HomePage = () => {
         {/* Bouton Projet 9 */}
         <Link to="/project9">
           <button className="home-page-button" id="project9-button">
-            9. Data Struct pattern
+            9. NET Perf pattern
           </button>
         </Link>
 
