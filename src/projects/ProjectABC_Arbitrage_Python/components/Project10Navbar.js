@@ -7,7 +7,7 @@ const Project10Navbar = () => {
     <nav style={{ backgroundColor: '#f0f0f0', padding: '10px', display: 'flex', flexWrap: 'wrap', gap: '10px' }}>
       <Link to="/" style={{ marginRight: '15px', fontWeight: 'bold' }}>🏡 Main</Link>
       <Link to="/project10">1. Solid</Link>
-      <Link to="/project10/page2">2. Cloud</Link>
+      <Link to="/project10/page2">2. 2</Link>
       <Link to="/project10/page3">3. Refactor</Link>
       <Link to="/project10/page4">4. OOP</Link>
       <Link to="/project10/page41">4.2. Decorator</Link>

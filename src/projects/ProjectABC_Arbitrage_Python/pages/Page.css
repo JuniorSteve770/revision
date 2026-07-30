@@ -1,0 +1,193 @@
+
+/*Section : Flashcards (mode texte libre) 
+/* Conteneur de la flashcard */
+.question-card {
+  background: linear-gradient(to bottom right, #ffffff, #f9f9f9); /* Fond doux */
+  padding: 0.8rem 1.5rem;                 /* Espacement intérieur */
+  margin: 1.5rem auto;                    /* Centrage vertical */
+  box-shadow: 0 6px 20px rgba(0, 0, 0, 0.08); /* Ombre douce */
+  transition: transform 0.2s ease;
+  border-left: 6px solid #A6192E;         /* Bordure rouge verticale à gauche */
+  border-radius: 12px;                    /* Coins arrondis */
+  max-width: 850px;
+}
+
+/* Titre de la question (flashcard ou QCM) */
+.question-card h4 {
+  font-size: 0.85rem; /* À corriger → probablement erreur : 0.05rem est trop petit */
+  margin-bottom: 0.5rem;
+  border: 1px solid #e0e0e0;  
+  
+  color: #270047;
+}
+
+/* Texte de la question dans les flashcards */
+.question-card strong:first-of-type {
+  display: block;
+  font-size: 1rem;
+  color: #002147;
+  font-weight: 700;
+  margin-bottom: 0.5rem;
+}
+
+/* Réponse textuelle dans flashcards */
+.question-card strong + .answer-text {
+  font-size: 0.95rem;
+  color: #333;
+  padding: 0.6rem 1rem;
+  background: #f3f3f3;
+  border-left: 4px solid #A6192E;
+  border-radius: 6px;
+  display: block;
+  margin-top: 0.3rem;
+}
+
+/* Bloc technique <pre> dans les réponses */
+pre {
+  background: #f01010;                    /* À ajuster : couleur vive */
+  padding: 1rem;
+  border-radius: 12px;
+  overflow-x: auto;
+  white-space: pre-wrap;
+  margin-bottom: 0.5rem;
+  border-left: 6px solid #A6192E;
+}
+
+
+/*Section : QCM (choix multiples)
+
+
+
+/* Conteneur principal de la page QCM */
+.qcm-container {
+  max-width: 600px;
+  margin: auto;
+  text-align: center;
+  padding: 20px;
+  background: #f9f9f9;
+  border-radius: 10px;
+  box-shadow: 0px 4px 10px rgba(0, 0, 0, 0.1);
+}
+
+/* Niveau ou sous-titre (MOYEN, BASIC...) */
+.subtitle {
+  font-size: 0.9rem;
+  font-weight: 600;
+  color: #1a1a1a;
+  margin-bottom: 10px;
+}
+
+/* Timer affiché sous la question */
+.timer {
+  font-size: 0.9rem;
+  color: #A6192E;
+  font-weight: 500;
+  margin-bottom: 1rem;
+}
+
+/* Conteneur de boutons QCM */
+.options-container {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 1rem;
+  margin-top: 1.5rem;
+}
+
+/* Bouton individuel d’option QCM */
+.option-button {
+  background-color: #1E40AF;
+  color: #ffffff;
+  padding: 0.5rem;
+  border: none;
+  border-radius: 10px;
+  font-size: 0.8rem;              /* 🔧 Augmenter la taille du texte */
+  font-weight: 500;             /* 🔧 Équilibre entre finesse et lisibilité */
+  font-family: 'Segoe UI', sans-serif;  /* 🔧 Police moderne et claire */
+  text-align: left;
+  line-height: 1;             /* 🔧 Aérer les lignes dans le bouton */
+  cursor: pointer;
+  transition: all 0.25s ease;
+  box-shadow: 0 2px 6px rgba(0,0,0,0.08);
+  word-wrap: break-word;        /* 🔧 Coupe proprement si long */
+  white-space: normal;          /* 🔧 Permet les retours à la ligne */
+}
+
+.option-button:active {
+  background-color: #dcdcdc;
+}
+
+/* Message de feedback après réponse */
+.message {
+  font-weight: 500;
+  margin-top: 1rem;
+  padding: 0.75rem;
+  border-radius: 6px;
+}
+
+.message:before {
+  content: "💬 ";
+}
+
+.message.success {
+  background: #e0f8e0;
+  color: #006400;
+}
+
+.message.fail {
+  background: #fbeaea;
+  color: #8b0000;
+}
+
+/* Bloc de score final */
+.results {
+  text-align: center;
+  margin-top: 2rem;
+}
+
+.results h3 {
+  font-size: 1.25rem;
+  color: #002147;
+}
+
+.results .success {
+  color: #2e8b57;
+}
+
+.results .fail {
+  color: #c0392b;
+}
+
+/* Titres généraux */
+h2 {
+  font-size: 1.5rem;
+  color: #333;
+}
+
+
+/*////  📱 Section : Responsive (mobile) */
+
+
+@media (max-width: 600px) {
+  /* Réduction taille des boutons */
+  .option-button {
+    font-size: 0.85rem;
+    padding: 0.6rem 0.8rem;
+  }
+
+  /* Meilleure lisibilité du titre question */
+  .question-card h4 {
+    font-size: 1rem;
+  }
+
+  /* Ajustement du niveau */
+  .subtitle {
+    font-size: 0.85rem;
+    font-weight: 100;
+    color: #555;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    margin-bottom: 0rem;
+  }
+}
+
+
