@@ -9,7 +9,7 @@ const Project10Navbar = () => {
       <Link to="/project10">1. Solid</Link>
       <Link to="/project10/page2">2. Cloud</Link>
       <Link to="/project10/page3">3. cloud*</Link>
-      <Link to="/project10/page4">4. OOP</Link>
+      <Link to="/project10/page4">4. Cloud Dk k8s</Link>
       <Link to="/project10/page41">4.2. Decorator</Link>
       <Link to="/project10/page5">5. DataClass</Link>
       <Link to="/project10/page6">6. attrs, Pydantic et dataclass</Link>

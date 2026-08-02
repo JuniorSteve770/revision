@@ -1,872 +1,601 @@
-// src/projects/CIBPricing/MicroservicesFoundationsQCM.js
+// src/projects/Project3/pages/Page6_TechInterview.js
 
 import React, { useState, useEffect, useCallback } from "react";
 import "./Page.css";
 
 const basicSlides = [
   {
-    question: "Les 4 piliers de la POO — vue d'ensemble",
+    question: "Docker : Définition, image vs conteneur",
     answer:
-      "◆ **Encapsulation** : regrouper données et comportements, cacher l'implémentation ◆ **Héritage** : une classe hérite des attributs et méthodes d'une autre ◆ **Polymorphisme** : une même interface peut avoir plusieurs comportements ◆ **Abstraction** : ne montrer que l'essentiel, cacher les détails ⚠️ Les 4 piliers = fondement de la POO",
+      "◆ **Définition** : Moteur de conteneurisation qui empaquète applications + dépendances ◆ **Image** : modèle en lecture seule ◆ **Conteneur** : instance exécutable de l'image ◆ **Docker Hub** : registre officiel d'images ◆ **Pull vs Run** : pull télécharge, run télécharge SI absent ET démarre ◆ **Port Mapping** : `-p 8080:80` (hôte → conteneur) ◆ **Volume** : persiste les données hors conteneur ◆ **Détaché vs Interactif** : `-d` (arrière-plan) vs `-it` (interactif) ◆ **Nommage** : `--name` pour gérer facilement ◆ **Logs** : `docker logs` pour déboguer ◆ **Exec** : `docker exec` pour exécuter dans un conteneur ◆ **Réseaux** : bridge, host, overlay ◆ **Dockerfile** : construction d'images personnalisées ◆ **Variables** : `-e` pour configurer ◆ **Couches** : chaque instruction crée une couche"
   },
   {
-    question: "Mots-clés Python POO à maîtriser",
+    question: "Docker : Commandes essentielles",
     answer:
-      "◆ **Classe** : plan/moule pour créer des objets ◆ **Objet/Instance** : réalisation concrète d'une classe ◆ **self** : référence à l'instance courante ◆ **__init__** : constructeur ◆ **@property** : getter/setter élégant ◆ **__str__ / __repr__** : représentation texte ◆ **@classmethod / @staticmethod** : méthodes de classe ◆ **public / _protected / __private** : conventions de visibilité",
+      "◆ **Images** : `pull` • `images` • `rmi` • `build -t` • `save` • `load`\n◆ **Conteneurs** : `run -d --name -p` • `ps` • `ps -a` • `stop` • `start` • `restart` • `rm`\n◆ **Logs & exec** : `logs -f` • `exec -it` • `cp` • `commit`\n◆ **Inspect** : `inspect` pour détails (IP, ports, env)\n◆ **Réseau** : `network create/ls/inspect/connect`\n◆ **Volume** : `volume create/ls/inspect/rm`"
   },
   {
-    question: "Anti-patterns POO à éviter",
+    question: "Docker Compose : Définition et commandes",
     answer:
-      "◆ **God Object** : classe qui fait tout ◆ **Anemic Domain Model** : classes sans comportement, juste des getters/setters ◆ **Trop d'héritage** : hiérarchies profondes et complexes ◆ **Héritage pour réutiliser** : préférer composition ◆ **Setters publics** : casser l'encapsulation ⚠️ Composition > Héritage quand c'est possible",
+      "◆ **Définition** : Définit et exécute des applications multi-conteneurs avec YAML ◆ **Fichier** : docker-compose.yml ◆ **Version** : 3.8 (recommandée) ◆ **Services** : chaque service = un conteneur ◆ **Réseaux** : par défaut, tous les services communiquent via leurs noms ◆ **Volumes** : persistent les données ◆ **depends_on** : ordre de démarrage ◆ **Scaling** : `--scale service=N` ◆ **Variables** : fichier .env séparé ◆ **Port Mapping** : \"hôte:conteneur\" ◆ **Build** : construit des images personnalisées ◆ **Healthcheck** : vérifie l'état des services ◆ **Profiles** : démarrage sélectif ◆ **Extensions** : réutilise la configuration"
   },
+  {
+    question: "Docker Compose : Commandes essentielles",
+    answer:
+      "◆ **Démarrage** : `up -d` • `down -v`\n◆ **Gestion** : `stop` • `start` • `restart` • `ps` • `logs -f` • `exec`\n◆ **Build** : `build` • `pull` • `config` (validation)\n◆ **Scaling** : `scale web=3` • `up --scale web=3`\n◆ **Info** : `top` • `images` • `port web 80` • `run web bash`"
+  },
+  {
+    question: "Kubernetes : Définition et concepts clés",
+    answer:
+      "◆ **Définition** : Orchestrateur de conteneurs pour déploiement, scaling et gestion ◆ **Minikube** : cluster local pour apprentissage ◆ **Pod** : unité de base (1+ conteneurs, réseau partagé) ◆ **Deployment** : gère pods, mises à jour et rollback ◆ **Service** : expose les pods (ClusterIP, NodePort, LoadBalancer) ◆ **ConfigMap** : config non sensible ◆ **Secret** : données sensibles (encodées) ◆ **Ingress** : routage HTTP/HTTPS externe ◆ **PV/PVC** : persistance des données ◆ **Namespace** : sépare les environnements ◆ **kubectl** : CLI pour interagir ◆ **Labels** : organise et sélectionne les ressources ◆ **Service Discovery** : DNS interne ◆ **HPA** : scaling automatique ◆ **Probes** : Liveness (pod vivant) + Readiness (peut recevoir du trafic)"
+  },
+  {
+    question: "Kubernetes : Commandes essentielles",
+    answer:
+      "◆ **Ressources** : `get pods/deployments/services/nodes`\n◆ **Description** : `describe pod/deploy/service`\n◆ **Logs** : `logs -f pod` • `logs --previous`\n◆ **Exec** : `exec -it pod -- bash`\n◆ **Apply** : `apply -f fichier.yaml` • `delete -f fichier.yaml`\n◆ **Scaling** : `scale deployment web --replicas=5`\n◆ **Rollout** : `rollout status/history/undo deployment/web`\n◆ **Port-forward** : `port-forward pod 8080:80`\n◆ **Secrets** : `create secret generic`\n◆ **ConfigMap** : `create configmap`\n◆ **Top** : `top pods/nodes` (ressources)"
+  },
+  {
+    question: "ArmoniK : Définition et concepts clés",
+    answer:
+      "◆ **Définition** : Orchestrateur de calcul distribué HPC développé par l'ANSSI ◆ **Scheduler** : planifie et distribue les tâches ◆ **Worker** : exécute les tâches de calcul ◆ **Task** : unité de travail atomique ◆ **Session** : groupe de tâches liées ◆ **Armer** : base de données d'état ◆ **Agent** : gère les workers ◆ **Partition** : vue logique des workers ◆ **Object Storage** : stockage entrées/sorties ◆ **Amqp** : messagerie entre composants ◆ **Worker Pool** : ensemble de workers ◆ **Auto-scaling** : ajuste dynamiquement les workers ◆ **Result** : sortie d'une tâche ◆ **Workflow** : ensemble de tâches avec dépendances ◆ **Dépendances** : `--depends-on task-id`"
+  },
+  {
+    question: "ArmoniK : Commandes essentielles",
+    answer:
+      "◆ **Init** : `armonik init` (crée la config)\n◆ **Démarrage** : `armonik start` • `armonik stop` • `armonik status`\n◆ **Sessions** : `create session --name` • `list sessions` • `delete session`\n◆ **Tâches** : `submit --session --payload --input --args --depends-on` • `list tasks` • `wait`\n◆ **Résultats** : `get result --task` • `get result --output`\n◆ **Logs** : `logs --service scheduler` • `logs --task`"
+  },
+  {
+    question: "Bonnes pratiques : Installation, pannes et diagnostics Docker",
+    answer:
+      "◆ **Installation Linux** : `apt update` • `apt install docker.io` ou `curl -fsSL https://get.docker.com | sh` • `systemctl start docker` • `systemctl enable docker` • `usermod -aG docker $USER`\n◆ **Installation Windows/Mac** : Docker Desktop • WSL2\n◆ **Vérification** : `docker --version` • `docker run hello-world` • `docker info`\n\n◆ **Conteneur ne démarre pas** :\n  1. `docker ps -a` → vérifier l'état (Exited, CrashLoopBackOff)\n  2. `docker logs <conteneur>` → consulter les erreurs\n  3. `docker inspect <conteneur>` → analyser la configuration\n  4. `docker start <conteneur>` → relancer après correction\n\n◆ **Port déjà utilisé** :\n  1. `sudo netstat -tulpn | grep :80` → identifier le processus\n  2. `docker stop <conteneur>` → arrêter le conteneur qui bloque\n  3. `docker run -p 8080:80 ...` → ou changer de port\n\n◆ **Espace disque insuffisant** :\n  1. `docker system df` → visualiser l'utilisation\n  2. `docker system prune -a -f` → nettoyer tout\n  3. `docker volume prune -f` → supprimer volumes inutilisés\n  4. `docker image prune -a -f` → supprimer images non utilisées\n\n◆ **Problème réseau** :\n  1. `docker network ls` → lister les réseaux\n  2. `docker network inspect <network>` → voir les détails\n  3. `docker exec <conteneur> ping <autre_conteneur>` → tester connectivité\n  4. `docker network connect <network> <conteneur>` → reconnecter"
+  },
+  {
+    question: "Bonnes pratiques : Installation, pannes et diagnostics Kubernetes",
+    answer:
+      "◆ **Minikube** : `curl -LO https://storage.googleapis.com/minikube/releases/latest/minikube-linux-amd64` • `sudo install minikube-linux-amd64 /usr/local/bin/minikube` • `minikube start --driver=docker`\n◆ **kubectl** : `curl -LO \"https://dl.k8s.io/release/$(curl -L -s https://dl.k8s.io/release/stable.txt)/bin/linux/amd64/kubectl\"` • `sudo install -o root -g root -m 0755 kubectl /usr/local/bin/kubectl`\n◆ **K3s** : `curl -sfL https://get.k3s.io | sh -`\n\n◆ **Pod en CrashLoopBackOff** :\n  1. `kubectl get pods` → identifier l'état\n  2. `kubectl describe pod <pod>` → examiner events et erreurs\n  3. `kubectl logs <pod> --previous` → logs avant le crash\n  4. `kubectl get events --sort-by='.lastTimestamp'` → historique\n  5. `kubectl delete pod <pod>` → forcer la recréation\n\n◆ **Node NotReady** :\n  1. `kubectl get nodes` → vérifier l'état des nœuds\n  2. `kubectl describe node <node>` → détails du nœud\n  3. `kubectl top node` → ressources CPU/MEM\n  4. `ssh <node>` → se connecter au nœud\n  5. `systemctl status kubelet` → vérifier le service\n  6. `journalctl -u kubelet -f` → logs du kubelet\n\n◆ **Service inaccessible** :\n  1. `kubectl get svc` → vérifier les services et ports\n  2. `kubectl describe svc <service>` → détails\n  3. `kubectl get endpoints <service>` → vérifier les endpoints\n  4. `kubectl port-forward pod 8080:80` → test local\n  5. `curl http://localhost:8080` → tester l'accès\n\n◆ **Diagnostic général** :\n  1. `kubectl get all --all-namespaces` → tout lister\n  2. `kubectl describe <ressource> <nom>` → décrire une ressource\n  3. `kubectl exec -it <pod> -- sh` → shell dans le Pod\n  4. `kubectl top pods` → ressources des Pods\n  5. `kubectl logs -f <pod>` → suivre les logs en temps réel"
+  },
+  {
+    question: "Comparatif Docker, Compose et Swarm : les outils Docker natifs",
+    answer:
+      "◆ **Docker** : Conteneur sur 1 machine ◆ Pas de cluster/nœud ◆ Unité = conteneur ◆ Scaling manuel ◆ Volume Docker ◆ Usages : conteneur unique, CI/CD, dev/test\n\n◆ **Compose** : Groupes sur 1 machine ◆ Pas de cluster/nœud ◆ Unité = groupe ◆ Scaling limité ◆ Volume Compose ◆ Usages : dev local, tests intégration, apps multi-services\n\n◆ **Swarm** : Services multi-machines ◆ Cluster Oui ◆ Rôles Manager/Worker ◆ Unité = service ◆ Scaling via réplicas ◆ Volume partagé ◆ Usages : clusters simples, prototypage, compatibilité Docker"
+  },
+  {
+    question: "Comparatif K8s, K3s et ArmoniK : orchestration et HPC",
+    answer:
+      "◆ **K8s** : Pods/Deployments ◆ Cluster Oui ◆ Rôles Control Plane/Worker ◆ Unité = Pod ◆ Scaling automatique ◆ Persistent Volume ◆ Usages : production, cloud natif, microservices complexes\n\n◆ **K3s** : K8s allégé ◆ Cluster Oui ◆ Rôles CP/Worker ◆ Unité = Pod ◆ Scaling auto ◆ PV + SQLite ◆ Usages : IoT, Edge, Raspberry Pi, ressources limitées\n\n◆ **ArmoniK** : HPC sur K8s ◆ Cluster Oui ◆ Rôles CP/Worker ◆ Unité = tâche ◆ Scaling auto ◆ PV + batch ◆ Usages : calcul scientifique, simulations, données massives"
+  }
 ];
 
 const questions = {
   moyen: [
-    // ==================== ENCAPSULATION ====================
     {
-      question:
-        "[Encapsulation] Que signifie l'encapsulation en POO ?",
+      question: "Quelle est la différence entre une image Docker et un conteneur ?",
       options: [
-        "Une classe ne peut hériter que d'une seule autre classe",
-        "Regrouper les données et les méthodes qui les manipulent, et cacher l'implémentation interne",
-        "Une méthode peut avoir plusieurs formes différentes",
-        "Une classe doit avoir une seule responsabilité",
+        "Une image est un modèle en lecture seule, un conteneur est une instance en cours d'exécution",
+        "Un conteneur est un modèle, une image est une instance",
+        "Image et conteneur sont identiques",
+        "L'image contient les données persistantes du conteneur"
       ],
-      answer: "Regrouper les données et les méthodes qui les manipulent, et cacher l'implémentation interne",
-      explanation:
-        "L'encapsulation consiste à regrouper les données (attributs) avec les méthodes qui les manipulent, et à protéger l'accès direct aux données.",
+      answer: "Une image est un modèle en lecture seule, un conteneur est une instance en cours d'exécution",
+      explanation: "L'image est statique (modèle). Le conteneur est l'exécution de l'image avec une couche inscriptible. Supprimer un conteneur ne supprime pas l'image."
     },
     {
-      question:
-        "[Encapsulation] En Python, comment indique-t-on qu'un attribut est 'privé' (convention) ?",
+      question: "Que signifie l'option -p 8080:80 dans docker run ?",
       options: [
-        "private nom_attribut",
-        "nom_attribut (rien de spécial)",
-        "__nom_attribut__ (double underscores des deux côtés)",
-        "_nom_attribut (un underscore)",
+        "Le port 8080 du conteneur est mappé vers le port 80 de l'hôte",
+        "Le port 8080 de l'hôte est mappé vers le port 80 du conteneur",
+        "Les ports 8080 et 80 sont tous les deux exposés",
+        "Cela signifie que le conteneur utilise les ports 8080 et 80"
       ],
-      answer: "_nom_attribut (un underscore)",
-      explanation:
-        "Par convention, un underscore préfixé signifie 'protégé' (ne pas toucher de l'extérieur). Double underscore __nom active le name mangling.",
+      answer: "Le port 8080 de l'hôte est mappé vers le port 80 du conteneur",
+      explanation: "La syntaxe -p hôte:conteneur signifie que le port 8080 de votre machine est redirigé vers le port 80 du conteneur."
     },
     {
-      question:
-        "[Encapsulation] Que fait le double underscore '__' devant un attribut en Python ?",
+      question: "Quelle commande permet de voir les logs d'un conteneur Docker ?",
       options: [
-        "Rend l'attribut strictement privé (impossible d'accéder)",
-        "Déclare un attribut de classe (static)",
-        "Déclare un attribut en lecture seule",
-        "Active le 'name mangling' : le nom est transformé en _Classe__attribut",
+        "docker logs",
+        "docker show logs",
+        "docker print",
+        "docker tail"
       ],
-      answer: "Active le 'name mangling' : le nom est transformé en _Classe__attribut",
-      explanation:
-        "Le name mangling rend l'accès plus difficile (mais pas impossible) en renommant l'attribut en interne. C'est une protection forte mais pas absolue.",
+      answer: "docker logs",
+      explanation: "`docker logs conteneur` affiche les logs. Avec `-f` pour suivre en temps réel (tail -f)."
     },
     {
-      question:
-        "[Encapsulation] Quel est l'avantage principal d'utiliser des getters/setters (ou @property) ?",
+      question: "À quoi sert un volume Docker ?",
       options: [
-        "Rendre le code plus long et plus complexe",
-        "Rendre les attributs invisibles de l'extérieur",
-        "Améliorer les performances d'accès aux données",
-        "Permettre d'ajouter de la logique (validation, calcul) lors de l'accès ou de la modification",
+        "À isoler les processus",
+        "À persister les données au-delà du cycle de vie du conteneur",
+        "À limiter la mémoire",
+        "À exposer un port réseau"
       ],
-      answer: "Permettre d'ajouter de la logique (validation, calcul) lors de l'accès ou de la modification",
-      explanation:
-        "Les getters/setters permettent d'ajouter des contrôles (validation, transformation) sans changer l'interface publique.",
+      answer: "À persister les données au-delà du cycle de vie du conteneur",
+      explanation: "Le conteneur est éphémère. Le volume est un stockage externe persistant qui survit à la destruction du conteneur."
     },
     {
-      question:
-        "[Encapsulation] Que produit ce code ?\n\nclass Compte:\n    def __init__(self):\n        self.__solde = 100\n\nc = Compte()\nprint(c.__solde)",
+      question: "Quelle commande permet d'exécuter une commande dans un conteneur en cours ?",
       options: [
-        "Affiche 100",
-        "Affiche 0",
-        "Affiche 'c.__solde'",
-        "Lève une AttributeError car __solde est masqué",
+        "docker run",
+        "docker exec",
+        "docker attach",
+        "docker start"
       ],
-      answer: "Lève une AttributeError car __solde est masqué",
-      explanation:
-        "L'attribut __solde subit un name mangling et devient _Compte__solde. On ne peut pas y accéder directement depuis l'extérieur.",
+      answer: "docker exec",
+      explanation: "`docker exec -it conteneur sh` ouvre un shell interactif dans le conteneur. `run` crée un nouveau conteneur."
     },
     {
-      question:
-        "[Encapsulation] Le décorateur @property en Python sert à :",
+      question: "Que fait l'option -d dans docker compose up ?",
       options: [
-        "Définir une méthode de classe",
-        "Définir une méthode statique",
-        "Déclarer un attribut abstrait",
-        "Transformer une méthode en attribut accessible comme une propriété (getter élégant)",
+        "Lance les services en mode debug",
+        "Lance les services en arrière-plan (détaché)",
+        "Supprime les conteneurs après l'exécution",
+        "Exécute les services en mode interactif"
       ],
-      answer: "Transformer une méthode en attribut accessible comme une propriété (getter élégant)",
-      explanation:
-        "@property permet d'appeler une méthode sans parenthèses, comme si c'était un attribut, tout en conservant la logique.",
+      answer: "Lance les services en arrière-plan (détaché)",
+      explanation: "`-d` (detach) lance les services en arrière-plan, libérant le terminal pour d'autres commandes."
     },
     {
-      question:
-        "[Encapsulation] Lequel de ces codes respecte le mieux l'encapsulation ?",
+      question: "Qu'est-ce qu'un Pod dans Kubernetes ?",
       options: [
-        "class User:\n    def __init__(self, age):\n        self.age = age",
-        "class User:\n    def __init__(self, age):\n        pass",
-        "class User:\n    def __init__(self, age):\n        self.__age = age\n    def get_age(self): return self.__age\n    def set_age(self, age): self.__age = age",
-        "class User:\n    def __init__(self, age):\n        self._age = age\n    @property\n    def age(self): return self._age\n    @age.setter\n    def age(self, value):\n        if value >= 0: self._age = value",
+        "Un serveur web",
+        "L'unité de base, contenant un ou plusieurs conteneurs partageant le même réseau",
+        "Un type de service",
+        "Un volume de stockage"
       ],
-      answer: "class User:\n    def __init__(self, age):\n        self._age = age\n    @property\n    def age(self): return self._age\n    @age.setter\n    def age(self, value):\n        if value >= 0: self._age = value",
-      explanation:
-        "Cette version utilise la convention _age pour stockage, @property pour le getter, et une validation dans le setter. C'est l'encapsulation Pythonic.",
+      answer: "L'unité de base, contenant un ou plusieurs conteneurs partageant le même réseau",
+      explanation: "Le Pod est l'unité atomique de Kubernetes. Plusieurs conteneurs dans un Pod peuvent communiquer via localhost et partager des volumes."
     },
     {
-      question:
-        "[Encapsulation] Une classe avec tous ses attributs publics (self.name = name) :",
+      question: "À quoi sert un Deployment dans Kubernetes ?",
       options: [
-        "Respecte parfaitement l'encapsulation",
-        "Est plus rapide à l'exécution",
-        "Est recommandée pour tous les projets",
-        "Permet de modifier les attributs sans contrôle, ce qui peut fragiliser le code",
+        "Exposer un service sur le réseau",
+        "Gérer le scaling, les rolling updates et les rollbacks des Pods",
+        "Stocker des données persistantes",
+        "Configurer des variables d'environnement"
       ],
-      answer: "Permet de modifier les attributs sans contrôle, ce qui peut fragiliser le code",
-      explanation:
-        "Des attributs publics exposent les détails internes et permettent des modifications incontrôlées, violant l'encapsulation.",
+      answer: "Gérer le scaling, les rolling updates et les rollbacks des Pods",
+      explanation: "Le Deployment déclare l'état désiré des Pods (réplicas, image). K8s maintient cet état automatiquement."
     },
     {
-      question:
-        "[Encapsulation] Quelle est la différence entre _attribut et __attribut ?",
+      question: "Quelle commande kubectl applique un fichier de configuration ?",
       options: [
-        "Il n'y a pas de différence",
-        "_attribut est public, __attribut est privé",
-        "_attribut ne peut être utilisé qu'en dehors de la classe, __attribut seulement dedans",
-        "_attribut est une convention pour usage interne, __attribut active le name mangling",
+        "kubectl create -f",
+        "kubectl apply -f",
+        "kubectl run -f",
+        "kubectl deploy -f"
       ],
-      answer: "_attribut est une convention pour usage interne, __attribut active le name mangling",
-      explanation:
-        "_attribut = convention (protégé), __attribut = name mangling (plus difficilement accessible).",
+      answer: "kubectl apply -f",
+      explanation: "`kubectl apply -f pod.yaml` applique la configuration (create ou update). `create` ne fait que créer."
     },
     {
-      question:
-        "[Encapsulation] Que permet d'éviter une bonne encapsulation ?",
+      question: "Qu'est-ce qu'une session dans ArmoniK ?",
       options: [
-        "Les boucles infinies",
-        "Les fuites de mémoire",
-        "Les conflits de noms entre classes",
-        "Les états incohérents d'un objet (validation des données à la modification)",
+        "Un worker qui exécute des tâches",
+        "Un groupe de tâches liées logiquement",
+        "Un type de stockage",
+        "Une commande de déploiement"
       ],
-      answer: "Les états incohérents d'un objet (validation des données à la modification)",
-      explanation:
-        "L'encapsulation avec validation dans les setters empêche de mettre l'objet dans un état invalide.",
+      answer: "Un groupe de tâches liées logiquement",
+      explanation: "Une session regroupe des tâches qui partagent le même contexte et la même configuration."
     },
     {
-      question:
-        "[Encapsulation] En Python, une méthode avec un underscore préfixé (_methode) est :",
+      question: "Comment copier un fichier dans un conteneur Docker ?",
       options: [
-        "Strictement privée, inaccessible",
-        "Une méthode abstraite",
-        "Une méthode de classe",
-        "Une convention indiquant qu'elle est destinée à un usage interne (non publique)",
+        "docker copy",
+        "docker cp",
+        "docker transfer",
+        "docker push"
       ],
-      answer: "Une convention indiquant qu'elle est destinée à un usage interne (non publique)",
-      explanation:
-        "L'underscore est une convention : 'c'est interne, utilise à tes risques et périls'.",
+      answer: "docker cp",
+      explanation: "`docker cp <source> <conteneur>:<destination>` copie des fichiers entre l'hôte et le conteneur."
     },
     {
-      question:
-        "[Encapsulation] Le nom mangling (__attribut) a quel effet concret ?",
+      question: "Que fait la commande docker commit ?",
       options: [
-        "L'attribut devient totalement inaccessible",
-        "L'attribut devient accessible uniquement en lecture",
-        "L'attribut est automatiquement supprimé à la fin de la méthode",
-        "Le nom est transformé en _Classe__attribut, rendant l'accès externe plus difficile",
+        "Supprime une image",
+        "Crée une nouvelle image à partir d'un conteneur modifié",
+        "Envoie une image vers Docker Hub",
+        "Construit une image depuis un Dockerfile"
       ],
-      answer: "Le nom est transformé en _Classe__attribut, rendant l'accès externe plus difficile",
-      explanation:
-        "Le name mangling renomme l'attribut avec le nom de la classe pour éviter les collisions accidentelles.",
-    },
-
-    // ==================== HERITAGE ====================
-    {
-      question:
-        "[Héritage] Que permet l'héritage en POO ?",
-      options: [
-        "Créer plusieurs objets à partir d'une même classe",
-        "Cacher les détails d'implémentation",
-        "Donner plusieurs comportements à une même méthode",
-        "Faire qu'une classe hérite des attributs et méthodes d'une autre classe",
-      ],
-      answer: "Faire qu'une classe hérite des attributs et méthodes d'une autre classe",
-      explanation:
-        "L'héritage permet de réutiliser et d'étendre le comportement d'une classe existante.",
+      answer: "Crée une nouvelle image à partir d'un conteneur modifié",
+      explanation: "`docker commit` sauvegarde les modifications d'un conteneur dans une nouvelle image."
     },
     {
-      question:
-        "[Héritage] Quel mot-clé Python utilise-t-on dans une classe enfant pour appeler une méthode du parent ?",
+      question: "Comment lister tous les conteneurs Docker (actifs et arrêtés) ?",
       options: [
-        "parent",
-        "self",
-        "base()",
-        "super()",
+        "docker list",
+        "docker ps -a",
+        "docker ps",
+        "docker show"
       ],
-      answer: "super()",
-      explanation:
-        "super() renvoie un proxy vers la classe parent, permettant d'appeler ses méthodes.",
+      answer: "docker ps -a",
+      explanation: "`docker ps` liste uniquement les conteneurs actifs. `docker ps -a` liste TOUS les conteneurs (même arrêtés)."
     },
     {
-      question:
-        "[Héritage] Que signifie l'héritage multiple en Python ?",
+      question: "Que signifie l'option -e dans docker run ?",
       options: [
-        "Une classe peut avoir plusieurs constructeurs",
-        "Plusieurs classes peuvent hériter d'une même classe parent",
-        "Une méthode peut appeler plusieurs autres méthodes",
-        "Une classe peut hériter de plusieurs classes parents",
+        "Définit une variable d'environnement",
+        "Expose un port",
+        "Exécute en mode interactif",
+        "Utilise un volume externe"
       ],
-      answer: "Une classe peut hériter de plusieurs classes parents",
-      explanation:
-        "Python supporte l'héritage multiple : class Enfant(Parent1, Parent2).",
+      answer: "Définit une variable d'environnement",
+      explanation: "`-e NOM=valeur` définit une variable d'environnement dans le conteneur. Essentiel pour la configuration."
     },
     {
-      question:
-        "[Héritage] Quelle est l'utilité de super().__init__() ?",
+      question: "Quel est le rôle de depends_on dans Docker Compose ?",
       options: [
-        "Détruire l'objet parent",
-        "Rendre la classe enfant immutable",
-        "Déclarer une méthode abstraite",
-        "Initialiser les attributs hérités du parent dans l'enfant",
+        "Définit les dépendances entre services (ordre de démarrage)",
+        "Définit les variables d'environnement",
+        "Configure les volumes",
+        "Expose les ports des services"
       ],
-      answer: "Initialiser les attributs hérités du parent dans l'enfant",
-      explanation:
-        "super().__init__() appelle le constructeur du parent pour initialiser correctement la partie héritée.",
-    },
-    {
-      question:
-        "[Héritage] Que se passe-t-il si l'enfant ne définit pas de méthode __init__ ?",
-      options: [
-        "L'objet ne peut pas être instancié",
-        "L'enfant n'aura aucun attribut",
-        "Python lève une erreur",
-        "Le constructeur du parent est automatiquement appelé",
-      ],
-      answer: "Le constructeur du parent est automatiquement appelé",
-      explanation:
-        "Si l'enfant n'a pas de __init__, Python cherche dans le parent et appelle son constructeur automatiquement.",
-    },
-    {
-      question:
-        "[Héritage] Quelle est la différence entre héritage et composition ?",
-      options: [
-        "Héritage = relation 'a-un', Composition = relation 'est-un'",
-        "Ce sont deux noms pour la même chose",
-        "Héritage n'existe qu'en Java, composition en Python",
-        "Héritage = relation 'est-un', Composition = relation 'a-un'",
-      ],
-      answer: "Héritage = relation 'est-un', Composition = relation 'a-un'",
-      explanation:
-        "Héritage : Un Chien EST-UN Animal. Composition : Une Voiture A-UN Moteur.",
-    },
-    {
-      question:
-        "[Héritage] Le code suivant pose un problème. Lequel ?\n\nclass Stack(list):\n    def push(self, item):\n        self.append(item)\n    def pop(self):\n        return super().pop()",
-      options: [
-        "Aucun problème, c'est un bon usage",
-        "Stack hérite de list mais ajoute des méthodes qui existent déjà",
-        "Il manque l'appel à super().__init__()",
-        "Stack hérite de list alors qu'une pile n'est pas une liste (violation LSP)",
-      ],
-      answer: "Stack hérite de list alors qu'une pile n'est pas une liste (violation LSP)",
-      explanation:
-        "Une pile a un comportement différent (LIFO) et on peut accéder aux méthodes de list comme insert() qui cassent la logique pile. Composition serait meilleure.",
-    },
-    {
-      question:
-        "[Héritage] L'héritage doit être utilisé quand :",
-      options: [
-        "On veut réutiliser du code à tout prix",
-        "On veut éviter d'écrire des interfaces",
-        "La classe parent a moins de 10 méthodes",
-        "Il existe une relation claire 'est-un' et le comportement est partagé",
-      ],
-      answer: "Il existe une relation claire 'est-un' et le comportement est partagé",
-      explanation:
-        "L'héritage est justifié quand il y a une véritable relation 'est-un' et que le comportement est naturellement hérité.",
-    },
-    {
-      question:
-        "[Héritage] En Python, toutes les classes héritent implicitement de :",
-      options: [
-        "type",
-        "Base",
-        "Any",
-        "object",
-      ],
-      answer: "object",
-      explanation:
-        "En Python 3, toutes les classes héritent de 'object' (la classe de base universelle).",
-    },
-    {
-      question:
-        "[Héritage] L'héritage multiple peut causer quel problème spécifique ?",
-      options: [
-        "Fuites de mémoire",
-        "Impossibilité d'instancier les objets",
-        "Perte de l'encapsulation",
-        "Diamond problem / conflit de résolution de méthodes",
-      ],
-      answer: "Diamond problem / conflit de résolution de méthodes",
-      explanation:
-        "L'héritage multiple peut créer des ambiguïtés si deux parents ont la même méthode. Python résout ça avec l'ordre MRO.",
-    },
-    {
-      question:
-        "[Héritage] L'ordre de résolution des méthodes (MRO) en Python détermine :",
-      options: [
-        "L'ordre dans lequel les attributs sont initialisés",
-        "La vitesse d'exécution des méthodes",
-        "Le nom des méthodes dans l'enfant",
-        "L'ordre dans lequel Python cherche les méthodes dans la hiérarchie d'héritage",
-      ],
-      answer: "L'ordre dans lequel Python cherche les méthodes dans la hiérarchie d'héritage",
-      explanation:
-        "Le MRO (Method Resolution Order) définit l'ordre de parcours des classes parentes pour trouver une méthode.",
-    },
-    {
-      question:
-        "[Héritage] Le pattern 'Template Method' utilise l'héritage pour :",
-      options: [
-        "Éviter complètement l'héritage",
-        "Injecter des dépendances",
-        "Rendre les classes immutables",
-        "Définir le squelette d'un algorithme dans une méthode de base, les détails dans les sous-classes",
-      ],
-      answer: "Définir le squelette d'un algorithme dans une méthode de base, les détails dans les sous-classes",
-      explanation:
-        "Le Template Method est un bon cas d'usage de l'héritage : le parent définit la structure, les enfants implémentent les variations.",
-    },
-
-    // ==================== POLYMORPHISME ====================
-    {
-      question:
-        "[Polymorphisme] Que signifie le polymorphisme en POO ?",
-      options: [
-        "Une classe peut avoir plusieurs constructeurs",
-        "Un objet peut changer de type à l'exécution",
-        "Plusieurs classes peuvent partager le même nom",
-        "Une même interface (méthode) peut avoir des comportements différents selon l'objet qui l'appelle",
-      ],
-      answer: "Une même interface (méthode) peut avoir des comportements différents selon l'objet qui l'appelle",
-      explanation:
-        "Le polymorphisme permet d'appeler la même méthode sur différents types d'objets et d'obtenir des comportements adaptés.",
-    },
-    {
-      question:
-        "[Polymorphisme] Quel mécanisme Python illustre le polymorphisme ?",
-      options: [
-        "Les décorateurs",
-        "Les context managers (with)",
-        "La surcharge de méthodes (plusieurs méthodes avec le même nom mais paramètres différents)",
-        "Le duck typing : si un objet a une méthode 'parler()', on peut l'appeler quel que soit son type",
-      ],
-      answer: "Le duck typing : si un objet a une méthode 'parler()', on peut l'appeler quel que soit son type",
-      explanation:
-        "Le duck typing ('si ça marche comme un canard...') est une forme de polymorphisme : on se base sur les méthodes disponibles, pas sur le type.",
-    },
-    {
-      question:
-        "[Polymorphisme] L'exemple suivant illustre quel concept ?\n\ndef faire_parler(animal):\n    print(animal.parler())\n\nclass Chien:\n    def parler(self): return 'Woof'\n\nclass Chat:\n    def parler(self): return 'Meow'\n\nfaire_parler(Chien()) # Woof\nfaire_parler(Chat()) # Meow",
-      options: [
-        "Encapsulation",
-        "Héritage",
-        "Abstraction",
-        "Polymorphisme (duck typing)",
-      ],
-      answer: "Polymorphisme (duck typing)",
-      explanation:
-        "La même fonction faire_parler() fonctionne avec des objets de types différents car ils implémentent tous la méthode parler().",
-    },
-    {
-      question:
-        "[Polymorphisme] Python ne supporte pas nativement la surcharge de méthodes (plusieurs méthodes avec mêmes nom/signatures différentes). Comment contourne-t-on cela ?",
-      options: [
-        "En utilisant des décorateurs @overload",
-        "C'est impossible en Python",
-        "En utilisant des classes abstraites",
-        "En utilisant des arguments par défaut ou *args/**kwargs",
-      ],
-      answer: "En utilisant des arguments par défaut ou *args/**kwargs",
-      explanation:
-        "Python n'a pas de surcharge de méthodes à la Java. On simule avec des valeurs par défaut, *args, **kwargs, ou isinstance().",
-    },
-    {
-      question:
-        "[Polymorphisme] Le 'duck typing' signifie :",
-      options: [
-        "Tous les objets doivent hériter d'une classe Duck",
-        "Il faut toujours vérifier le type avec isinstance()",
-        "Les méthodes doivent être déclarées comme 'duck'",
-        "Si un objet a les méthodes attendues, on l'utilise sans vérifier son type",
-      ],
-      answer: "Si un objet a les méthodes attendues, on l'utilise sans vérifier son type",
-      explanation:
-        "Duck typing : 'Si ça marche comme un canard, que ça nage comme un canard, alors c'est un canard.'",
-    },
-    {
-      question:
-        "[Polymorphisme] En Python, le polymorphisme est principalement possible grâce à :",
-      options: [
-        "La compilation statique",
-        "L'absence totale de types",
-        "Les décorateurs",
-        "Le typage dynamique (les types sont vérifiés à l'exécution, pas à la compilation)",
-      ],
-      answer: "Le typage dynamique (les types sont vérifiés à l'exécution, pas à la compilation)",
-      explanation:
-        "Le typage dynamique permet au polymorphisme de fonctionner : on n'a pas besoin de déclarer qu'un objet implémente une interface.",
-    },
-    {
-      question:
-        "[Polymorphisme] Comment appelle-t-on le polymorphisme où la méthode appelée est déterminée à l'exécution ?",
-      options: [
-        "Polymorphisme statique",
-        "Polymorphisme d'héritage",
-        "Polymorphisme d'interface",
-        "Polymorphisme dynamique (late binding)",
-      ],
-      answer: "Polymorphisme dynamique (late binding)",
-      explanation:
-        "Le polymorphisme dynamique signifie que la méthode exacte à appeler est déterminée à l'exécution en fonction du type réel de l'objet.",
-    },
-    {
-      question:
-        "[Polymorphisme] Avec le duck typing, que se passe-t-il si un objet ne possède pas la méthode attendue ?",
-      options: [
-        "Python ignore silencieusement l'appel",
-        "Python appelle une méthode par défaut",
-        "Python convertit automatiquement l'objet",
-        "Python lève une AttributeError",
-      ],
-      answer: "Python lève une AttributeError",
-      explanation:
-        "Si la méthode n'existe pas, Python lève une AttributeError à l'exécution.",
-    },
-    {
-      question:
-        "[Polymorphisme] Le polymorphisme est utile pour :",
-      options: [
-        "Rendre le code plus rapide",
-        "Rendre les classes plus petites",
-        "Éviter d'écrire des tests",
-        "Écrire du code générique qui fonctionne avec plusieurs types d'objets",
-      ],
-      answer: "Écrire du code générique qui fonctionne avec plusieurs types d'objets",
-      explanation:
-        "Le polymorphisme permet d'écrire du code flexible et réutilisable qui ne dépend pas de types concrets.",
-    },
-    {
-      question:
-        "[Polymorphisme] Une même méthode de classe peut avoir des comportements différents selon la classe. Cela s'appelle :",
-      options: [
-        "Héritage simple",
-        "Encapsulation",
-        "Composition",
-        "Polymorphisme de sous-typage",
-      ],
-      answer: "Polymorphisme de sous-typage",
-      explanation:
-        "C'est le polymorphisme classique : une méthode déclarée dans une classe parent est redéfinie dans les enfants.",
-    },
-    {
-      question:
-        "[Polymorphisme] Lequel n'est PAS un type de polymorphisme reconnu ?",
-      options: [
-        "Polymorphisme de sous-typage (héritage)",
-        "Polymorphisme paramétrique (génériques)",
-        "Polymorphisme ad hoc (surcharge)",
-        "Polymorphisme quantique",
-      ],
-      answer: "Polymorphisme quantique",
-      explanation:
-        "Le polymorphisme quantique n'existe pas. Les trois autres sont des formes classiques de polymorphisme.",
-    },
-    {
-      question:
-        "[Polymorphisme] Avec Protocol (typing), on peut :",
-      options: [
-        "Forcer l'héritage entre classes",
-        "Rendre les classes immutables",
-        "Créer des singletons",
-        "Définir une interface implicite pour le duck typing avec vérification statique (mypy)",
-      ],
-      answer: "Définir une interface implicite pour le duck typing avec vérification statique (mypy)",
-      explanation:
-        "Protocol permet de typer statiquement le duck typing : on déclare l'interface attendue sans héritage.",
-    },
-
-    // ==================== ABSTRACTION ====================
-    {
-      question:
-        "[Abstraction] Que signifie l'abstraction en POO ?",
-      options: [
-        "Rendre toutes les méthodes privées",
-        "Supprimer les attributs inutiles",
-        "Créer des classes sans méthodes",
-        "Cacher les détails d'implémentation et ne montrer que l'essentiel",
-      ],
-      answer: "Cacher les détails d'implémentation et ne montrer que l'essentiel",
-      explanation:
-        "L'abstraction consiste à masquer la complexité interne et à exposer une interface simple et claire.",
-    },
-    {
-      question:
-        "[Abstraction] En Python, une classe abstraite est une classe qui :",
-      options: [
-        "N'a aucun attribut",
-        "Hérite de plusieurs parents",
-        "A tous ses attributs privés",
-        "Ne peut pas être instanciée directement et contient des méthodes abstraites",
-      ],
-      answer: "Ne peut pas être instanciée directement et contient des méthodes abstraites",
-      explanation:
-        "Une classe abstraite sert de modèle pour les classes filles. Elle peut contenir des méthodes abstraites (sans implémentation).",
-    },
-    {
-      question:
-        "[Abstraction] Quel module Python permet de créer des classes abstraites ?",
-      options: [
-        "typing",
-        "dataclasses",
-        "collections",
-        "abc (Abstract Base Classes)",
-      ],
-      answer: "abc (Abstract Base Classes)",
-      explanation:
-        "Le module 'abc' fournit ABC et @abstractmethod pour définir des classes abstraites.",
-    },
-    {
-      question:
-        "[Abstraction] Que se passe-t-il si on essaie d'instancier une classe abstraite qui a des méthodes abstraites non implémentées ?",
-      options: [
-        "L'instance est créée mais les méthodes abstraites sont ignorées",
-        "Python appelle automatiquement super()",
-        "Les méthodes abstraites deviennent des méthodes vides",
-        "Python lève une TypeError",
-      ],
-      answer: "Python lève une TypeError",
-      explanation:
-        "TypeError: Can't instantiate abstract class X with abstract methods Y. C'est le comportement attendu.",
-    },
-    {
-      question:
-        "[Abstraction] Une interface (au sens POO) est :",
-      options: [
-        "Un type particulier d'héritage multiple",
-        "Une classe avec uniquement des attributs",
-        "Une méthode sans paramètres",
-        "Un contrat définissant quelles méthodes une classe doit implémenter, sans fournir d'implémentation",
-      ],
-      answer: "Un contrat définissant quelles méthodes une classe doit implémenter, sans fournir d'implémentation",
-      explanation:
-        "Une interface définit le 'quoi' (les méthodes attendues) sans le 'comment' (l'implémentation).",
-    },
-    {
-      question:
-        "[Abstraction] En Python, comment déclare-t-on une méthode abstraite ?",
-      options: [
-        "def methode(self): pass",
-        "def methode(self): raise NotImplementedError",
-        "abstract def methode(self)",
-        "@abstractmethod\ndef methode(self): pass",
-      ],
-      answer: "@abstractmethod\ndef methode(self): pass",
-      explanation:
-        "Le décorateur @abstractmethod du module abc indique que la méthode doit être implémentée dans les sous-classes.",
-    },
-    {
-      question:
-        "[Abstraction] Lequel est un bon exemple d'abstraction ?",
-      options: [
-        "Une classe Utilisateur avec tous ses attributs publics",
-        "Une classe qui affiche directement des logs sur la console",
-        "Une classe qui contient 500 lignes de code",
-        "Une classe DatabaseConnection qui expose connect(), query(), disconnect() mais cache les détails du protocole",
-      ],
-      answer: "Une classe DatabaseConnection qui expose connect(), query(), disconnect() mais cache les détails du protocole",
-      explanation:
-        "L'abstraction consiste à cacher la complexité (comment se connecte-t-on ?) derrière une interface simple.",
-    },
-    {
-      question:
-        "[Abstraction] Une classe qui hérite d'une classe abstraite DOIT :",
-      options: [
-        "Avoir le même nombre de méthodes que la classe parent",
-        "Appeler super().__init__()",
-        "Être elle-même abstraite",
-        "Implémenter toutes les méthodes abstraites",
-      ],
-      answer: "Implémenter toutes les méthodes abstraites",
-      explanation:
-        "Pour être concrète (instanciable), une sous-classe doit implémenter toutes les méthodes abstraites héritées.",
-    },
-    {
-      question:
-        "[Abstraction] La différence principale entre classe abstraite et interface (Protocol) est :",
-      options: [
-        "Il n'y a pas de différence",
-        "Un Protocol ne peut être utilisé qu'avec des classes concrètes",
-        "Une classe abstraite ne permet pas l'héritage multiple",
-        "Une classe abstraite peut contenir des méthodes implémentées (concrètes), un Protocol non",
-      ],
-      answer: "Une classe abstraite peut contenir des méthodes implémentées (concrètes), un Protocol non",
-      explanation:
-        "Une classe abstraite peut avoir un mélange de méthodes abstraites et concrètes. Un Protocol définit juste la structure (interface implicite).",
-    },
-    {
-      question:
-        "[Abstraction] Pourquoi utilise-t-on des classes/interfaces abstraites ?",
-      options: [
-        "Pour améliorer les performances",
-        "Pour cacher toutes les méthodes",
-        "Pour empêcher totalement l'héritage",
-        "Pour définir un contrat que les sous-classes doivent respecter, garantissant une certaine interface",
-      ],
-      answer: "Pour définir un contrat que les sous-classes doivent respecter, garantissant une certaine interface",
-      explanation:
-        "L'abstraction via des classes/interfaces garantit que toutes les sous-classes respectent un contrat commun.",
-    },
-    {
-      question:
-        "[Abstraction] Une méthode abstraite peut-elle avoir une implémentation par défaut en Python ?",
-      options: [
-        "Non, @abstractmethod force l'absence d'implémentation",
-        "Oui, mais uniquement si la classe parent n'est pas instanciable",
-        "Non, Python lève une erreur de syntaxe",
-        "Oui, on peut écrire @abstractmethod puis définir un corps, les sous-classes peuvent l'ignorer (mais c'est rare)",
-      ],
-      answer: "Oui, on peut écrire @abstractmethod puis définir un corps, les sous-classes peuvent l'ignorer (mais c'est rare)",
-      explanation:
-        "En Python, on peut combiner @abstractmethod avec une implémentation. La sous-classe n'est pas obligée de la surcharger.",
-    },
-    {
-      question:
-        "[Abstraction] Le pattern 'Strategy' (défini dans ton cours SOLID) est un exemple d'utilisation de :",
-      options: [
-        "Héritage pur",
-        "Encapsulation stricte",
-        "Polymorphisme quantique",
-        "Abstraction (on dépend de l'interface, pas de l'implémentation concrète)",
-      ],
-      answer: "Abstraction (on dépend de l'interface, pas de l'implémentation concrète)",
-      explanation:
-        "Le Strategy Pattern utilise une abstraction (interface) pour laquelle on peut injecter différentes implémentations concrètes.",
-    },
+      answer: "Définit les dépendances entre services (ordre de démarrage)",
+      explanation: "`depends_on` assure qu'un service démarre après un autre. Utile quand un service a besoin d'un autre pour fonctionner."
+    }
   ],
   avance: [
     {
-      question:
-        "[POO Avancé] Que fait le mot-clé 'self' dans une méthode d'instance ?",
+      question: "Comment créer un réseau Docker personnalisé ?",
       options: [
-        "C'est un mot-clé réservé pour désigner la classe elle-même",
-        "C'est une variable globale accessible dans toute la classe",
-        "C'est le constructeur de la classe",
-        "C'est une référence à l'instance courante de la classe (l'objet sur lequel on travaille)",
+        "docker network create",
+        "docker network new",
+        "docker create network",
+        "docker network add"
       ],
-      answer: "C'est une référence à l'instance courante de la classe (l'objet sur lequel on travaille)",
-      explanation:
-        "'self' est le premier paramètre de chaque méthode d'instance et fait référence à l'objet lui-même.",
+      answer: "docker network create",
+      explanation: "`docker network create <nom>` crée un réseau personnalisé. Les conteneurs sur ce réseau communiquent via leurs noms."
     },
     {
-      question:
-        "[POO Avancé] À quoi sert la méthode __init__ en Python ?",
+      question: "Comment mettre à l'échelle un service avec Docker Compose ?",
       options: [
-        "Détruire un objet",
-        "Représenter l'objet sous forme de chaîne",
-        "Comparer deux objets entre eux",
-        "Initialiser les attributs d'une nouvelle instance (constructeur)",
+        "docker compose scale service=3",
+        "docker compose up --scale service=3 -d",
+        "docker compose up service=3",
+        "docker scale service 3"
       ],
-      answer: "Initialiser les attributs d'une nouvelle instance (constructeur)",
-      explanation:
-        "__init__ est appelé automatiquement après la création de l'instance pour initialiser son état.",
+      answer: "docker compose up --scale service=3 -d",
+      explanation: "`--scale service=N` crée N instances du service. `docker compose up -d` doit être utilisé pour appliquer le scaling."
     },
     {
-      question:
-        "[POO Avancé] Quelle est la différence entre @classmethod et @staticmethod ?",
+      question: "Qu'est-ce qu'une ConfigMap dans Kubernetes ?",
       options: [
-        "Il n'y a pas de différence",
-        "@staticmethod reçoit la classe, @classmethod ne reçoit rien",
-        "@classmethod ne peut être utilisé qu'avec des classes abstraites",
-        "@classmethod reçoit la classe (cls) en premier paramètre, @staticmethod ne reçoit rien de spécial",
+        "Un outil de monitoring",
+        "Un stockage de données de configuration (non sensibles)",
+        "Un type de Pod",
+        "Un serveur DNS"
       ],
-      answer: "@classmethod reçoit la classe (cls) en premier paramètre, @staticmethod ne reçoit rien de spécial",
-      explanation:
-        "@classmethod peut accéder/modifier l'état de la classe. @staticmethod est juste une fonction rangée dans la classe.",
+      answer: "Un stockage de données de configuration (non sensibles)",
+      explanation: "ConfigMap stocke des données de configuration (variables d'environnement, fichiers) séparées du code."
     },
     {
-      question:
-        "[POO Avancé] Que signifie le 'God Object' (anti-pattern) ?",
+      question: "Quelle est la différence entre docker stop et docker rm ?",
       options: [
-        "Un objet qui ne sert à rien",
-        "Un objet trop petit pour être utile",
-        "Une classe avec seulement des méthodes statiques",
-        "Une classe qui fait tout (trop de responsabilités), violant SRP",
+        "stop arrête le conteneur, rm le supprime définitivement",
+        "stop supprime, rm arrête",
+        "Les deux font la même chose",
+        "stop redémarre, rm arrête"
       ],
-      answer: "Une classe qui fait tout (trop de responsabilités), violant SRP",
-      explanation:
-        "Le God Object concentre trop de responsabilités, devenant difficile à maintenir, tester et comprendre.",
+      answer: "stop arrête le conteneur, rm le supprime définitivement",
+      explanation: "`docker stop` arrête le conteneur mais il reste présent (peut être redémarré). `docker rm` supprime le conteneur."
     },
     {
-      question:
-        "[POO Avancé] Pourquoi 'Composition > Héritage' est un mantra en POO ?",
+      question: "Comment les conteneurs Docker communiquent-ils sur un réseau personnalisé ?",
       options: [
-        "L'héritage est toujours mauvais",
-        "La composition est plus rapide",
-        "L'héritage n'existe pas en Python",
-        "La composition offre plus de flexibilité (changement à l'exécution, pas de hiérarchie rigide)",
+        "Via leur adresse IP",
+        "Via leur nom de conteneur",
+        "Via leur ID",
+        "Via le port 80"
       ],
-      answer: "La composition offre plus de flexibilité (changement à l'exécution, pas de hiérarchie rigide)",
-      explanation:
-        "La composition permet d'assembler des comportements dynamiquement sans créer de hiérarchies figées et souvent trop complexes.",
+      answer: "Via leur nom de conteneur",
+      explanation: "Sur un réseau personnalisé, les conteneurs peuvent se joindre par leur nom. Ex: `ping mysql` depuis un autre conteneur."
     },
     {
-      question:
-        "[POO Avancé] À quoi sert la méthode __str__ ?",
+      question: "Que fait la commande docker compose down -v ?",
       options: [
-        "À créer une nouvelle instance",
-        "À détruire l'objet",
-        "À définir la représentation 'technique' (utile pour déboguer)",
-        "À définir la représentation textuelle 'amicale' de l'objet (print() l'utilise)",
+        "Arrête les services",
+        "Arrête et supprime les conteneurs, réseaux ET volumes",
+        "Arrête et redémarre",
+        "Supprime uniquement les images"
       ],
-      answer: "À définir la représentation textuelle 'amicale' de l'objet (print() l'utilise)",
-      explanation:
-        "__str__ est utilisé par print() et str() pour une représentation lisible par l'utilisateur.",
+      answer: "Arrête et supprime les conteneurs, réseaux ET volumes",
+      explanation: "`-v` supprime aussi les volumes définis dans le compose. Attention : les données persistantes sont perdues."
     },
     {
-      question:
-        "[POO Avancé] L'Anti-pattern 'Anemic Domain Model' désigne :",
+      question: "Qu'est-ce qu'un PersistentVolume (PV) dans Kubernetes ?",
       options: [
-        "Une classe avec trop de méthodes",
-        "Une classe qui hérite de trop de parents",
-        "Une classe sans constructeur",
-        "Une classe avec uniquement des attributs (getters/setters) mais aucune logique métier",
+        "Un volume temporaire",
+        "Un stockage persistant qui survit au cycle de vie des Pods",
+        "Un volume partagé entre clusters",
+        "Un type de Pod spécial"
       ],
-      answer: "Une classe avec uniquement des attributs (getters/setters) mais aucune logique métier",
-      explanation:
-        "L'Anemic Domain Model est une classe qui sert juste de conteneur de données, la logique métier étant ailleurs.",
+      answer: "Un stockage persistant qui survit au cycle de vie des Pods",
+      explanation: "PersistentVolume (PV) est une ressource de stockage provisionnée par l'administrateur. Les Pods y accèdent via PVC."
     },
     {
-      question:
-        "[POO Avancé] Comment appelle-t-on une classe qui ne peut pas être instanciée et sert uniquement de modèle ?",
+      question: "Comment exposer un Pod Kubernetes sur le port 8080 de l'hôte ?",
       options: [
-        "Classe concrète",
-        "Classe statique",
-        "Singleton",
-        "Classe abstraite",
+        "kubectl expose pod --port=8080",
+        "kubectl port-forward pod 8080:80",
+        "kubectl publish pod 8080",
+        "kubectl forward pod 80:8080"
       ],
-      answer: "Classe abstraite",
-      explanation:
-        "Une classe abstraite définit un contrat pour les sous-classes et ne peut être instanciée directement.",
+      answer: "kubectl port-forward pod 8080:80",
+      explanation: "`port-forward` redirige le port local 8080 vers le port 80 du Pod. Utile pour le debugging local."
     },
     {
-      question:
-        "[POO Avancé] Le pattern 'Factory' est utile pour :",
+      question: "Qu'est-ce qu'un Ingress dans Kubernetes ?",
       options: [
-        "Détruire des objets",
-        "Trier des collections",
-        "Gérer les exceptions",
-        "Créer des objets sans exposer la logique d'instanciation au client",
+        "Un type de Pod",
+        "Un volume de stockage",
+        "Un contrôleur qui gère l'accès externe avec routage HTTP/HTTPS",
+        "Un outil de monitoring"
       ],
-      answer: "Créer des objets sans exposer la logique d'instanciation au client",
-      explanation:
-        "Une Factory encapsule la création d'objets, ce qui est utile pour l'OCP (ajouter des types sans modifier le client).",
+      answer: "Un contrôleur qui gère l'accès externe avec routage HTTP/HTTPS",
+      explanation: "Ingress gère l'accès externe aux services, avec routage basé sur les hôtes et les chemins."
     },
     {
-      question:
-        "[POO Avancé] Le pattern 'Singleton' garantit qu'une classe :",
+      question: "Quelle est la commande pour soumettre une tâche dans ArmoniK ?",
       options: [
-        "A au moins deux instances",
-        "Peut être héritée",
-        "Est immutable",
-        "N'a qu'une seule instance",
+        "armonik run",
+        "armonik submit",
+        "armonik start",
+        "armonik create"
       ],
-      answer: "N'a qu'une seule instance",
-      explanation:
-        "Le Singleton est un design pattern qui garantit qu'une classe n'a qu'une seule instance globalement accessible.",
+      answer: "armonik submit",
+      explanation: "`armonik submit --session --payload --input --args` soumet une tâche de calcul à l'orchestrateur ArmoniK."
     },
     {
-      question:
-        "[POO Avancé] Pourquoi éviter les getters/setters publics simples (sans logique) en Python ?",
+      question: "Comment voir les logs d'un service dans Docker Compose ?",
       options: [
-        "Parce que Python n'a pas de getters/setters",
-        "Parce que ça casse l'encapsulation",
-        "Parce que c'est impossible",
-        "Parce qu'il vaut mieux exposer directement l'attribut public (Pythonic)",
+        "docker compose logs -f service",
+        "docker compose show service",
+        "docker logs service",
+        "docker compose output service"
       ],
-      answer: "Parce qu'il vaut mieux exposer directement l'attribut public (Pythonic)",
-      explanation:
-        "En Python, on utilise directement l'attribut public. Si besoin de logique, on passe à @property sans changer l'interface.",
+      answer: "docker compose logs -f service",
+      explanation: "`docker compose logs -f service` affiche et suit les logs du service spécifié."
     },
     {
-      question:
-        "[POO Avancé] Laquelle de ces affirmations sur 'classmethod' est vraie ?",
+      question: "Qu'est-ce qu'un Secret dans Kubernetes ?",
       options: [
-        "classmethod ne peut pas accéder aux attributs de classe",
-        "classmethod reçoit l'instance (self) en premier paramètre",
-        "classmethod est identique à staticmethod",
-        "classmethod peut être appelée sans instance (sur la classe elle-même)",
+        "Un type de service caché",
+        "Un stockage de données sensibles (mots de passe, clés API)",
+        "Un réseau privé",
+        "Un pod invisible"
       ],
-      answer: "classmethod peut être appelée sans instance (sur la classe elle-même)",
-      explanation:
-        "classmethod s'utilise sur la classe directement (ex: MaClasse.ma_methode_de_classe()). Elle reçoit la classe en premier paramètre (cls).",
+      answer: "Un stockage de données sensibles (mots de passe, clés API)",
+      explanation: "Secret stocke des données sensibles comme les mots de passe, tokens, clés API. Les données sont encodées en base64."
     },
+    {
+      question: "Comment créer un volume Docker persistant ?",
+      options: [
+        "docker volume create",
+        "docker volume new",
+        "docker create volume",
+        "docker volume add"
+      ],
+      answer: "docker volume create",
+      explanation: "`docker volume create <nom>` crée un volume persistant. Le volume survit à la suppression des conteneurs."
+    },
+    {
+      question: "Que fait kubectl describe pod ?",
+      options: [
+        "Affiche les logs du pod",
+        "Affiche des détails complets (events, état, conditions)",
+        "Supprime le pod",
+        "Redémarre le pod"
+      ],
+      answer: "Affiche des détails complets (events, état, conditions)",
+      explanation: "`describe` donne des détails complets (events, état, conditions). `get -o yaml` donne la définition YAML brute."
+    },
+    {
+      question: "Comment redémarrer un conteneur Docker arrêté ?",
+      options: [
+        "docker restart",
+        "docker start",
+        "docker run",
+        "docker revive"
+      ],
+      answer: "docker start",
+      explanation: "`docker start <conteneur>` redémarre un conteneur arrêté. `restart` redémarre un conteneur en cours d'exécution."
+    }
   ],
   expert: [
     {
-      question:
-        "[PIÈGE POO] Quelle est la sortie de ce code ?\n\nclass A:\n    def test(self):\n        return 'A'\n\nclass B(A):\n    def test(self):\n        return 'B'\n\nclass C(A):\n    def test(self):\n        return 'C'\n\nclass D(B, C):\n    pass\n\nprint(D().test())",
+      question: "Quelle est la commande pour appliquer un rolling update dans Kubernetes ?",
       options: [
-        "'A'",
-        "'C'",
-        "AttributeError",
-        "'B'",
+        "kubectl update deploy/app --image=new:v2",
+        "kubectl set image deploy/app container=new:v2",
+        "kubectl patch deploy/app --image=new:v2",
+        "kubectl replace deploy/app --image=new:v2"
       ],
-      answer: "'B'",
-      explanation:
-        "L'ordre MRO de D est D -> B -> C -> A. Python cherche test() dans B en premier et trouve 'B'. C'est l'ordre de résolution des méthodes (MRO).",
+      answer: "kubectl set image deploy/app container=new:v2",
+      explanation: "`kubectl set image deployment/nom conteneur=nouvelle_image` déclenche un rolling update. Exemple : `kubectl set image deploy/app app=nginx:1.21`."
     },
     {
-      question:
-        "[PIÈGE POO] Que se passe-t-il avec cet attribut de classe mutable ?\n\nclass MaClasse:\n    attribut_partage = []\n\na = MaClasse()\nb = MaClasse()\na.attribut_partage.append(1)\nprint(b.attribut_partage)",
+      question: "Dans Docker Swarm, comment créer un réseau overlay pour les services ?",
       options: [
-        "[]",
-        "None",
-        "Lève une AttributeError",
-        "[1]",
+        "docker network create --driver overlay mon-reseau",
+        "docker swarm network create mon-reseau",
+        "docker overlay create mon-reseau",
+        "docker service network create mon-reseau"
       ],
-      answer: "[1]",
-      explanation:
-        "attribut_partage est un attribut de classe (partagé entre toutes les instances). Modifier via a le modifie aussi pour b.",
+      answer: "docker network create --driver overlay mon-reseau",
+      explanation: "`docker network create --driver overlay mon-reseau` crée un réseau multi-hôtes. Les services Swarm peuvent l'utiliser avec `--network mon-reseau`."
     },
     {
-      question:
-        "[PIÈGE POO] Quelle est la différence entre __str__ et __repr__ ?",
+      question: "Quelle est la différence entre un ReplicaSet et un Deployment dans Kubernetes ?",
       options: [
-        "Il n'y a pas de différence",
-        "__str__ est pour les développeurs, __repr__ pour les utilisateurs",
-        "__str__ ne peut être utilisé que dans les classes abstraites",
-        "__repr__ est pour les développeurs (représentation non ambiguë), __str__ pour les utilisateurs",
+        "ReplicaSet et Deployment sont identiques",
+        "ReplicaSet maintient un nombre fixe de Pods, Deployment gère les rolling updates avec ReplicaSet en interne",
+        "Deployment est obsolète, ReplicaSet le remplace",
+        "ReplicaSet est pour les bases de données"
       ],
-      answer: "__repr__ est pour les développeurs (reprÃ©sentation non ambiguë), __str__ pour les utilisateurs",
-      explanation:
-        "__repr__ doit être non ambiguë (utile pour déboguer), __str__ est pour l'affichage utilisateur. Si __str__ manque, Python utilise __repr__.",
+      answer: "ReplicaSet maintient un nombre fixe de Pods, Deployment gère les rolling updates avec ReplicaSet en interne",
+      explanation: "Le ReplicaSet assure qu'un nombre spécifié de Pods est en cours d'exécution. Le Deployment est une couche au-dessus qui gère les rolling updates et rollbacks."
     },
-  ],
+    {
+      question: "Comment utiliser les dépendances entre tâches dans ArmoniK ?",
+      options: [
+        "armonik submit --depends-on task-id",
+        "armonik wait task-id",
+        "armonik depend task-id",
+        "armonik link task-id"
+      ],
+      answer: "armonik submit --depends-on task-id",
+      explanation: "`--depends-on task-id` spécifie qu'une tâche dépend d'une autre. Le scheduler exécute les tâches dans l'ordre des dépendances."
+    },
+    {
+      question: "Que fait la commande docker system prune -a -f ?",
+      options: [
+        "Supprime tous les conteneurs",
+        "Nettoye toutes les ressources inutilisées (images, conteneurs, réseaux)",
+        "Supprime uniquement les images",
+        "Redémarre Docker"
+      ],
+      answer: "Nettoye toutes les ressources inutilisées (images, conteneurs, réseaux)",
+      explanation: "`docker system prune -a -f` nettoie toutes les ressources inutilisées sans confirmation. Utile pour libérer de l'espace disque."
+    },
+    {
+      question: "Qu'est-ce qu'un PersistentVolumeClaim (PVC) dans Kubernetes ?",
+      options: [
+        "Un volume physique",
+        "Une demande de stockage par un Pod",
+        "Un type de service",
+        "Un cluster de stockage"
+      ],
+      answer: "Une demande de stockage par un Pod",
+      explanation: "Un PVC est une demande de stockage par un Pod. Le cluster attribue un PV disponible qui répond aux critères demandés."
+    },
+    {
+      question: "Comment récupérer le résultat d'une tâche ArmoniK ?",
+      options: [
+        "armonik get result --task task-id",
+        "armonik download task-id",
+        "armonik output task-id",
+        "armonik show task-id"
+      ],
+      answer: "armonik get result --task task-id",
+      explanation: "`armonik get result --task task-id` récupère le résultat d'une tâche. L'option `--output` permet de sauvegarder dans un fichier."
+    },
+    {
+      question: "Quelle est la commande pour voir l'historique des déploiements Kubernetes ?",
+      options: [
+        "kubectl rollout history deployment/web",
+        "kubectl history deployment/web",
+        "kubectl get history deployment/web",
+        "kubectl describe deployment/web"
+      ],
+      answer: "kubectl rollout history deployment/web",
+      explanation: "`kubectl rollout history deployment/web` affiche l'historique des versions d'un Deployment. Utile pour les rollbacks."
+    },
+    {
+      question: "Comment attendre la fin de toutes les tâches d'une session ArmoniK ?",
+      options: [
+        "armonik wait --session session-id",
+        "armonik sleep session-id",
+        "armonik monitor session-id",
+        "armonik track session-id"
+      ],
+      answer: "armonik wait --session session-id",
+      explanation: "`armonik wait --session session-id` bloque jusqu'à ce que toutes les tâches de la session soient terminées."
+    },
+    {
+      question: "Que fait l'option --depends-on dans ArmoniK ?",
+      options: [
+        "Définit une dépendance entre deux tâches",
+        "Définit une dépendance entre deux sessions",
+        "Définit une dépendance entre deux workers",
+        "Définit une dépendance entre deux clusters"
+      ],
+      answer: "Définit une dépendance entre deux tâches",
+      explanation: "`--depends-on task-id` spécifie qu'une tâche dépend d'une autre. La tâche ne s'exécute que si sa dépendance est terminée avec succès."
+    },
+    {
+      question: "Comment vérifier qu'ArmoniK fonctionne correctement ?",
+      options: [
+        "armonik status",
+        "armonik check",
+        "armonik test",
+        "armonik health"
+      ],
+      answer: "armonik status",
+      explanation: "`armonik status` affiche l'état de tous les services ArmoniK. `docker ps | grep armonik` permet aussi de vérifier les conteneurs."
+    },
+    {
+      question: "Comment rollback un déploiement Kubernetes ?",
+      options: [
+        "kubectl rollout undo deployment/web",
+        "kubectl rollback deployment/web",
+        "kubectl revert deployment/web",
+        "kubectl undo deployment/web"
+      ],
+      answer: "kubectl rollout undo deployment/web",
+      explanation: "`kubectl rollout undo deployment/web` annule le dernier déploiement. `--to-revision=N` permet de revenir à une version spécifique."
+    },
+    {
+      question: "Que simule le conteneur market-simulator dans l'exercice financier Docker Compose ?",
+      options: [
+        "Un serveur web",
+        "Un générateur de prix de marché aléatoires",
+        "Une base de données",
+        "Un cache Redis"
+      ],
+      answer: "Un générateur de prix de marché aléatoires",
+      explanation: "Le market-simulator génère des prix aléatoires et les envoie dans Redis comme un flux de marché réel pour les tests."
+    },
+    {
+      question: "Pourquoi utilise-t-on healthcheck dans un fichier Docker Compose ?",
+      options: [
+        "Pour vérifier que le service fonctionne avant que les autres en dépendent",
+        "Pour améliorer les performances",
+        "Pour réduire la taille des images",
+        "Pour sécuriser le conteneur"
+      ],
+      answer: "Pour vérifier que le service fonctionne avant que les autres en dépendent",
+      explanation: "healthcheck permet de vérifier qu'un service est prêt avant que les autres services ne s'y connectent. Évite les erreurs de dépendance."
+    },
+    {
+      question: "Comment créer un secret Kubernetes avec kubectl ?",
+      options: [
+        "kubectl create secret generic --from-literal=key=value",
+        "kubectl secret create --key=value",
+        "kubectl new secret --key=value",
+        "kubectl add secret --key=value"
+      ],
+      answer: "kubectl create secret generic --from-literal=key=value",
+      explanation: "`kubectl create secret generic nom --from-literal=key=value` crée un secret. `--from-file` permet de le créer depuis un fichier."
+    }
+  ]
 };
 
 const renderInlineTokens = (text, keyPrefix) => {
   const regex = /(\*\*.*?\*\*|`.*?`|\*.*?\*)/g;
   const parts = text.split(regex);
   return parts.map((part, idx) => {
-    if (part.startsWith("**") && part.endsWith("**")) return <strong key={`${keyPrefix}-${idx}`} style={{ display: 'inline', fontWeight: 'bold' }}>{part.slice(2, -2)}</strong>;
-    if (part.startsWith("`") && part.endsWith("`")) return (
-      <code key={`${keyPrefix}-${idx}`} style={{ display: 'inline', backgroundColor: '#eef2f7', padding: '1px 5px', borderRadius: '3px', fontFamily: 'monospace', color: '#e01e5a', fontWeight: 'bold', fontSize: '13px' }}>
-        {part.slice(1, -1)}
-      </code>
-    );
-    if (part.startsWith("*") && part.endsWith("*")) return <em key={`${keyPrefix}-${idx}`} style={{ display: 'inline' }}>{part.slice(1, -1)}</em>;
+    if (part.startsWith("**") && part.endsWith("**")) {
+      return <strong key={`${keyPrefix}-${idx}`} style={{ display: 'inline', fontWeight: 'bold' }}>{part.slice(2, -2)}</strong>;
+    }
+    if (part.startsWith("`") && part.endsWith("`")) {
+      return (
+        <code key={`${keyPrefix}-${idx}`} style={{
+          display: 'inline',
+          backgroundColor: '#eef2f7',
+          padding: '1px 5px',
+          borderRadius: '3px',
+          fontFamily: 'monospace',
+          color: '#e01e5a',
+          fontWeight: 'bold',
+          fontSize: '13px'
+        }}>
+          {part.slice(1, -1)}
+        </code>
+      );
+    }
+    if (part.startsWith("*") && part.endsWith("*")) {
+      return <em key={`${keyPrefix}-${idx}`} style={{ display: 'inline' }}>{part.slice(1, -1)}</em>;
+    }
     return part;
   });
 };
@@ -874,16 +603,24 @@ const renderInlineTokens = (text, keyPrefix) => {
 const renderFormattedText = (text) => {
   if (!text) return null;
   let cleanText = text
-    .replace(/\r?\n- /g, " ◆ ").replace(/\r?\n• /g, " ◆ ").replace(/\r?\n/g, " ")
-    .replace(/\.-\s*\*\*/g, " ◆ **").replace(/-\s*\*\*/g, " ◆ **");
+    .replace(/\r?\n- /g, " ◆ ")
+    .replace(/\r?\n• /g, " ◆ ")
+    .replace(/\r?\n/g, " ")
+    .replace(/\.-\s*\*\*/g, " ◆ **")
+    .replace(/-\s*\*\*/g, " ◆ **");
+
   if (cleanText.startsWith(" ◆ ")) cleanText = cleanText.substring(3);
   if (cleanText.startsWith("- ")) cleanText = cleanText.substring(2);
+
   const segments = cleanText.split(" ◆ ");
+
   return (
     <span style={{ display: 'block', lineHeight: '1.7' }}>
       {segments.map((segment, segIdx) => (
         <span key={segIdx} style={{ display: 'block', marginBottom: segIdx < segments.length - 1 ? '6px' : '0' }}>
-          {segIdx > 0 && <span style={{ color: '#1a73e8', fontWeight: 'bold', marginRight: '5px' }}>◆</span>}
+          {segIdx > 0 && (
+            <span style={{ color: '#1a73e8', fontWeight: 'bold', marginRight: '5px' }}>◆</span>
+          )}
           {renderInlineTokens(segment, `seg-${segIdx}`)}
         </span>
       ))}
@@ -907,9 +644,12 @@ const QuestionCard = ({ question, options, onAnswerClick, timeLeft }) => (
   </div>
 );
 
-const Flashcard = ({ slide }) => (
+const Flashcard = ({ slide, timeLeft }) => (
   <div className="question-card" style={{ fontSize: '14px', margin: '0' }}>
-    <p style={{ fontWeight: 'bold', fontSize: '15px', color: '#1a73e8', margin: '0 0 10px 0' }}>{slide.question}</p>
+    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '10px' }}>
+      <p style={{ fontWeight: 'bold', fontSize: '15px', color: '#1a73e8', margin: '0' }}>{slide.question}</p>
+      <Timer timeLeft={timeLeft} />
+    </div>
     <div style={{ padding: '12px 15px', background: '#f8f9fa', borderRadius: '8px', borderLeft: '4px solid #1a73e8', textAlign: 'left' }}>
       {renderFormattedText(slide.answer)}
     </div>
@@ -924,57 +664,96 @@ const Results = ({ scores }) => {
       <h3>🎯 Score : {totalScore} / {totalQuestions}</h3>
       <p>✅ Moyen : {scores.moyen}/{questions.moyen.length} | ✅ Avancé : {scores.avance}/{questions.avance.length} | ✅ Expert : {scores.expert}/{questions.expert.length}</p>
       {totalScore >= Math.floor(totalQuestions * 0.6)
-        ? <h3 className="success">🚀 Fondations Microservices / JSON / async / LINQ maîtrisées !</h3>
-        : <p className="fail">📚 Révisez les slides — focus sur les points de confusion marqués ⚠️.</p>}
+        ? <h3 className="success">🚀 Docker, Kubernetes & ArmoniK maîtrisés !</h3>
+        : <p className="fail">📚 Révisez Docker, Compose, Kubernetes et ArmoniK.</p>
+      }
     </div>
   );
 };
 
-const MicroservicesFoundationsQCM = () => {
+const Page6_TechInterview = () => {
   const [level, setLevel] = useState("basic");
   const [currentSlide, setCurrentSlide] = useState(0);
   const [currentQuestion, setCurrentQuestion] = useState(0);
   const [scores, setScores] = useState({ moyen: 0, avance: 0, expert: 0 });
-  const [timeLeft, setTimeLeft] = useState(25);
+  const [timeLeft, setTimeLeft] = useState(15);
+  const [slideTimeLeft, setSlideTimeLeft] = useState(15);
   const [showResult, setShowResult] = useState(false);
   const [message, setMessage] = useState("");
 
   const handleNextQuestion = useCallback(() => {
     const qs = questions[level];
-    if (currentQuestion + 1 < qs.length) { setCurrentQuestion(q => q + 1); setTimeLeft(25); setMessage(""); }
-    else {
-      if (level === "moyen") setLevel("avance");
-      else if (level === "avance") setLevel("expert");
-      else setShowResult(true);
-      setCurrentQuestion(0); setTimeLeft(25); setMessage("");
+    if (currentQuestion + 1 < qs.length) {
+      setCurrentQuestion(q => q + 1);
+      setTimeLeft(15);
+      setMessage("");
+    } else {
+      if (level === "moyen") { 
+        setLevel("avance"); 
+        setCurrentQuestion(0);
+        setTimeLeft(15);
+        setMessage("");
+      } else if (level === "avance") { 
+        setLevel("expert");
+        setCurrentQuestion(0);
+        setTimeLeft(15);
+        setMessage("");
+      } else { 
+        setShowResult(true); 
+      }
     }
-  }, [level, currentQuestion]);;
+  }, [level, currentQuestion]);
 
   useEffect(() => {
     if (level !== "basic" && !showResult && !message) {
-      if (timeLeft > 0) { const t = setTimeout(() => setTimeLeft(t2 => t2 - 1), 1000); return () => clearTimeout(t); }
-      else handleNextQuestion();
+      if (timeLeft > 0) {
+        const t = setTimeout(() => setTimeLeft(t2 => t2 - 1), 1000);
+        return () => clearTimeout(t);
+      } else {
+        handleNextQuestion();
+      }
     }
   }, [timeLeft, level, showResult, message, handleNextQuestion]);
 
   useEffect(() => {
     if (level === "basic" && !showResult) {
-      const i = setInterval(() => {
-        setCurrentSlide(prev => {
-          if (prev + 1 < basicSlides.length) return prev + 1;
-          setLevel("moyen"); setCurrentQuestion(0); setTimeLeft(25); return 0;
+      const slideTimer = setInterval(() => {
+        setSlideTimeLeft(prev => {
+          if (prev > 1) {
+            return prev - 1;
+          } else {
+            setCurrentSlide(prevSlide => {
+              if (prevSlide + 1 < basicSlides.length) {
+                setSlideTimeLeft(15);
+                return prevSlide + 1;
+              } else {
+                setLevel("moyen");
+                setCurrentQuestion(0);
+                setTimeLeft(15);
+                setSlideTimeLeft(15);
+                return 0;
+              }
+            });
+            return 15;
+          }
         });
-      }, 20000);
-      return () => clearInterval(i);
+      }, 1000);
+      return () => clearInterval(slideTimer);
     }
   }, [level, showResult]);
 
   const handleAnswerClick = (option) => {
     if (message) return;
     const current = questions[level][currentQuestion];
-    if (option === current.answer) { setScores(p => ({ ...p, [level]: p[level] + 1 })); setMessage("✅ Correct !"); }
-    else { setMessage(`❌ ${current.answer}\n\nℹ️ ${current.explanation}`); }
-    setTimeout(handleNextQuestion, 4000);
+    if (option === current.answer) {
+      setScores(p => ({ ...p, [level]: p[level] + 1 }));
+      setMessage("✅ Correct !");
+    } else {
+      setMessage(`❌ Réponse : ${current.answer}\n\nℹ️ ${current.explanation}`);
+    }
+    setTimeout(() => {
+      handleNextQuestion();
+    }, 4000);
   };
 
   return (
@@ -982,13 +761,21 @@ const MicroservicesFoundationsQCM = () => {
       {showResult ? <Results scores={scores} /> : (
         <div>
           <h4 className="subtitle" style={{ fontSize: '10px', margin: '0 0 6px 0' }}>
-            Microservices · JSON · MSMQ · async · LINQ 🔹 {level === "basic"
+            Docker & Orchestration 🔹 {level === "basic"
               ? `Slide ${currentSlide + 1}/${basicSlides.length}`
-              : `QCM ${level.toUpperCase()} — Q${currentQuestion + 1}/${questions[level].length}`}
+              : `QCM ${level.toUpperCase()} — Q${currentQuestion + 1}/${questions[level].length}`
+            }
           </h4>
-          {level === "basic"
-            ? <Flashcard slide={basicSlides[currentSlide]} />
-            : <QuestionCard question={questions[level][currentQuestion].question} options={questions[level][currentQuestion].options} onAnswerClick={handleAnswerClick} timeLeft={timeLeft} />}
+          {level === "basic" ? (
+            <Flashcard slide={basicSlides[currentSlide]} timeLeft={slideTimeLeft} />
+          ) : (
+            <QuestionCard
+              question={questions[level][currentQuestion].question}
+              options={questions[level][currentQuestion].options}
+              onAnswerClick={handleAnswerClick}
+              timeLeft={timeLeft}
+            />
+          )}
           {message && <p className="message" style={{ whiteSpace: 'pre-wrap', marginTop: '8px' }}>{message}</p>}
         </div>
       )}
@@ -996,4 +783,4 @@ const MicroservicesFoundationsQCM = () => {
   );
 };
 
-export default MicroservicesFoundationsQCM;
+export default Page6_TechInterview;
