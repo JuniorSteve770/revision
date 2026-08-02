@@ -77,7 +77,7 @@ const questions = {
         "L'image contient les données persistantes du conteneur"
       ],
       answer: "Une image est un modèle en lecture seule, un conteneur est une instance en cours d'exécution",
-      explanation: "L'image est statique (modèle). Le conteneur est l'exécution de l'image avec une couche inscriptible. Supprimer un conteneur ne supprime pas l'image."
+      explanation: "L'image est statique (modèle). Le conteneur est l'exécution de l'image avec une couche inscriptible."
     },
     {
       question: "Que signifie l'option -p 8080:80 dans docker run ?",
@@ -91,122 +91,133 @@ const questions = {
       explanation: "La syntaxe -p hôte:conteneur signifie que le port 8080 de votre machine est redirigé vers le port 80 du conteneur."
     },
     {
-      question: "Quelle commande permet de voir les logs d'un conteneur Docker ?",
+      question: "Quelle combinaison de commandes permet de télécharger une image ET lancer un conteneur en une seule fois ?",
       options: [
-        "docker logs",
-        "docker show logs",
-        "docker print",
-        "docker tail"
+        "docker pull puis docker run",
+        "docker run seul (télécharge si l'image n'existe pas)",
+        "docker start puis docker run",
+        "docker create puis docker start"
       ],
-      answer: "docker logs",
-      explanation: "`docker logs conteneur` affiche les logs. Avec `-f` pour suivre en temps réel (tail -f)."
+      answer: "docker run seul (télécharge si l'image n'existe pas)",
+      explanation: "`docker run` télécharge l'image SI elle n'existe pas localement ET démarre le conteneur. C'est une combinaison de pull + create + start."
+    },
+    {
+      question: "Quelle commande permet de voir les logs d'un conteneur Docker en temps réel ?",
+      options: [
+        "docker logs conteneur",
+        "docker logs -f conteneur",
+        "docker logs --tail conteneur",
+        "docker show logs conteneur"
+      ],
+      answer: "docker logs -f conteneur",
+      explanation: "`-f` (follow) permet de suivre les logs en temps réel, comme `tail -f`."
     },
     {
       question: "À quoi sert un volume Docker ?",
       options: [
-        "À isoler les processus",
+        "À isoler les processus du conteneur",
         "À persister les données au-delà du cycle de vie du conteneur",
-        "À limiter la mémoire",
-        "À exposer un port réseau"
+        "À limiter la mémoire utilisée",
+        "À exposer un port réseau vers l'extérieur"
       ],
       answer: "À persister les données au-delà du cycle de vie du conteneur",
       explanation: "Le conteneur est éphémère. Le volume est un stockage externe persistant qui survit à la destruction du conteneur."
     },
     {
-      question: "Quelle commande permet d'exécuter une commande dans un conteneur en cours ?",
+      question: "Quelle combinaison de commandes permet de copier un fichier DANS un conteneur puis d'exécuter une commande à l'intérieur ?",
       options: [
-        "docker run",
-        "docker exec",
-        "docker attach",
-        "docker start"
+        "docker cp puis docker exec",
+        "docker copy puis docker run",
+        "docker transfer puis docker start",
+        "docker move puis docker attach"
       ],
-      answer: "docker exec",
-      explanation: "`docker exec -it conteneur sh` ouvre un shell interactif dans le conteneur. `run` crée un nouveau conteneur."
+      answer: "docker cp puis docker exec",
+      explanation: "`docker cp` copie le fichier dans le conteneur, puis `docker exec` exécute la commande à l'intérieur."
     },
     {
-      question: "Que fait l'option -d dans docker compose up ?",
+      question: "Que fait l'option -d dans docker compose up -d ?",
       options: [
-        "Lance les services en mode debug",
+        "Lance les services en mode debug avec logs détaillés",
         "Lance les services en arrière-plan (détaché)",
         "Supprime les conteneurs après l'exécution",
-        "Exécute les services en mode interactif"
+        "Exécute les services en mode interactif avec terminal"
       ],
       answer: "Lance les services en arrière-plan (détaché)",
       explanation: "`-d` (detach) lance les services en arrière-plan, libérant le terminal pour d'autres commandes."
     },
     {
+      question: "Quelle combinaison de commandes Docker Compose permet de démarrer les services en arrière-plan ET de voir les logs d'un service spécifique ?",
+      options: [
+        "docker compose up -d puis docker compose logs -f service",
+        "docker compose start puis docker compose show service",
+        "docker compose run puis docker compose output service",
+        "docker compose up puis docker compose inspect service"
+      ],
+      answer: "docker compose up -d puis docker compose logs -f service",
+      explanation: "`up -d` démarre en arrière-plan, puis `logs -f service` suit les logs du service spécifique."
+    },
+    {
       question: "Qu'est-ce qu'un Pod dans Kubernetes ?",
       options: [
-        "Un serveur web",
+        "Un serveur web intégré à Kubernetes",
         "L'unité de base, contenant un ou plusieurs conteneurs partageant le même réseau",
-        "Un type de service",
-        "Un volume de stockage"
+        "Un type de service pour exposer des applications",
+        "Un volume de stockage persistant pour les données"
       ],
       answer: "L'unité de base, contenant un ou plusieurs conteneurs partageant le même réseau",
-      explanation: "Le Pod est l'unité atomique de Kubernetes. Plusieurs conteneurs dans un Pod peuvent communiquer via localhost et partager des volumes."
+      explanation: "Le Pod est l'unité atomique de Kubernetes. Plusieurs conteneurs dans un Pod communiquent via localhost et partagent des volumes."
     },
     {
       question: "À quoi sert un Deployment dans Kubernetes ?",
       options: [
-        "Exposer un service sur le réseau",
-        "Gérer le scaling, les rolling updates et les rollbacks des Pods",
-        "Stocker des données persistantes",
-        "Configurer des variables d'environnement"
+        "À exposer un service sur le réseau externe",
+        "À gérer le scaling, les rolling updates et les rollbacks des Pods",
+        "À stocker des données persistantes pour l'application",
+        "À configurer des variables d'environnement pour les Pods"
       ],
-      answer: "Gérer le scaling, les rolling updates et les rollbacks des Pods",
+      answer: "À gérer le scaling, les rolling updates et les rollbacks des Pods",
       explanation: "Le Deployment déclare l'état désiré des Pods (réplicas, image). K8s maintient cet état automatiquement."
     },
     {
-      question: "Quelle commande kubectl applique un fichier de configuration ?",
+      question: "Quelle combinaison de commandes kubectl permet d'appliquer une configuration ET de vérifier l'état des Pods ?",
       options: [
-        "kubectl create -f",
-        "kubectl apply -f",
-        "kubectl run -f",
-        "kubectl deploy -f"
+        "kubectl apply -f fichier.yaml puis kubectl get pods",
+        "kubectl create -f fichier.yaml puis kubectl describe pods",
+        "kubectl run -f fichier.yaml puis kubectl list pods",
+        "kubectl deploy -f fichier.yaml puis kubectl show pods"
       ],
-      answer: "kubectl apply -f",
-      explanation: "`kubectl apply -f pod.yaml` applique la configuration (create ou update). `create` ne fait que créer."
+      answer: "kubectl apply -f fichier.yaml puis kubectl get pods",
+      explanation: "`apply -f` applique la configuration, puis `get pods` vérifie l'état des Pods créés."
     },
     {
       question: "Qu'est-ce qu'une session dans ArmoniK ?",
       options: [
-        "Un worker qui exécute des tâches",
-        "Un groupe de tâches liées logiquement",
-        "Un type de stockage",
-        "Une commande de déploiement"
+        "Un worker qui exécute des tâches de calcul",
+        "Un groupe de tâches liées logiquement partageant le même contexte",
+        "Un type de stockage pour les résultats de calcul",
+        "Une commande de déploiement de l'orchestrateur"
       ],
-      answer: "Un groupe de tâches liées logiquement",
+      answer: "Un groupe de tâches liées logiquement partageant le même contexte",
       explanation: "Une session regroupe des tâches qui partagent le même contexte et la même configuration."
     },
     {
-      question: "Comment copier un fichier dans un conteneur Docker ?",
+      question: "Quelle combinaison de commandes Docker permet de créer une image ET de la lancer immédiatement ?",
       options: [
-        "docker copy",
-        "docker cp",
-        "docker transfer",
-        "docker push"
+        "docker build -t image . puis docker run image",
+        "docker create image puis docker start image",
+        "docker commit puis docker run",
+        "docker save puis docker load"
       ],
-      answer: "docker cp",
-      explanation: "`docker cp <source> <conteneur>:<destination>` copie des fichiers entre l'hôte et le conteneur."
-    },
-    {
-      question: "Que fait la commande docker commit ?",
-      options: [
-        "Supprime une image",
-        "Crée une nouvelle image à partir d'un conteneur modifié",
-        "Envoie une image vers Docker Hub",
-        "Construit une image depuis un Dockerfile"
-      ],
-      answer: "Crée une nouvelle image à partir d'un conteneur modifié",
-      explanation: "`docker commit` sauvegarde les modifications d'un conteneur dans une nouvelle image."
+      answer: "docker build -t image . puis docker run image",
+      explanation: "`docker build` construit l'image avec un tag, puis `docker run` la lance immédiatement."
     },
     {
       question: "Comment lister tous les conteneurs Docker (actifs et arrêtés) ?",
       options: [
-        "docker list",
+        "docker list --all",
         "docker ps -a",
         "docker ps",
-        "docker show"
+        "docker show --all"
       ],
       answer: "docker ps -a",
       explanation: "`docker ps` liste uniquement les conteneurs actifs. `docker ps -a` liste TOUS les conteneurs (même arrêtés)."
@@ -214,106 +225,106 @@ const questions = {
     {
       question: "Que signifie l'option -e dans docker run ?",
       options: [
-        "Définit une variable d'environnement",
-        "Expose un port",
-        "Exécute en mode interactif",
-        "Utilise un volume externe"
+        "Définit une variable d'environnement pour configurer le conteneur",
+        "Expose un port du conteneur vers l'extérieur",
+        "Exécute le conteneur en mode interactif",
+        "Utilise un volume externe pour les données"
       ],
-      answer: "Définit une variable d'environnement",
+      answer: "Définit une variable d'environnement pour configurer le conteneur",
       explanation: "`-e NOM=valeur` définit une variable d'environnement dans le conteneur. Essentiel pour la configuration."
     },
     {
-      question: "Quel est le rôle de depends_on dans Docker Compose ?",
+      question: "Quelle combinaison de commandes Docker Compose permet d'arrêter les services ET de nettoyer les volumes ?",
       options: [
-        "Définit les dépendances entre services (ordre de démarrage)",
-        "Définit les variables d'environnement",
-        "Configure les volumes",
-        "Expose les ports des services"
+        "docker compose stop puis docker compose rm",
+        "docker compose down -v",
+        "docker compose kill puis docker compose prune",
+        "docker compose pause puis docker compose delete"
       ],
-      answer: "Définit les dépendances entre services (ordre de démarrage)",
-      explanation: "`depends_on` assure qu'un service démarre après un autre. Utile quand un service a besoin d'un autre pour fonctionner."
+      answer: "docker compose down -v",
+      explanation: "`docker compose down -v` arrête les services, supprime les conteneurs, les réseaux ET les volumes."
     }
   ],
   avance: [
     {
-      question: "Comment créer un réseau Docker personnalisé ?",
+      question: "Comment créer un réseau Docker personnalisé pour faire communiquer plusieurs conteneurs ?",
       options: [
-        "docker network create",
-        "docker network new",
-        "docker create network",
-        "docker network add"
+        "docker network create mon-reseau",
+        "docker network new mon-reseau",
+        "docker create network mon-reseau",
+        "docker network add mon-reseau"
       ],
-      answer: "docker network create",
-      explanation: "`docker network create <nom>` crée un réseau personnalisé. Les conteneurs sur ce réseau communiquent via leurs noms."
+      answer: "docker network create mon-reseau",
+      explanation: "`docker network create` crée un réseau personnalisé. Les conteneurs sur ce réseau communiquent via leurs noms."
     },
     {
-      question: "Comment mettre à l'échelle un service avec Docker Compose ?",
+      question: "Quelle combinaison de commandes permet de lancer 3 instances d'un service avec Docker Compose ?",
       options: [
-        "docker compose scale service=3",
-        "docker compose up --scale service=3 -d",
-        "docker compose up service=3",
-        "docker scale service 3"
+        "docker compose up -d --scale service=3",
+        "docker compose run --replicas 3 service",
+        "docker compose start --instances 3 service",
+        "docker compose deploy --scale service=3"
       ],
-      answer: "docker compose up --scale service=3 -d",
-      explanation: "`--scale service=N` crée N instances du service. `docker compose up -d` doit être utilisé pour appliquer le scaling."
+      answer: "docker compose up -d --scale service=3",
+      explanation: "`--scale service=N` crée N instances du service avec `up -d` pour les lancer en arrière-plan."
     },
     {
       question: "Qu'est-ce qu'une ConfigMap dans Kubernetes ?",
       options: [
-        "Un outil de monitoring",
-        "Un stockage de données de configuration (non sensibles)",
-        "Un type de Pod",
-        "Un serveur DNS"
+        "Un outil de monitoring pour les Pods",
+        "Un stockage de données de configuration non sensibles, séparées du code",
+        "Un type de Pod spécial pour la configuration",
+        "Un serveur DNS interne au cluster"
       ],
-      answer: "Un stockage de données de configuration (non sensibles)",
+      answer: "Un stockage de données de configuration non sensibles, séparées du code",
       explanation: "ConfigMap stocke des données de configuration (variables d'environnement, fichiers) séparées du code."
     },
     {
-      question: "Quelle est la différence entre docker stop et docker rm ?",
+      question: "Quelle combinaison de commandes Docker permet d'arrêter ET de supprimer un conteneur en une seule fois ?",
       options: [
-        "stop arrête le conteneur, rm le supprime définitivement",
-        "stop supprime, rm arrête",
-        "Les deux font la même chose",
-        "stop redémarre, rm arrête"
+        "docker stop conteneur puis docker rm conteneur",
+        "docker rm -f conteneur",
+        "docker kill conteneur puis docker delete",
+        "docker stop conteneur puis docker delete"
       ],
-      answer: "stop arrête le conteneur, rm le supprime définitivement",
-      explanation: "`docker stop` arrête le conteneur mais il reste présent (peut être redémarré). `docker rm` supprime le conteneur."
+      answer: "docker rm -f conteneur",
+      explanation: "`docker rm -f` force l'arrêt ET la suppression du conteneur en une seule commande."
     },
     {
       question: "Comment les conteneurs Docker communiquent-ils sur un réseau personnalisé ?",
       options: [
-        "Via leur adresse IP",
-        "Via leur nom de conteneur",
-        "Via leur ID",
-        "Via le port 80"
+        "Via leur adresse IP attribuée automatiquement",
+        "Via leur nom de conteneur (résolution DNS interne)",
+        "Via leur ID unique de conteneur",
+        "Via le port 80 par défaut"
       ],
-      answer: "Via leur nom de conteneur",
+      answer: "Via leur nom de conteneur (résolution DNS interne)",
       explanation: "Sur un réseau personnalisé, les conteneurs peuvent se joindre par leur nom. Ex: `ping mysql` depuis un autre conteneur."
     },
     {
-      question: "Que fait la commande docker compose down -v ?",
+      question: "Quelle combinaison de commandes Kubernetes permet de voir les logs d'un Pod ET d'exécuter une commande à l'intérieur ?",
       options: [
-        "Arrête les services",
-        "Arrête et supprime les conteneurs, réseaux ET volumes",
-        "Arrête et redémarre",
-        "Supprime uniquement les images"
+        "kubectl logs pod puis kubectl exec -it pod -- bash",
+        "kubectl describe pod puis kubectl run pod",
+        "kubectl get pod puis kubectl attach pod",
+        "kubectl show pod puis kubectl enter pod"
       ],
-      answer: "Arrête et supprime les conteneurs, réseaux ET volumes",
-      explanation: "`-v` supprime aussi les volumes définis dans le compose. Attention : les données persistantes sont perdues."
+      answer: "kubectl logs pod puis kubectl exec -it pod -- bash",
+      explanation: "`logs` affiche les logs, `exec -it` ouvre un shell interactif dans le Pod."
     },
     {
       question: "Qu'est-ce qu'un PersistentVolume (PV) dans Kubernetes ?",
       options: [
-        "Un volume temporaire",
+        "Un volume temporaire qui disparaît avec le Pod",
         "Un stockage persistant qui survit au cycle de vie des Pods",
-        "Un volume partagé entre clusters",
-        "Un type de Pod spécial"
+        "Un volume partagé entre plusieurs clusters Kubernetes",
+        "Un type de Pod spécial pour le stockage"
       ],
       answer: "Un stockage persistant qui survit au cycle de vie des Pods",
       explanation: "PersistentVolume (PV) est une ressource de stockage provisionnée par l'administrateur. Les Pods y accèdent via PVC."
     },
     {
-      question: "Comment exposer un Pod Kubernetes sur le port 8080 de l'hôte ?",
+      question: "Comment exposer un Pod Kubernetes sur le port 8080 de l'hôte pour le débogage ?",
       options: [
         "kubectl expose pod --port=8080",
         "kubectl port-forward pod 8080:80",
@@ -326,27 +337,38 @@ const questions = {
     {
       question: "Qu'est-ce qu'un Ingress dans Kubernetes ?",
       options: [
-        "Un type de Pod",
-        "Un volume de stockage",
+        "Un type de Pod pour le routage",
         "Un contrôleur qui gère l'accès externe avec routage HTTP/HTTPS",
-        "Un outil de monitoring"
+        "Un volume de stockage persistant",
+        "Un outil de monitoring intégré"
       ],
       answer: "Un contrôleur qui gère l'accès externe avec routage HTTP/HTTPS",
       explanation: "Ingress gère l'accès externe aux services, avec routage basé sur les hôtes et les chemins."
     },
     {
-      question: "Quelle est la commande pour soumettre une tâche dans ArmoniK ?",
+      question: "Quelle combinaison de commandes ArmoniK permet de créer une session ET de soumettre une tâche ?",
       options: [
-        "armonik run",
-        "armonik submit",
-        "armonik start",
-        "armonik create"
+        "armonik create session puis armonik submit --session",
+        "armonik init puis armonik run",
+        "armonik start puis armonik task",
+        "armonik new session puis armonik add task"
       ],
-      answer: "armonik submit",
-      explanation: "`armonik submit --session --payload --input --args` soumet une tâche de calcul à l'orchestrateur ArmoniK."
+      answer: "armonik create session puis armonik submit --session",
+      explanation: "`create session` crée la session, puis `submit --session` soumet la tâche dans cette session."
     },
     {
-      question: "Comment voir les logs d'un service dans Docker Compose ?",
+      question: "Quelle combinaison de commandes Docker permet de lancer un conteneur MySQL AVEC variables d'environnement ET volume persistant ?",
+      options: [
+        "docker run -d --name mysql -e MYSQL_ROOT_PASSWORD=root -v mysql-data:/var/lib/mysql mysql",
+        "docker start mysql -env MYSQL_ROOT_PASSWORD=root -volume mysql-data",
+        "docker create mysql --env root=root --volume mysql-data",
+        "docker run mysql -p 3306 -v data mysql"
+      ],
+      answer: "docker run -d --name mysql -e MYSQL_ROOT_PASSWORD=root -v mysql-data:/var/lib/mysql mysql",
+      explanation: "`-e` pour les variables, `-v` pour le volume persistant, `-d` pour l'arrière-plan."
+    },
+    {
+      question: "Comment voir les logs d'un service spécifique dans Docker Compose ?",
       options: [
         "docker compose logs -f service",
         "docker compose show service",
@@ -359,62 +381,62 @@ const questions = {
     {
       question: "Qu'est-ce qu'un Secret dans Kubernetes ?",
       options: [
-        "Un type de service caché",
-        "Un stockage de données sensibles (mots de passe, clés API)",
-        "Un réseau privé",
-        "Un pod invisible"
+        "Un type de service caché non exposé",
+        "Un stockage de données sensibles (mots de passe, clés API) encodées",
+        "Un réseau privé isolé",
+        "Un pod invisible aux autres pods"
       ],
-      answer: "Un stockage de données sensibles (mots de passe, clés API)",
+      answer: "Un stockage de données sensibles (mots de passe, clés API) encodées",
       explanation: "Secret stocke des données sensibles comme les mots de passe, tokens, clés API. Les données sont encodées en base64."
     },
     {
-      question: "Comment créer un volume Docker persistant ?",
+      question: "Quelle combinaison de commandes Docker permet de sauvegarder une image ET de la charger sur un autre poste ?",
       options: [
-        "docker volume create",
-        "docker volume new",
-        "docker create volume",
-        "docker volume add"
+        "docker save image > image.tar puis docker load < image.tar",
+        "docker export image > image.tar puis docker import < image.tar",
+        "docker backup image puis docker restore image",
+        "docker copy image puis docker paste image"
       ],
-      answer: "docker volume create",
-      explanation: "`docker volume create <nom>` crée un volume persistant. Le volume survit à la suppression des conteneurs."
+      answer: "docker save image > image.tar puis docker load < image.tar",
+      explanation: "`docker save` sauvegarde l'image dans un fichier tar, `docker load` la charge depuis ce fichier."
     },
     {
       question: "Que fait kubectl describe pod ?",
       options: [
-        "Affiche les logs du pod",
-        "Affiche des détails complets (events, état, conditions)",
-        "Supprime le pod",
-        "Redémarre le pod"
+        "Affiche les logs en temps réel du pod",
+        "Affiche des détails complets (events, état, conditions, IP)",
+        "Supprime définitivement le pod",
+        "Redémarre le pod automatiquement"
       ],
-      answer: "Affiche des détails complets (events, état, conditions)",
+      answer: "Affiche des détails complets (events, état, conditions, IP)",
       explanation: "`describe` donne des détails complets (events, état, conditions). `get -o yaml` donne la définition YAML brute."
     },
     {
-      question: "Comment redémarrer un conteneur Docker arrêté ?",
+      question: "Quelle combinaison de commandes ArmoniK permet de soumettre une tâche AVEC dépendance ET de récupérer le résultat ?",
       options: [
-        "docker restart",
-        "docker start",
-        "docker run",
-        "docker revive"
+        "armonik submit --depends-on task-id puis armonik get result --task",
+        "armonik run --after task-id puis armonik download",
+        "armonik task --depends task-id puis armonik output",
+        "armonik start --wait task-id puis armonik fetch"
       ],
-      answer: "docker start",
-      explanation: "`docker start <conteneur>` redémarre un conteneur arrêté. `restart` redémarre un conteneur en cours d'exécution."
+      answer: "armonik submit --depends-on task-id puis armonik get result --task",
+      explanation: "`--depends-on` spécifie la dépendance, puis `get result` récupère le résultat de la tâche."
     }
   ],
   expert: [
     {
-      question: "Quelle est la commande pour appliquer un rolling update dans Kubernetes ?",
+      question: "Quelle combinaison de commandes Kubernetes permet de mettre à jour l'image d'un Deployment AVEC rolling update ?",
       options: [
-        "kubectl update deploy/app --image=new:v2",
-        "kubectl set image deploy/app container=new:v2",
-        "kubectl patch deploy/app --image=new:v2",
-        "kubectl replace deploy/app --image=new:v2"
+        "kubectl set image deploy/app container=new:v2 puis kubectl rollout status",
+        "kubectl update deploy/app --image=new:v2 puis kubectl wait",
+        "kubectl patch deploy/app --image=new:v2 puis kubectl describe",
+        "kubectl replace deploy/app --image=new:v2 puis kubectl get pods"
       ],
-      answer: "kubectl set image deploy/app container=new:v2",
-      explanation: "`kubectl set image deployment/nom conteneur=nouvelle_image` déclenche un rolling update. Exemple : `kubectl set image deploy/app app=nginx:1.21`."
+      answer: "kubectl set image deploy/app container=new:v2 puis kubectl rollout status",
+      explanation: "`set image` déclenche le rolling update, `rollout status` suit la progression du déploiement."
     },
     {
-      question: "Dans Docker Swarm, comment créer un réseau overlay pour les services ?",
+      question: "Dans Docker Swarm, comment créer un réseau overlay pour les services multi-hôtes ?",
       options: [
         "docker network create --driver overlay mon-reseau",
         "docker swarm network create mon-reseau",
@@ -422,73 +444,73 @@ const questions = {
         "docker service network create mon-reseau"
       ],
       answer: "docker network create --driver overlay mon-reseau",
-      explanation: "`docker network create --driver overlay mon-reseau` crée un réseau multi-hôtes. Les services Swarm peuvent l'utiliser avec `--network mon-reseau`."
+      explanation: "`--driver overlay` crée un réseau multi-hôtes pour Swarm. Les services peuvent l'utiliser avec `--network`."
     },
     {
       question: "Quelle est la différence entre un ReplicaSet et un Deployment dans Kubernetes ?",
       options: [
-        "ReplicaSet et Deployment sont identiques",
+        "ReplicaSet et Deployment sont identiques et interchangeables",
         "ReplicaSet maintient un nombre fixe de Pods, Deployment gère les rolling updates avec ReplicaSet en interne",
-        "Deployment est obsolète, ReplicaSet le remplace",
-        "ReplicaSet est pour les bases de données"
+        "Deployment est obsolète et remplacé par ReplicaSet",
+        "ReplicaSet est pour les bases de données, Deployment pour les applications web"
       ],
       answer: "ReplicaSet maintient un nombre fixe de Pods, Deployment gère les rolling updates avec ReplicaSet en interne",
       explanation: "Le ReplicaSet assure qu'un nombre spécifié de Pods est en cours d'exécution. Le Deployment est une couche au-dessus qui gère les rolling updates et rollbacks."
     },
     {
-      question: "Comment utiliser les dépendances entre tâches dans ArmoniK ?",
+      question: "Quelle combinaison de commandes ArmoniK permet de créer un workflow avec dépendances entre tâches ?",
       options: [
-        "armonik submit --depends-on task-id",
-        "armonik wait task-id",
-        "armonik depend task-id",
-        "armonik link task-id"
+        "armonik submit --depends-on task-id pour chaque tâche dépendante",
+        "armonik link task1 task2 puis armonik run",
+        "armonik chain task1 task2 puis armonik execute",
+        "armonik sequence task1 task2 puis armonik start"
       ],
-      answer: "armonik submit --depends-on task-id",
-      explanation: "`--depends-on task-id` spécifie qu'une tâche dépend d'une autre. Le scheduler exécute les tâches dans l'ordre des dépendances."
+      answer: "armonik submit --depends-on task-id pour chaque tâche dépendante",
+      explanation: "Chaque tâche utilise `--depends-on` pour spécifier ses dépendances. Le scheduler exécute dans l'ordre."
     },
     {
-      question: "Que fait la commande docker system prune -a -f ?",
+      question: "Quelle combinaison de commandes Docker permet de nettoyer TOUTES les ressources inutilisées (images, conteneurs, réseaux, volumes) ?",
       options: [
-        "Supprime tous les conteneurs",
-        "Nettoye toutes les ressources inutilisées (images, conteneurs, réseaux)",
-        "Supprime uniquement les images",
-        "Redémarre Docker"
+        "docker system prune -a -f puis docker volume prune -f",
+        "docker clean --all",
+        "docker remove --unused",
+        "docker purge --everything"
       ],
-      answer: "Nettoye toutes les ressources inutilisées (images, conteneurs, réseaux)",
-      explanation: "`docker system prune -a -f` nettoie toutes les ressources inutilisées sans confirmation. Utile pour libérer de l'espace disque."
+      answer: "docker system prune -a -f puis docker volume prune -f",
+      explanation: "`system prune -a -f` nettoie images, conteneurs, réseaux. `volume prune -f` nettoie les volumes inutilisés."
     },
     {
       question: "Qu'est-ce qu'un PersistentVolumeClaim (PVC) dans Kubernetes ?",
       options: [
-        "Un volume physique",
-        "Une demande de stockage par un Pod",
-        "Un type de service",
-        "Un cluster de stockage"
+        "Un volume physique sur le nœud",
+        "Une demande de stockage par un Pod, qui déclenche l'attribution d'un PV",
+        "Un type de service pour le stockage",
+        "Un cluster de stockage distribué"
       ],
-      answer: "Une demande de stockage par un Pod",
+      answer: "Une demande de stockage par un Pod, qui déclenche l'attribution d'un PV",
       explanation: "Un PVC est une demande de stockage par un Pod. Le cluster attribue un PV disponible qui répond aux critères demandés."
     },
     {
-      question: "Comment récupérer le résultat d'une tâche ArmoniK ?",
+      question: "Quelle combinaison de commandes ArmoniK permet de récupérer un résultat ET de le sauvegarder dans un fichier ?",
       options: [
-        "armonik get result --task task-id",
-        "armonik download task-id",
-        "armonik output task-id",
-        "armonik show task-id"
+        "armonik get result --task task-id --output fichier.txt",
+        "armonik download task-id > fichier.txt",
+        "armonik result task-id --save fichier.txt",
+        "armonik fetch task-id --file fichier.txt"
       ],
-      answer: "armonik get result --task task-id",
-      explanation: "`armonik get result --task task-id` récupère le résultat d'une tâche. L'option `--output` permet de sauvegarder dans un fichier."
+      answer: "armonik get result --task task-id --output fichier.txt",
+      explanation: "`--output` sauvegarde le résultat directement dans le fichier spécifié."
     },
     {
-      question: "Quelle est la commande pour voir l'historique des déploiements Kubernetes ?",
+      question: "Quelle combinaison de commandes Kubernetes permet de voir l'historique des déploiements ET d'annuler le dernier ?",
       options: [
-        "kubectl rollout history deployment/web",
-        "kubectl history deployment/web",
-        "kubectl get history deployment/web",
-        "kubectl describe deployment/web"
+        "kubectl rollout history deployment/web puis kubectl rollout undo",
+        "kubectl history deployment/web puis kubectl rollback",
+        "kubectl get deployments puis kubectl revert",
+        "kubectl describe deployment/web puis kubectl restore"
       ],
-      answer: "kubectl rollout history deployment/web",
-      explanation: "`kubectl rollout history deployment/web` affiche l'historique des versions d'un Deployment. Utile pour les rollbacks."
+      answer: "kubectl rollout history deployment/web puis kubectl rollout undo",
+      explanation: "`rollout history` affiche les versions, `rollout undo` annule le dernier déploiement."
     },
     {
       question: "Comment attendre la fin de toutes les tâches d'une session ArmoniK ?",
@@ -499,73 +521,73 @@ const questions = {
         "armonik track session-id"
       ],
       answer: "armonik wait --session session-id",
-      explanation: "`armonik wait --session session-id` bloque jusqu'à ce que toutes les tâches de la session soient terminées."
+      explanation: "`armonik wait --session` bloque jusqu'à ce que toutes les tâches de la session soient terminées."
     },
     {
-      question: "Que fait l'option --depends-on dans ArmoniK ?",
+      question: "Quelle combinaison de commandes Docker permet de construire une image ET de la taguer pour Docker Hub ?",
       options: [
-        "Définit une dépendance entre deux tâches",
-        "Définit une dépendance entre deux sessions",
-        "Définit une dépendance entre deux workers",
-        "Définit une dépendance entre deux clusters"
+        "docker build -t monimage:latest . puis docker tag monimage:latest utilisateur/monimage:latest",
+        "docker build monimage puis docker push monimage",
+        "docker create --tag monimage puis docker tag monimage hub",
+        "docker make monimage puis docker hub tag monimage"
       ],
-      answer: "Définit une dépendance entre deux tâches",
-      explanation: "`--depends-on task-id` spécifie qu'une tâche dépend d'une autre. La tâche ne s'exécute que si sa dépendance est terminée avec succès."
+      answer: "docker build -t monimage:latest . puis docker tag monimage:latest utilisateur/monimage:latest",
+      explanation: "`docker build -t` construit et tague, `docker tag` ajoute le préfixe utilisateur pour Docker Hub."
     },
     {
-      question: "Comment vérifier qu'ArmoniK fonctionne correctement ?",
+      question: "Quelle combinaison de commandes kubectl permet de redimensionner un Deployment ET de vérifier le résultat ?",
       options: [
-        "armonik status",
-        "armonik check",
-        "armonik test",
-        "armonik health"
+        "kubectl scale deployment web --replicas=5 puis kubectl get pods",
+        "kubectl resize deployment web 5 puis kubectl list pods",
+        "kubectl update deployment web --replicas=5 puis kubectl show pods",
+        "kubectl set deployment web --scale=5 puis kubectl describe pods"
       ],
-      answer: "armonik status",
-      explanation: "`armonik status` affiche l'état de tous les services ArmoniK. `docker ps | grep armonik` permet aussi de vérifier les conteneurs."
+      answer: "kubectl scale deployment web --replicas=5 puis kubectl get pods",
+      explanation: "`scale` modifie le nombre de réplicas, `get pods` vérifie que les nouveaux Pods sont créés."
     },
     {
-      question: "Comment rollback un déploiement Kubernetes ?",
+      question: "Que signifie l'erreur CrashLoopBackOff dans Kubernetes ?",
       options: [
-        "kubectl rollout undo deployment/web",
-        "kubectl rollback deployment/web",
-        "kubectl revert deployment/web",
-        "kubectl undo deployment/web"
+        "Le Pod a été supprimé par l'utilisateur",
+        "Le Pod crash en boucle et Kubernetes ne parvient pas à le maintenir en vie",
+        "Le Pod est en attente de ressources CPU",
+        "Le Pod est en cours de déploiement"
       ],
-      answer: "kubectl rollout undo deployment/web",
-      explanation: "`kubectl rollout undo deployment/web` annule le dernier déploiement. `--to-revision=N` permet de revenir à une version spécifique."
+      answer: "Le Pod crash en boucle et Kubernetes ne parvient pas à le maintenir en vie",
+      explanation: "CrashLoopBackOff signifie que le Pod crash au démarrage, redémarre, recrash, etc. Kubernetes augmente le délai entre les tentatives."
     },
     {
-      question: "Que simule le conteneur market-simulator dans l'exercice financier Docker Compose ?",
+      question: "Quelle combinaison de commandes ArmoniK permet de lister les sessions ET de supprimer une session spécifique ?",
       options: [
-        "Un serveur web",
-        "Un générateur de prix de marché aléatoires",
-        "Une base de données",
-        "Un cache Redis"
+        "armonik list sessions puis armonik delete session --session id",
+        "armonik show sessions puis armonik remove session id",
+        "armonik get sessions puis armonik kill session id",
+        "armonik display sessions puis armonik clean session id"
       ],
-      answer: "Un générateur de prix de marché aléatoires",
-      explanation: "Le market-simulator génère des prix aléatoires et les envoie dans Redis comme un flux de marché réel pour les tests."
+      answer: "armonik list sessions puis armonik delete session --session id",
+      explanation: "`list sessions` affiche toutes les sessions avec leurs IDs, `delete session` supprime celle spécifiée."
     },
     {
-      question: "Pourquoi utilise-t-on healthcheck dans un fichier Docker Compose ?",
+      question: "Quelle combinaison de commandes Docker Compose permet de construire les images ET de démarrer les services ?",
       options: [
-        "Pour vérifier que le service fonctionne avant que les autres en dépendent",
-        "Pour améliorer les performances",
-        "Pour réduire la taille des images",
-        "Pour sécuriser le conteneur"
+        "docker compose build puis docker compose up -d",
+        "docker compose make puis docker compose start",
+        "docker compose create puis docker compose run",
+        "docker compose compile puis docker compose launch"
       ],
-      answer: "Pour vérifier que le service fonctionne avant que les autres en dépendent",
-      explanation: "healthcheck permet de vérifier qu'un service est prêt avant que les autres services ne s'y connectent. Évite les erreurs de dépendance."
+      answer: "docker compose build puis docker compose up -d",
+      explanation: "`build` construit les images personnalisées, `up -d` démarre les services en arrière-plan."
     },
     {
-      question: "Comment créer un secret Kubernetes avec kubectl ?",
+      question: "Quelle combinaison de commandes Kubernetes permet d'exposer un Deployment en NodePort ET de récupérer l'URL ?",
       options: [
-        "kubectl create secret generic --from-literal=key=value",
-        "kubectl secret create --key=value",
-        "kubectl new secret --key=value",
-        "kubectl add secret --key=value"
+        "kubectl expose deployment web --type=NodePort --port=80 puis minikube service web --url",
+        "kubectl create service web --type=NodePort puis kubectl get service web",
+        "kubectl deploy web --expose --type=NodePort puis kubectl describe service web",
+        "kubectl run web --expose --port=80 --type=NodePort puis kubectl get svc web"
       ],
-      answer: "kubectl create secret generic --from-literal=key=value",
-      explanation: "`kubectl create secret generic nom --from-literal=key=value` crée un secret. `--from-file` permet de le créer depuis un fichier."
+      answer: "kubectl expose deployment web --type=NodePort --port=80 puis minikube service web --url",
+      explanation: "`expose` crée un service NodePort, `minikube service --url` récupère l'URL d'accès."
     }
   ]
 };
