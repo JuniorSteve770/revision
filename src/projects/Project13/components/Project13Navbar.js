@@ -11,6 +11,7 @@ const Project13Navbar = () => {
       <Link to="/project13/page3">3. Finance Intro</Link>
       <Link to="/project13/page4">4. Microservices</Link>
       <Link to="/project13/page5">5. c++ basics</Link>
+      <Link to="/project13/page6">6. c++ advanced</Link>
     </nav>
   );
 };
