@@ -4,643 +4,732 @@ import React, { useState, useEffect, useCallback } from "react";
 import "./Page.css";
 
 const basicSlides = [
-  {
-    "question": "Vue d'ensemble — 20 fondations essentielles C#/.NET Finance/IT",
-    "answer": "**Microservices** : découper une application en services indépendants (Trading, Risque, Reporting). Chaque service a sa propre DB, son déploiement, sa logique. ◆ **JSON** : format d'échange standard entre services — sérialisation/désérialisation `JsonSerializer`, contrats partagés. ◆ **MSMQ / RabbitMQ** : file de messages asynchrone — le producteur envoie, le consommateur traite quand il est prêt. Aucune perte si le service B est down. ◆ **async/await** : libère le thread pendant l'I/O (SQL, API, fichiers) — scalabilité sans threads bloqués. `Task` vs `Thread` : Task = léger, pool géré. Thread = lourd, manuel. ◆ **LINQ** : requêter des collections C# comme du SQL. `Where`, `Select`, `OrderBy`, `GroupBy`, `FirstOrDefault`. Traduit en SQL par Entity Framework. ◆ **Points de confusion clés** : `async void` vs `async Task`, `First()` vs `FirstOrDefault()`, `IQueryable` vs `IEnumerable`, `Serialize` vs `Deserialize`, `HTTP` vs `MSMQ`, producteur vs consommateur."
+{
+    "question": "RAII — Une ressource, un propriétaire",
+    "answer": "**Principe** : acquérir dans le constructeur, libérer dans le destructeur. ◆ **Évite** : fuite (`new` sans `delete`), double `delete`, use-after-free. ◆ **Par défaut** : `std::unique_ptr` via `std::make_unique`. `shared_ptr` seulement si la propriété est partagée. ◆ **C#** : `using` / `Dispose`, le GC ne ferme pas une connexion."
   },
   {
-    "question": "Microservice — Définition, responsabilité unique, exemple Trading CIB",
-    "answer": "**Définition** : un microservice est un service indépendant qui gère une responsabilité métier unique. Il a sa propre base de données, son propre déploiement, sa propre logique. Il ne partage RIEN avec les autres services directement. ◆ **Exemple CIB** : `TradeService` (créer/modifier/annuler les trades), `RiskService` (calculer VaR, Greeks, limites), `InstrumentService` (référentiel ISIN, caractéristiques), `ReportingService` (P&L, positions EOD). Chacun est un projet C# séparé déployé dans son propre container Docker. ◆ **Ce qu'un microservice NE fait PAS** : il ne lit pas directement la base d'un autre service, il ne partage pas ses objets internes, il ne connaît pas l'implémentation des autres. ◆ **Communication** : via REST API (synchrone) ou MessageQueue (asynchrone). Jamais via DB partagée — c'est l'anti-pattern n°1. ◆ **Règle de taille** : un microservice = ce qu'une petite équipe peut développer, déployer et comprendre complètement."
+    "question": "Règle du zéro — Copie générée",
+    "answer": "**Règle du zéro** : membres RAII (`string`, `vector`, `unique_ptr`) → aucune fonction spéciale à écrire. ◆ **Piège `double*`** : la copie générée copie le pointeur → double libération. ◆ **Correction** : `std::vector<double>`, ou copie interdite avec `= delete`. ◆ **Ordre des membres** : ordre de déclaration, pas celui de la liste d'initialisation."
   },
   {
-    "question": "Monolithe vs Microservices — Tableau comparatif et quand choisir",
-    "answer": "**Monolithe** : une seule application, un seul déploiement, tout est couplé. Simple à démarrer, difficile à maintenir en équipe. Modifier le service Risque nécessite de redéployer toute l'application. ◆ **Microservices** : chaque service déployé indépendamment. `TradeService` peut être mis à jour sans toucher `RiskService`. Scalabilité : `RiskService` (CPU intensif) peut avoir 10 pods Kubernetes, `ReportingService` (utilisé 1×/jour) en a 1. ◆ **Quand choisir Microservices** : grande équipe (> 5 devs), plusieurs domaines métiers distincts, besoin de scalabilité différenciée, cycle de déploiement fréquent. ◆ **Quand garder un monolithe** : petite équipe, projet au démarrage (YAGNI), domaine métier non stabilisé — migrer vers microservices plus tard avec Strangler Fig. ◆ **⚠️ Point de confusion** : microservices ≠ meilleur dans tous les cas. Un monolithe bien structuré est préférable à des microservices mal découpés ('distributed monolith')."
+    "question": "Polymorphisme — Destructeur virtuel et slicing",
+    "answer": "**Base polymorphe** : `virtual ~Base() = default;`, sinon `delete` via `Base*` est un UB. ◆ **Slicing** : passer une dérivée par valeur garde seulement la partie `Base` → passer par `const Base&`. ◆ **`protected`** : visible des dérivées, pas de l'extérieur. ◆ **Méthode de la base** : `Base::methode()`."
   },
   {
-    "question": "Communication synchrone vs asynchrone — HTTP REST vs Message Queue",
-    "answer": "**HTTP REST (synchrone)** : `A → appelle B → attend la réponse → continue`. Si B est down : erreur immédiate pour A. Si B est lent (3s) : A attend 3s, thread bloqué. Utilisé quand : la réponse est nécessaire immédiatement pour continuer (`BookTrade` doit retourner le `TradeId`). ◆ **Message Queue (asynchrone)** : `A → envoie un message dans la queue → continue immédiatement`. B traite le message quand il est disponible. Si B est down : le message attend dans la queue, aucune perte. Utilisé quand : la réponse n'est pas nécessaire immédiatement (calcul de risk après booking, envoi d'email de confirmation). ◆ **Analogie** : HTTP = appel téléphonique (attend que l'autre décroche). Queue = envoyer un SMS (l'autre répond quand il peut). ◆ **⚠️ Point de confusion** : MSMQ et RabbitMQ ne remplacent PAS HTTP — ce sont des outils complémentaires. Certains flows nécessitent les deux dans le même système."
+    "question": "const, auto, move — Lire et passer",
+    "answer": "**Lire de droite à gauche** : `const T*` → cible constante ; `T* const` → pointeur constant. ◆ **Gros objet en lecture** : `const T&`. ◆ **`auto`** enlève `&` et `const` → copie ; garder la référence : `const auto&`. ◆ **`std::move`** : un simple cast, il ne déplace rien. ◆ **`-1 < 0u`** est faux : conversion en non signé."
   },
   {
-    "question": "JSON — Sérialisation, désérialisation, contrat, erreurs fréquentes",
-    "answer": "**Sérialisation** : objet C# → texte JSON. `string json = JsonSerializer.Serialize(trade);` ◆ **Désérialisation** : texte JSON → objet C#. `Trade t = JsonSerializer.Deserialize<Trade>(json);` ◆ **Options importantes** : `new JsonSerializerOptions { PropertyNamingPolicy = JsonNamingPolicy.CamelCase, WriteIndented = true, DefaultIgnoreCondition = JsonIgnoreCondition.WhenWritingNull }` ◆ **Attributs** : `[JsonPropertyName(\"trade_id\")]` sur une propriété pour mapper un nom JSON différent du nom C#. `[JsonIgnore]` pour exclure un champ de la sérialisation. ◆ **Contrat JSON** : structure partagée entre services. Changer `TradeId` en `Id` dans le JSON casse tous les consommateurs. Versionner : `/api/v1/trades` garde l'ancien format, `/api/v2/trades` introduit le nouveau. ◆ **⚠️ Points de confusion** : `Serialize` = C# vers JSON (vers l'extérieur). `Deserialize` = JSON vers C# (depuis l'extérieur). `null` en JSON ≠ valeur absente — utiliser `[JsonIgnore]` ou `JsonIgnoreCondition`."
+    "question": "Conteneurs STL — Pièges",
+    "answer": "**`map[k]`** crée la clé si elle est absente → lire avec `find()` ou `at()`. ◆ **O(1) par clé** : `unordered_map` (`map` = O(log n), trié). ◆ **`push_back`** peut réallouer → itérateurs invalides. ◆ **Jamais** de référence retournée vers un local."
   },
   {
-    "question": "MSMQ — Architecture, producteur, consommateur, persistance",
-    "answer": "**MSMQ (Microsoft Message Queuing)** : système de files de messages intégré à Windows. Persistance locale — les messages survivent aux redémarrages. Transactionnel — envoi et réception atomiques. ◆ **Producteur** : `using System.Messaging; var queue = new MessageQueue(\".\\\\Private$\\\\TradeQueue\"); queue.Send(new Message(trade) { Label = \"NewTrade\", Formatter = new XmlMessageFormatter() });` ◆ **Consommateur** : `var msg = queue.Receive(TimeSpan.FromSeconds(10)); var trade = (Trade)msg.Body;` ◆ **Queue transactionnelle** : `queue.Send(msg, MessageQueueTransactionType.Single)` — si l'application plante après l'envoi mais avant le traitement, le message reste dans la queue. ◆ **Limitations MSMQ** : Windows uniquement, pas de broker centralisé, pas de monitoring web, pas de routing complexe, difficile à scaler horizontalement. ◆ **⚠️ Point de confusion** : MSMQ ≠ RabbitMQ. MSMQ = local, legacy, .NET Framework. RabbitMQ = broker centralisé, moderne, multi-langages, cloud-native."
+    "question": "Exceptions — Capturer, relancer, frontières",
+    "answer": "**Capturer** par `const&`, du plus précis au plus général. ◆ **`throw;`** relance l'exception en cours ; `throw e;` crée une copie (slicing). ◆ **`try` dans la boucle** : une erreur n'arrête que l'élément. ◆ **API C** : aucune exception ne la traverse → code retour, `extern \"C\"` (pas de mangling)."
   },
   {
-    "question": "RabbitMQ — Exchange, Queue, Binding, patterns de routing",
-    "answer": "**Concepts** : Producer → Exchange → Binding → Queue → Consumer. L'exchange reçoit les messages et les route vers les queues selon les bindings et le routingKey. ◆ **Direct exchange** : `channel.BasicPublish(exchange: \"trades\", routingKey: \"trade.booked\", body: payload)` → queue liée à exactement `\"trade.booked\"`. ◆ **Topic exchange** : `routingKey: \"trade.equity.booked\"` → queue abonnée à `\"trade.equity.*\"` ou `\"trade.#\"`. ◆ **Fanout exchange** : broadcast — toutes les queues liées reçoivent le message (audit, risk, reporting, blotter simultanément). ◆ **Acknowledgements** : `channel.BasicAck(deliveryTag, false)` après traitement réussi. `channel.BasicNack(deliveryTag, false, requeue: true)` si erreur → rejeu. ◆ **Dead-letter queue** : messages rejetés → `trades.dlq` pour inspection. ◆ **⚠️ Point de confusion** : l'exchange NE stocke PAS les messages — c'est la queue qui stocke. L'exchange route seulement. Un message non routé (aucune queue binding) est perdu."
+    "question": "C# — Les pièges",
+    "answer": "**`struct`** : type valeur, copié. ◆ **Montants** : `decimal`. ◆ **GC** : libère la mémoire, pas une connexion → `using` / `Dispose`. ◆ **LINQ** : exécuté à l'énumération. ◆ **UI figée** : `.Result` sur le thread UI → `await`. `async void` seulement pour les événements. ◆ **Appeler du C++** : `[DllImport]` sur une fonction `extern \"C\"`."
   },
   {
-    "question": "async/await — Fonctionnement interne, libération de thread, règles",
-    "answer": "**Sans async (bloquant)** : `var data = GetData();` — le thread attend, immobilisé pendant toute la durée de l'I/O. Sur ASP.NET Core : si 200 requêtes simultanées chacune attendant 100ms SQL → 200 threads bloqués → pool de threads épuisé → nouvelles requêtes en attente. ◆ **Avec async** : `var data = await GetDataAsync();` — le thread est libéré pendant l'attente I/O, il revient dans le pool et peut traiter d'autres requêtes. Quand le résultat SQL arrive, un thread (pas forcément le même) reprend l'exécution après le `await`. ◆ **Règle du bout en bout** : si une méthode utilise `await`, elle doit être `async Task` jusqu'au contrôleur. Interrompre la chaîne avec `.Result` ou `.Wait()` = deadlock potentiel. ◆ **CancellationToken** : `async Task GetDataAsync(CancellationToken ct)` — si le client ferme la connexion, l'opération est annulée proprement. ◆ **⚠️ Point de confusion majeur** : `async` ne rend pas le code plus rapide pour une seule requête — il améliore la scalabilité (plus de requêtes simultanées avec moins de threads)."
+    "question": "Finance — Montants et arrondis",
+    "answer": "**Montants** : centimes entiers (C++) ou `decimal` (C#), jamais `double`. ◆ **ACT/360** : jours réels / 360. ◆ **Demi-pair** : 2,5 → 2 ; 3,5 → 4. ◆ **Répartir** : plus fort reste, la somme reste exacte."
   },
   {
-    "question": "async void vs async Task — La confusion la plus dangereuse en C#",
-    "answer": "**`async Task`** : méthode awaitable. Les exceptions sont capturées et propagées à l'appelant. `await MaMethodeAsync()` — l'appelant peut gérer l'exception avec `try/catch`. La méthode peut être attendue (testable, composable). ◆ **`async void`** : NON awaitable. Les exceptions NE sont PAS capturées — elles plantent le process entier sans possibilité de try/catch. Utilisable UNIQUEMENT pour les event handlers UI (obligation de signature) : `private async void Button_Click(object sender, EventArgs e)`. ◆ **Pourquoi c'est dangereux** : `private async void ProcessMessage(Message msg) { await _repo.SaveAsync(msg); }` → si `SaveAsync` lève une exception → le process crash → tous les messages en cours sont perdus. ◆ **Règle absolue** : toujours `async Task`, sauf event handlers. `async void` dans un service backend = bombe à retardement. ◆ **⚠️ Point de confusion** : les deux se compilent sans erreur — le compilateur n'avertit pas pour `async void`. C'est une erreur silencieuse."
+    "question": "Finance — Marché et titrisation",
+    "answer": "**Coupon couru** : intérêts acquis depuis le dernier coupon. ◆ **Confirmation** : message qui officialise le deal. ◆ **Balance comptable** : débit = crédit. ◆ **Titrisation** : créances transformées en titres, découpés en tranches. ◆ **Waterfall** : ordre de paiement des tranches, la senior en premier."
   },
   {
-    "question": "Task vs Thread — Différences fondamentales et quand utiliser chaque",
-    "answer": "**Thread** : `new Thread(() => { DoWork(); }).Start()` — crée un thread OS dédié. Lourd (~1MB de stack), géré manuellement (Start, Join, Abort). Pas de valeur de retour native. Pas de composition. ◆ **Task** : `Task.Run(() => DoWork())` — utilise le ThreadPool géré par .NET. Léger, recyclé entre les opérations. Valeur de retour (`Task<T>`). Composable (`Task.WhenAll`, `ContinueWith`). ◆ **Quand utiliser Thread** : opérations longues (thread dédié pour un consommateur RabbitMQ qui tourne indéfiniment), cas où le contrôle précis du thread est nécessaire. ◆ **Quand utiliser Task** : tout le reste — calculs parallèles, opérations async, parallélisme logique. ◆ **ThreadPool** : `Thread` crée un thread neuf. `Task.Run` prend un thread du pool (déjà créé). Créer 1000 `Thread` = 1000 threads OS = ~1GB de stack. 1000 `Task.Run` = réutilise ~20-50 threads du pool. ◆ **⚠️ Point de confusion** : `await` ne crée PAS un thread — il libère un thread. La confusion entre 'parallélisme' et 'asynchronisme' est très fréquente."
+    "question": "Support — SQL et shell",
+    "answer": "**SQL** : `HAVING` après agrégat, `LEFT JOIN … WHERE b.id IS NULL`, `COALESCE`, `FETCH FIRST n ROWS ONLY`. En prod : lecture seule, toujours un `WHERE`. ◆ **Shell** : `$?`, `tail -f`, `sort | uniq -c`, `awk '{print $4}'`, `df -h`, `find -mmin -30`. ◆ **Code batch** : 1 = partiel (on continue), 2 = échec (on arrête)."
   },
   {
-    "question": "LINQ — Where, Select, OrderBy, GroupBy, FirstOrDefault — Syntaxe et pièges",
-    "answer": "**Where** : `trades.Where(t => t.Price > 100 && t.Status == \"Active\")` — filtre, retourne `IEnumerable<T>`. ◆ **Select** : `trades.Select(t => new TradeDto(t.Id, t.Price))` — projection, transforme chaque élément. `Select` retourne toujours autant d'éléments qu'en entrée. ◆ **SelectMany** : aplatit une collection de collections. `desks.SelectMany(d => d.Trades)` — toutes les trades de tous les desks en une seule liste. ◆ **OrderBy / ThenBy** : `trades.OrderBy(t => t.Maturity).ThenBy(t => t.Strike)` — tri multi-niveaux. ◆ **GroupBy** : `trades.GroupBy(t => t.Desk).Select(g => new { Desk = g.Key, Total = g.Sum(t => t.Notional) })` ◆ **FirstOrDefault / SingleOrDefault** : `FirstOrDefault()` = premier élément ou `null` si vide. `SingleOrDefault()` = un seul élément attendu, exception si plusieurs. ◆ **⚠️ Point de confusion** : `Select` ≠ filtre — c'est une projection. Pour filtrer : `Where`. `First()` lève une exception si la collection est vide. `FirstOrDefault()` retourne `null`."
+    "question": "Support — Rôles et incidents",
+    "answer": "**MOA** : besoin métier. **MOE** : réalisation technique. ◆ **Support N1** : qualifier, diagnostiquer, corriger le simple, orienter. ◆ **Incident de données** : corrigé par la MOA / les utilisateurs. ◆ **6 étapes** : qualifier → reproduire → diagnostiquer → corriger/orienter → communiquer → documenter. ◆ **Reprise** : relancer, puis vérifier l'aval. **Régression** : ce qui marchait ne marche plus après une livraison."
   },
   {
-    "question": "LINQ — Exécution différée vs immédiate — Le piège des IEnumerable",
-    "answer": "**Exécution différée** : `IEnumerable<T>` — la requête n'est PAS exécutée à la ligne du `Where`/`Select`. Elle est exécutée au moment de l'itération (`foreach`, `.ToList()`, `.Count()`, `.Any()`). ◆ **Démonstration** : `var query = trades.Where(t => t.Price > 100);` ← requête construite, pas exécutée. `var result = query.ToList();` ← requête exécutée ici. ◆ **Conséquence piège** : `var q = trades.Where(t => t.Price > 100); trades.Clear(); var list = q.ToList();` → la liste est vide — la requête lit `trades` au moment de `.ToList()`, pas au moment du `Where`. ◆ **Exécution immédiate** : `.ToList()`, `.ToArray()`, `.Count()`, `.Any()`, `.First()`, `.Sum()`, `.Max()`, `.Min()` — forcent l'exécution. ◆ **IQueryable vs IEnumerable** : `IQueryable` traduit en SQL (exécuté côté serveur). `IEnumerable` exécuté côté client après chargement. `db.Trades.Where(...)` = `IQueryable` → SQL filtré. `db.Trades.ToList().Where(...)` = `IEnumerable` → TOUT chargé en mémoire, puis filtré en C#. ◆ **⚠️ Point de confusion** : appeler `.ToList()` trop tôt est l'une des erreurs de performance LINQ les plus fréquentes."
+    "question": "Build — Étapes et erreurs",
+    "answer": "**Préprocesseur** : header introuvable. ◆ **Compilation** : `was not declared`. ◆ **Link** : `undefined reference` → définition absente, fichier non lié ou librairie non liée ; outil `nm -C`. `multiple definition` → définition dans un header sans `inline`. ◆ **Chargement** : `.so` introuvable → `ldd`, `readelf -d`, RUNPATH `$ORIGIN/../lib`. `-L` ne sert qu'au link."
   },
   {
-    "question": "First() vs FirstOrDefault() vs Single() vs SingleOrDefault() — Tableau des différences",
-    "answer": "**`First()`** : premier élément — lance `InvalidOperationException` si la collection est VIDE. ◆ **`FirstOrDefault()`** : premier élément ou `null` (ou valeur par défaut du type) si vide — ne plante JAMAIS. ◆ **`Single()`** : exactement un seul élément — lance `InvalidOperationException` si vide OU si plus d'un élément. ◆ **`SingleOrDefault()`** : zéro ou un élément — retourne `null` si vide, lance si plus d'un. ◆ **Quand utiliser quoi** : `First()` = je sais que la collection n'est pas vide (données critiques, logique garantie). `FirstOrDefault()` = la collection peut être vide (recherche optionnelle). `Single()` = je veux exactement 1 résultat et c'est une erreur s'il y en a 0 ou 2 (chercher par clé primaire). `SingleOrDefault()` = 0 ou 1 résultat attendu. ◆ **Exemple CIB** : `var trade = trades.FirstOrDefault(t => t.Id == id);` puis `if (trade == null) return NotFound();`. NE PAS faire : `var trade = trades.First(t => t.Id == id)` si l'ID peut ne pas exister — exception en production. ◆ **⚠️ Point de confusion** : `First()` n'est PAS 'meilleur' que `FirstOrDefault()`. Utiliser le bon selon le contrat métier."
+    "question": "Makefile — Dépendances",
+    "answer": "**Règle** : `cible: dépendances`, puis recette indentée par tabulation. ◆ **Piège** : header modifié, rien n'est recompilé. ◆ **Correction** : `-MMD -MP` + `-include *.d`. ◆ **`make -j` instable** : une dépendance n'est pas déclarée."
   },
   {
-    "question": "Producteur et Consommateur — Pattern fondamental des architectures distribuées",
-    "answer": "**Producteur** : service qui crée et envoie des messages. `TradeService` crée un trade et publie `TradeBooked` sur RabbitMQ. Il n'attend pas que le message soit traité — il continue immédiatement. ◆ **Consommateur** : service qui lit et traite les messages. `RiskService` écoute `TradeBooked`, calcule les Greeks, vérifie les limites. Il traite à son propre rythme. ◆ **Backpressure** : si le producteur est plus rapide que le consommateur, la queue grossit. Solutions : ajouter des consommateurs (scale out), ou bounded queue avec rejet/attente. ◆ **Competing consumers** : plusieurs instances de `RiskService` consomment la même queue — chaque message est traité par un seul consommateur. RabbitMQ distribue les messages en round-robin. ◆ **Fan-out** : un message `TradeBooked` consommé par `RiskService` ET `AuditService` ET `BlotterService` simultanément — chacun a sa propre queue. ◆ **⚠️ Point de confusion** : dans RabbitMQ, un message est délivré à UNE SEULE queue par défaut (Direct/Topic). Pour le fan-out, utiliser un Fanout Exchange ou plusieurs bindings."
+    "question": "Débogage — gdb et sanitizers",
+    "answer": "**gdb** : compiler en `-g`, puis `bt` → `frame N` (première frame de notre code) → `print x`. ◆ **Codes** : 139 = segfault, 134 = abort, 127 = introuvable. ◆ **Sanitizers** : `address` (mémoire, fuites), `undefined` (UB), `thread` (data races, job séparé). Valgrind : sans recompiler, mais lent. ◆ **Bug seulement en `-O2`** : chercher un UB, pas un bug du compilateur."
   },
   {
-    "question": "Résilience et gestion d'erreurs — Retry, Circuit Breaker, Dead-Letter Queue",
-    "answer": "**Retry** : retenter automatiquement les opérations transitoires. Avec Polly : `Policy.Handle<HttpRequestException>().WaitAndRetry(3, r => TimeSpan.FromSeconds(Math.Pow(2, r)))` — 3 tentatives avec backoff exponentiel (2s, 4s, 8s). Ne pas retenter les erreurs permanentes (401, 404). ◆ **Circuit Breaker** : après N erreurs consécutives, ouvrir le circuit 30s. Le service ne tente plus d'appeler le service down — réponse immédiate de refus. Se referme progressivement (half-open) pour tester la récupération. ◆ **Dead-Letter Queue** : message en erreur après N tentatives → redirigé vers la DLQ. L'équipe inspecte, corrige l'anomalie, rejoue. Sans DLQ : le message est perdu ou bloque la queue. ◆ **Timeout** : toujours configurer un timeout sur les `HttpClient`. Sans timeout : si le service distant ne répond jamais, le thread est bloqué indéfiniment. `client.Timeout = TimeSpan.FromSeconds(5)` ◆ **⚠️ Point de confusion** : Circuit Breaker ≠ Retry. Le retry retente sur erreur transitoire. Le circuit breaker arrête de tenter quand le service est clairement down — économise les ressources et accélère la détection de pannes."
-  },
-  {
-    "question": "Versioning d'API REST — URL, Header, négociation de contenu",
-    "answer": "**URL versioning** : `/api/v1/trades`, `/api/v2/trades` — le plus explicite. Visible dans les logs, simple à tester, simple à documenter. ◆ **Header versioning** : `Api-Version: 2` dans le header HTTP — URL propre, moins visible. `[ApiVersion(\"2.0\")][MapToApiVersion(\"2.0\")] public IActionResult GetV2()` ◆ **Query string** : `/api/trades?api-version=2` — facile à tester dans un navigateur, peu recommandé en production. ◆ **Pourquoi versionner** : un contrat JSON modifié (ajout de champ obligatoire, renommage) casse les clients qui n'ont pas encore migré. V1 doit rester stable pendant la période de migration. ◆ **Stratégie de dépréciation** : `Deprecation: true` header + `Sunset: 2025-06-01` — les clients ont un délai pour migrer. ◆ **⚠️ Point de confusion** : ajouter un champ OPTIONNEL au JSON est backward compatible (V1 clients ignorent le nouveau champ). Rendre un champ obligatoire ou le renommer est un breaking change nécessitant une nouvelle version."
-  },
-  {
-    "question": "Sécurité des échanges — HTTPS, JWT, Validation des inputs, Secrets",
-    "answer": "**HTTPS** : chiffre les données en transit. Obligatoire en finance. `app.UseHsts(); app.UseHttpsRedirection();` ◆ **JWT (JSON Web Token)** : token signé contenant des claims (userId, rôle, desk, expiration). Vérifié côté serveur sans accès DB — stateless. `[Authorize] [HttpPost] public IActionResult BookTrade(...)` — 401 si token absent ou invalide. ◆ **Validation des inputs** : `[Required][Range(0.01, 1_000_000)] public decimal Notional { get; set; }` — `[ApiController]` retourne 400 automatiquement si invalide. FluentValidation pour les règles métier complexes. ◆ **Secrets** : jamais de credentials dans le code source ou les fichiers appSettings versionnés. Utiliser `User Secrets` (dev), `Azure Key Vault` ou variables d'environnement (prod). ◆ **SQL Injection** : utiliser uniquement des requêtes paramétrées ou ORM. `WHERE Id = @id` (Dapper) ou `Where(t => t.Id == id)` (EF Core) — jamais concaténer des inputs utilisateur dans du SQL. ◆ **⚠️ Point de confusion** : JWT ≠ chiffrement — le payload est lisible (Base64), pas secret. JWT = signé (authentification). Utiliser HTTPS pour le chiffrement."
-  },
-  {
-    "question": "Traçabilité inter-services — Correlation ID, Structured Logging, Distributed Tracing",
-    "answer": "**Correlation ID** : UUID généré à l'entrée du système, propagé dans tous les headers et logs. `X-Correlation-ID: 550e8400-e29b-41d4-a716-446655440000` — permet de retrouver tous les événements d'une requête dans tous les services. ◆ **Structured Logging** : `_logger.LogInformation(\"Trade booked {TradeId} {ISIN} {Desk} {Notional}\", trade.Id, trade.Isin, trade.Desk, trade.Notional)` — chaque propriété est indexée séparément dans Elasticsearch. Recherche `TradeId=12345` retrouve tous les logs liés. ◆ **Serilog** : `Log.ForContext(\"TradeId\", id).ForContext(\"Service\", \"BookingService\").Information(\"Processing...\")` ◆ **OpenTelemetry** : standard de tracing distribué. Chaque service crée un span. Jaeger/Zipkin reconstituent le chemin complet. ◆ **⚠️ Point de confusion** : les logs textuels (sans structured logging) ne peuvent pas être filtrés efficacement. `LogError(\"Error for trade \" + tradeId)` = texte non indexé. `LogError(\"Error for trade {TradeId}\", tradeId)` = propriété indexée."
-  },
-  {
-    "question": "Entity Framework Core + LINQ — Requêtes efficaces sur la base de données",
-    "answer": "**DbContext** : `public class MapsDbContext : DbContext { public DbSet<Trade> Trades { get; set; } public DbSet<Instrument> Instruments { get; set; } }` ◆ **Requête simple** : `var trades = await _ctx.Trades.Where(t => t.DeskId == deskId && t.TradeDate >= DateTime.Today).AsNoTracking().ToListAsync(ct);` ◆ **Include (jointure)** : `var trades = await _ctx.Trades.Include(t => t.Instrument).Where(...).ToListAsync();` — charge les instruments en même temps (évite N+1). ◆ **Projection** : `var dtos = await _ctx.Trades.Select(t => new TradeDto(t.Id, t.Instrument.Isin, t.Notional)).ToListAsync();` — SQL ne charge que les colonnes nécessaires. ◆ **AsNoTracking** : pour les lectures seules — EF Core ne surveille pas les modifications, 2× plus rapide. ◆ **⚠️ Anti-pattern N+1** : `foreach(var trade in trades) { var instr = _ctx.Instruments.Find(trade.InstrumentId); }` → 1 requête pour les trades + N requêtes pour les instruments. Correction : `Include(t => t.Instrument)` = 1 seule requête SQL avec JOIN."
-  },
-  {
-    "question": "Cas pratique complet — Trade CIB de la saisie à la base de données",
-    "answer": "**Étape 1 — Saisie** : le trader POSTs `{ TradeId: 1, ISIN: \"FR0000131104\", Notional: 500000, Price: 52.3 }` sur `POST /api/v1/trades`. ◆ **Étape 2 — API REST** : `[Authorize][HttpPost] public async Task<IActionResult> Book([FromBody] BookingRequest req, CancellationToken ct)` — JWT validé, inputs validés (Notional > 0), ISIN format vérifié. ◆ **Étape 3 — Service** : `var isin = await _isinService.ResolveAsync(req.Isin, ct)` (cache Redis → Sophis). `var trade = await _tradeService.BookAsync(req, ct)`. ◆ **Étape 4 — Sérialisation JSON** : `JsonSerializer.Serialize(trade)` pour la publication sur RabbitMQ. ◆ **Étape 5 — MSMQ/RabbitMQ** : `await _bus.PublishAsync(\"trade.booked\", trade, ct)` — `RiskService`, `AuditService`, `BlotterService` consomment l'événement. ◆ **Étape 6 — async/await** : tous les appels DB, Sophis, RabbitMQ sont `await` — aucun thread bloqué. ◆ **Étape 7 — LINQ** : `_ctx.Trades.Where(t => t.DeskId == deskId).Sum(t => t.Notional)` — exposition nette du desk mise à jour. ◆ **Étape 8 — Réponse** : 201 Created + `{ tradeId: \"...\", location: \"/api/v1/trades/...\" }`."
+    "question": "Déploiement — Livrer proprement",
+    "answer": "**Build once, deploy many** : un seul artefact CI, versionné, promu jusqu'en prod. ◆ **Paquet** : `bin/` + `lib/` du même build, RUNPATH relatif. ◆ **Avant livraison** : `ldd` sans `not found`, tests sur l'artefact. ◆ **Après** : smoke test, logs ; en cas de régression, rollback d'abord, analyse ensuite."
   }
 ];
 
 const questions = {
   moyen: [
-    {
-      "question": "[Terme → Définition] Qu'est-ce qu'un microservice dans une architecture CIB comme MAPS ?",
+   {
+      "question": "[new / delete] Que provoque un `new` sans `delete` correspondant ?",
       "options": [
-        "Une petite classe C# qui fait une seule chose.",
-        "Un service indépendant avec sa propre base de données, sa propre logique métier et son propre déploiement, communicant avec les autres via API ou MessageQueue.",
-        "Un service qui dépend d'une base de données partagée avec tous les autres services.",
-        "Un composant interne d'une application monolithique."
+        "Une erreur de compilation.",
+        "Une fuite mémoire : le bloc reste alloué jusqu'à la fin du processus.",
+        "Un crash immédiat.",
+        "Rien : le C++ libère automatiquement à la sortie de portée."
       ],
-      "answer": "Un service indépendant avec sa propre base de données, sa propre logique métier et son propre déploiement, communicant avec les autres via API ou MessageQueue.",
-      "explanation": "Le principe fondamental d'un microservice : indépendance totale. Il ne partage pas sa DB, n'appelle pas directement les objets internes des autres services. En CIB : `TradeService`, `RiskService`, `InstrumentService` sont des projets C# séparés, déployés dans leurs propres containers Docker, communiquant via REST ou RabbitMQ. La DB partagée est l'anti-pattern n°1 des microservices — elle réintroduit le couplage qu'on cherchait à éliminer."
+      "answer": "Une fuite mémoire : le bloc reste alloué jusqu'à la fin du processus.",
+      "explanation": "La mémoire allouée par `new` n'est jamais libérée automatiquement : seul l'objet pointeur disparaît. Dans un service qui tourne longtemps, la consommation mémoire monte. Correction : `std::unique_ptr` / `std::make_unique`."
     },
     {
-      "question": "[Confusion] En C#, `JsonSerializer.Serialize(trade)` et `JsonSerializer.Deserialize<Trade>(json)` — laquelle transforme l'objet C# en texte JSON ?",
+      "question": "[new / delete] Que se passe-t-il si on fait deux `delete` sur le même pointeur ?",
       "options": [
-        "Deserialize — elle lit et reconstruit l'objet.",
-        "Serialize — elle transforme l'objet C# en texte JSON (vers l'extérieur).",
-        "Les deux font la même chose dans des sens différents.",
-        "Aucune des deux — JSON.Parse est la méthode correcte en C#."
+        "Double libération : comportement indéfini (crash, corruption du tas).",
+        "Le second `delete` est ignoré.",
+        "Erreur de compilation.",
+        "La mémoire est libérée deux fois plus vite."
       ],
-      "answer": "Serialize — elle transforme l'objet C# en texte JSON (vers l'extérieur).",
-      "explanation": "Moyen mnémotechnique : Serialize = 'mettre en série' = transformer en texte plat pour transmettre. Deserialize = 'défaire la série' = reconstruire l'objet depuis le texte. En CIB : avant d'envoyer un trade sur RabbitMQ, on `Serialize` → texte JSON. Quand `RiskService` reçoit le message de la queue, il `Deserialize` → objet Trade C# qu'il peut manipuler."
+      "answer": "Double libération : comportement indéfini (crash, corruption du tas).",
+      "explanation": "Le second `delete` libère un bloc déjà rendu à l'allocateur. Le symptôme peut apparaître bien plus tard. `delete nullptr` est en revanche sans effet, d'où l'habitude `p = nullptr;` après `delete`, et surtout l'usage de RAII. ASan le détecte (`attempting double-free`)."
     },
     {
-      "question": "[Confusion] Quelle est la différence entre `async void` et `async Task` en C# ?",
+      "question": "[RAII] Quel est le propriétaire par défaut d'un objet alloué sur le tas en C++ moderne ?",
       "options": [
-        "Aucune différence — les deux s'utilisent indifféremment.",
-        "`async Task` est awaitable et propage les exceptions. `async void` n'est pas awaitable et les exceptions crashent le process — à utiliser SEULEMENT dans les event handlers UI.",
-        "`async void` est plus rapide car il ne crée pas de Task.",
-        "`async Task` bloque le thread, `async void` le libère."
+        "`std::shared_ptr<T>`",
+        "Un pointeur brut `T*`",
+        "`std::weak_ptr<T>`",
+        "`std::unique_ptr<T>`"
       ],
-      "answer": "`async Task` est awaitable et propage les exceptions. `async void` n'est pas awaitable et les exceptions crashent le process — à utiliser SEULEMENT dans les event handlers UI.",
-      "explanation": "Piège classique en entretien CIB : `async void ProcessMessage()` dans un service RabbitMQ → si une exception est lancée → le process crash sans catchable exception → messages perdus, service redémarre silencieusement. Règle absolue : toujours `async Task` dans les services backend. `async void` = event handlers WinForms/WPF uniquement (`Button_Click`). Le compilateur accepte les deux sans avertissement — erreur silencieuse."
+      "answer": "`std::unique_ptr<T>`",
+      "explanation": "`std::unique_ptr` exprime une propriété unique, sans surcoût par rapport à un pointeur brut, et libère à la sortie de portée. `shared_ptr` est réservé à la propriété réellement partagée ; `weak_ptr` observe sans posséder."
     },
     {
-      "question": "[Confusion] `First()` vs `FirstOrDefault()` sur une collection LINQ — Que se passe-t-il si la collection est vide ?",
+      "question": "[Move] Que fait exactement `std::move(x)` ?",
       "options": [
-        "Les deux retournent `null` si la collection est vide.",
-        "`First()` lance `InvalidOperationException`. `FirstOrDefault()` retourne `null` (ou la valeur par défaut du type).",
-        "`First()` retourne `null`, `FirstOrDefault()` retourne la valeur par défaut.",
-        "Les deux lancent une exception si la collection est vide."
+        "Il copie `x` puis le détruit.",
+        "Il déplace `x` dans une nouvelle zone mémoire.",
+        "C'est un cast vers une rvalue : il autorise un déplacement, mais ne déplace rien lui-même.",
+        "Il met `x` à zéro."
       ],
-      "answer": "`First()` lance `InvalidOperationException`. `FirstOrDefault()` retourne `null` (ou la valeur par défaut du type).",
-      "explanation": "En production CIB : `trades.First(t => t.Id == id)` → si l'ID n'existe pas → exception non gérée → 500 Internal Server Error pour le trader. `trades.FirstOrDefault(t => t.Id == id)` → `null` → le code peut gérer le cas avec `if (trade == null) return NotFound()`. Règle : utiliser `FirstOrDefault()` pour les recherches et vérifier le null. Utiliser `First()` uniquement quand l'absence est une erreur logique garantie (ex: après un `Any()` qui a confirmé l'existence)."
+      "answer": "C'est un cast vers une rvalue : il autorise un déplacement, mais ne déplace rien lui-même.",
+      "explanation": "Le déplacement est réalisé par le constructeur ou l'opérateur de déplacement choisi grâce au cast. Si le type n'a pas de déplacement, ou si `x` est `const`, c'est une copie qui a lieu."
     },
     {
-      "question": "[Terme → Définition] Qu'est-ce que MSMQ et pourquoi est-il utilisé dans MAPS plutôt qu'un appel HTTP direct ?",
+      "question": "[Polymorphisme] Pourquoi déclarer un destructeur `virtual` dans une classe de base ?",
       "options": [
-        "MSMQ est une base de données rapide pour les messages temporaires.",
-        "MSMQ est une file de messages — si le service destinataire est down, le message attend. Avec HTTP direct, si le service est down, l'appel échoue immédiatement.",
-        "MSMQ est plus rapide qu'un appel HTTP pour tous les types de requêtes.",
-        "MSMQ est utilisé uniquement pour les communications entre bases de données."
+        "Pour rendre la classe abstraite.",
+        "Pour que `delete` via un pointeur de base appelle aussi le destructeur de la dérivée.",
+        "Pour accélérer la destruction.",
+        "Pour interdire l'héritage."
       ],
-      "answer": "MSMQ est une file de messages — si le service destinataire est down, le message attend. Avec HTTP direct, si le service est down, l'appel échoue immédiatement.",
-      "explanation": "Scénario CIB : `TradeService` book un trade et doit notifier `RiskService`. Si `RiskService` est en maintenance, HTTP = erreur immédiate, trade potentiellement non risqué. MSMQ = le message `TradeBooked` attend dans la queue. Quand `RiskService` redémarre, il traite tous les messages en attente — aucun trade n'est passé sous le radar. Ce découplage temporel est la valeur principale des message queues."
+      "answer": "Pour que `delete` via un pointeur de base appelle aussi le destructeur de la dérivée.",
+      "explanation": "Sans destructeur virtuel, `Base* p = new Derived; delete p;` est un comportement indéfini : en pratique seul `~Base()` s'exécute, et les ressources de `Derived` fuient. Règle : base polymorphe → `virtual ~Base() = default;`."
     },
     {
-      "question": "[Confusion] Quelle est la différence entre `IQueryable<T>` et `IEnumerable<T>` dans une requête EF Core sur la table des trades ?",
+      "question": "[Classe] Dans quel ordre les membres d'une classe sont-ils construits ?",
       "options": [
-        "Ce sont des types identiques — seule la syntaxe LINQ diffère.",
-        "`IQueryable<T>` traduit le filtre en SQL (exécuté en base). `IEnumerable<T>` charge TOUT en mémoire, puis filtre côté C#.",
-        "`IEnumerable<T>` est plus rapide car il n'a pas besoin de connexion SQL.",
-        "`IQueryable<T>` ne supporte pas le `Where` et le `Select`."
+        "Dans l'ordre de déclaration dans la classe.",
+        "Dans l'ordre de la liste d'initialisation du constructeur.",
+        "Par ordre alphabétique.",
+        "Dans un ordre choisi par le compilateur."
       ],
-      "answer": "`IQueryable<T>` traduit le filtre en SQL (exécuté en base). `IEnumerable<T>` charge TOUT en mémoire, puis filtre côté C#.",
-      "explanation": "Anti-pattern fréquent en CIB : `_ctx.Trades.ToList().Where(t => t.DeskId == deskId)` → `.ToList()` force l'exécution → `SELECT * FROM Trades` → charge 500 000 trades en RAM → `Where` filtre en C# les 50 qui appartiennent au desk. Correct : `_ctx.Trades.Where(t => t.DeskId == deskId).ToList()` → EF Core génère `SELECT * FROM Trades WHERE DeskId = @id` → 50 lignes en RAM. Sur une table de millions de trades en CIB, la différence est critique."
+      "answer": "Dans l'ordre de déclaration dans la classe.",
+      "explanation": "L'ordre de la liste d'initialisation est ignoré. Si un membre est initialisé à partir d'un autre déclaré après lui, il lit une valeur indéterminée. `-Wreorder` (inclus dans `-Wall`) signale l'écart."
     },
     {
-      "question": "[Terme → Définition] Pourquoi utiliser `async/await` dans un controller ASP.NET Core qui appelle une base SQL ?",
+      "question": "[Montants] `0.1 + 0.2 == 0.3` en `double` : quel résultat, et comment stocker un montant ?",
       "options": [
-        "Pour rendre la requête SQL plus rapide.",
-        "Pour libérer le thread HTTP pendant l'attente SQL — Kestrel peut traiter d'autres requêtes avec le même thread, augmentant la scalabilité de l'API.",
-        "Pour exécuter la requête SQL sur un thread séparé.",
-        "Pour permettre plusieurs connections SQL simultanées."
+        "`true`, un `double` suffit pour des montants.",
+        "`false`, il faut utiliser `float`.",
+        "Erreur de compilation.",
+        "`false` : 0.1 n'est pas représentable exactement en binaire. On stocke les montants en centimes entiers (ou `decimal` en C#)."
       ],
-      "answer": "Pour libérer le thread HTTP pendant l'attente SQL — Kestrel peut traiter d'autres requêtes avec le même thread, augmentant la scalabilité de l'API.",
-      "explanation": "`async` ne rend pas UNE requête plus rapide — c'est une erreur de compréhension fréquente. Il permet à BEAUCOUP de requêtes d'être traitées simultanement avec peu de threads. Sans async : 500 req/sec × 10ms SQL = 5 threads constamment bloqués. Avec async : ces 5 threads, pendant qu'ils attendent SQL, servent 10-20 autres requêtes. En CIB à l'ouverture des marchés (pic de trafic) : la différence entre async et synchrone peut faire crasher ou non le service."
+      "answer": "`false` : 0.1 n'est pas représentable exactement en binaire. On stocke les montants en centimes entiers (ou `decimal` en C#).",
+      "explanation": "Les erreurs de représentation s'accumulent et font perdre des centimes dans les sommes et les comparaisons. Un `int64_t` en centimes, ou un type décimal, rend les calculs exacts."
     },
     {
-      "question": "[Correspondance] Associez : `where` → ? / `select` → ? / `groupby` → ?",
+      "question": "[Shell] Après une commande, quelle variable contient son code retour ?",
       "options": [
-        "Trier / Projeter / Filtrer",
-        "Filtrer / Projeter / Regrouper",
-        "Projeter / Filtrer / Trier",
-        "Regrouper / Trier / Projeter"
+        "`$0`",
+        "`$#`",
+        "`$?`",
+        "`$!`"
       ],
-      "answer": "Filtrer / Projeter / Regrouper",
-      "explanation": "`Where` = filtre (réduit le nombre d'éléments). `Select` = projection (transforme chaque élément, ne réduit pas le nombre). `GroupBy` = regroupe les éléments par une clé. En CIB : `trades.Where(t => t.Price > 100)` → filtre. `trades.Select(t => t.Isin)` → liste des ISIN seulement. `trades.GroupBy(t => t.Desk).Select(g => new { g.Key, Total = g.Sum(t => t.Notional) })` → notionnel total par desk."
+      "answer": "`$?`",
+      "explanation": "`$?` vaut 0 en cas de succès, une autre valeur en cas d'échec. `$0` est le nom du script, `$#` le nombre d'arguments, `$!` le PID du dernier processus en arrière-plan. À lire immédiatement : la commande suivante l'écrase."
     },
     {
-      "question": "[Confusion] Quelle est la différence entre HTTP synchrone et message queue asynchrone dans l'architecture MAPS ?",
+      "question": "[gdb] Le programme vient de planter sous gdb. Quelle est la première commande à taper ?",
       "options": [
-        "HTTP est toujours meilleur car plus rapide.",
-        "HTTP (sync) : A attend la réponse de B, erreur si B est down. Queue (async) : A envoie le message et continue, B traite quand disponible, message conservé si B est down.",
-        "Message Queue est toujours meilleur car plus résilient.",
-        "HTTP et Message Queue servent exactement les mêmes cas d'usage."
+        "`print`",
+        "`bt`",
+        "`run`",
+        "`quit`"
       ],
-      "answer": "HTTP (sync) : A attend la réponse de B, erreur si B est down. Queue (async) : A envoie le message et continue, B traite quand disponible, message conservé si B est down.",
-      "explanation": "Choix du bon outil selon le cas d'usage : `POST /api/v1/trades` (HTTP) retourne le `TradeId` — le client a besoin de la réponse immédiatement pour confirmer le booking → HTTP obligatoire. `TradeBooked` → calcul des Greeks (RabbitMQ) — le trader n'attend pas que le risk soit calculé pour confirmer le booking → queue. Les deux coexistent dans MAPS. L'erreur est de vouloir tout mettre dans une queue ou tout en HTTP."
+      "answer": "`bt`",
+      "explanation": "`bt` (backtrace) affiche la pile d'appels au moment du crash. On repère ensuite la première frame de notre propre code avec `frame N`, puis on inspecte les variables avec `print` ou `info locals`."
     },
     {
-      "question": "[Terme → Définition] Qu'est-ce qu'un contrat JSON dans une architecture microservices ?",
+      "question": "[Code retour] Un test en CI se termine avec le code 139. Qu'est-ce que cela signifie ?",
       "options": [
-        "Un fichier de configuration JSON pour les microservices.",
-        "La structure JSON partagée entre le producteur et le consommateur — changer un champ requis sans versioning casse les consommateurs qui attendaient l'ancien format.",
-        "Un document légal définissant les SLAs entre services.",
-        "Un schéma SQL stocké en JSON."
+        "Segmentation fault : 139 = 128 + 11 (SIGSEGV).",
+        "Le test a échoué sur une assertion.",
+        "La commande est introuvable.",
+        "Timeout de la pipeline."
       ],
-      "answer": "La structure JSON partagée entre le producteur et le consommateur — changer un champ requis sans versioning casse les consommateurs qui attendaient l'ancien format.",
-      "explanation": "En CIB : `TradeService` publie `{ TradeId: 1, ISIN: \"FR...\", Notional: 500000 }` sur RabbitMQ. `RiskService` désérialise en supposant que `Notional` existe. Si `TradeService` renomme `Notional` en `Amount`, `RiskService` reçoit `Amount: 500000` et `Notional: null` → calcul de risque à 0 → trades non risqués → incident majeur. Le contrat JSON doit être versionné ou modifier uniquement de façon backward-compatible (ajouter des champs optionnels)."
+      "answer": "Segmentation fault : 139 = 128 + 11 (SIGSEGV).",
+      "explanation": "Un processus tué par un signal renvoie 128 + numéro du signal. 11 = SIGSEGV, 6 = SIGABRT (134, souvent une assertion), 127 = commande ou librairie introuvable. Étape suivante : core dump + `gdb` + `bt`, ou relancer sous ASan."
+    }, {
+      "question": "[Piège — Construction vs affectation] `Account b(100); Account c = b; Account d; d = b;` — Quelle fonction est appelée par `Account c = b;` ?",
+      "options": [
+        "L'opérateur d'affectation `operator=`, à cause du signe `=`.",
+        "Le constructeur par défaut, puis l'opérateur d'affectation.",
+        "Le constructeur de déplacement, car `b` est une variable locale.",
+        "Le constructeur de copie : `c` est en train de naître sur cette ligne, le `=` d'une déclaration est une initialisation, pas une affectation."
+      ],
+      "answer": "Le constructeur de copie : `c` est en train de naître sur cette ligne, le `=` d'une déclaration est une initialisation, pas une affectation.",
+      "explanation": "Règle d'or : le type est-il écrit devant le nom ? Si oui, l'objet naît → constructeur. Sinon, l'objet existe déjà → `operator=`. Le `=` ne décide rien. `b` est une lvalue nommée : c'est une copie, pas un déplacement (il faudrait `std::move(b)`)."
     },
     {
-      "question": "[Confusion] `Task.Run()` vs `await` — est-ce que `await` crée un nouveau thread ?",
+      "question": "[Piège — Most vexing parse] Que fait exactement la ligne `SomeType t();` ?",
       "options": [
-        "Oui — `await` crée toujours un nouveau thread pour l'opération.",
-        "Non — `await` LIBÈRE le thread actuel pendant l'attente I/O. Il ne crée pas de thread. `Task.Run()` soumet un travail au ThreadPool.",
-        "`await` et `Task.Run()` créent tous les deux des threads.",
-        "`await` est uniquement pour les opérations SQL, `Task.Run()` pour le reste."
+        "Elle crée `t` avec le constructeur par défaut.",
+        "Elle value-initialise `t`, donc ses membres valent 0.",
+        "Elle déclare une fonction `t` sans paramètre qui retourne un `SomeType` : aucun objet n'est créé.",
+        "Elle provoque immédiatement une erreur de compilation."
       ],
-      "answer": "Non — `await` LIBÈRE le thread actuel pendant l'attente I/O. Il ne crée pas de thread. `Task.Run()` soumet un travail au ThreadPool.",
-      "explanation": "Confusion très fréquente en entretien. `await GetDataAsync()` : quand le thread atteint le `await`, il est libéré dans le pool. Quand les données SQL arrivent, un thread (souvent différent) reprend l'exécution. Aucun thread créé. `Task.Run(() => HeavyCalc())` : soumet `HeavyCalc` à un thread du ThreadPool — là, un thread de pool est utilisé. `await Task.Run(...)` = utilise un thread du pool + libère le thread appelant. En CIB : `await _ctx.SaveChangesAsync()` → zéro thread créé, un thread libéré."
+      "answer": "Elle déclare une fonction `t` sans paramètre qui retourne un `SomeType` : aucun objet n'est créé.",
+      "explanation": "C'est le « most vexing parse » : tout ce qui peut être lu comme une déclaration de fonction l'est. L'erreur n'apparaît que plus loin, par exemple sur `t.value`. Pour un objet, il faut écrire `SomeType t;` ou `SomeType t{};`."
     },
     {
-      "question": "[Terme → Définition] Qu'est-ce que l'exécution différée en LINQ et pourquoi est-ce un piège fréquent ?",
+      "question": "[Distinguer] Variables locales : `struct Example { int x; }; Example a; Example b{};` — Que valent `a.x` et `b.x` ?",
       "options": [
-        "LINQ s'exécute toujours au moment de la définition de la requête.",
-        "La requête LINQ n'est PAS exécutée à la ligne du `Where` — elle est exécutée au moment de l'itération (`foreach`, `.ToList()`). Si la source change entre les deux, le résultat reflète l'état au moment de l'itération.",
-        "L'exécution différée signifie que LINQ attend 100ms avant de s'exécuter.",
-        "L'exécution différée ne s'applique qu'aux requêtes EF Core, pas aux collections en mémoire."
+        "`a.x` et `b.x` valent 0.",
+        "`a.x` a une valeur indéterminée, `b.x` vaut 0.",
+        "`a.x` vaut 0, `b.x` a une valeur indéterminée.",
+        "Les deux sont indéterminés."
       ],
-      "answer": "La requête LINQ n'est PAS exécutée à la ligne du `Where` — elle est exécutée au moment de l'itération (`foreach`, `.ToList()`). Si la source change entre les deux, le résultat reflète l'état au moment de l'itération.",
-      "explanation": "Piège en CIB : `var activeTradesQuery = trades.Where(t => t.Status == \"Active\");` — requête construite. Si entre cette ligne et `activeTradesQuery.ToList()`, un autre thread modifie la liste `trades` (trade cancelled), le résultat contiendra l'état modifié — surprise ! Pour les IQueryable EF Core : le SQL est envoyé à la base seulement au `.ToListAsync()`. Si le DbContext a été modifié entre les deux, la requête peut retourner des données différentes de ce qu'on attendait."
+      "answer": "`a.x` a une valeur indéterminée, `b.x` vaut 0.",
+      "explanation": "`Example a;` est une default-initialization : sans constructeur qui initialise `x`, un `int` local n'est pas initialisé, et le lire est un comportement indéfini. `Example b{};` est une value/aggregate initialization : `x` vaut 0. Nuance : une variable globale ou `static` est toujours mise à zéro."
     },
     {
-      "question": "[Confusion] Producteur vs Consommateur dans RabbitMQ — qui crée le message et qui le traite ?",
+      "question": "[Piège — Conversion rétrécissante] `int a(3.7); int b{3.7};` — Que se passe-t-il ?",
       "options": [
-        "Le consommateur crée le message, le producteur le traite.",
-        "Le producteur crée et envoie le message dans la queue. Le consommateur lit et traite le message depuis la queue.",
-        "Les deux peuvent être producteur et consommateur simultanément dans la même opération.",
-        "Dans RabbitMQ, le broker est aussi le producteur."
+        "`a` compile et vaut 3 (troncature, éventuel warning), `b` provoque une erreur : les accolades interdisent les conversions rétrécissantes.",
+        "Les deux compilent et valent 3.",
+        "Les deux compilent et valent 4 (arrondi).",
+        "`a` provoque une erreur, `b` compile et vaut 3."
       ],
-      "answer": "Le producteur crée et envoie le message dans la queue. Le consommateur lit et traite le message depuis la queue.",
-      "explanation": "`TradeService` (producteur) : `channel.BasicPublish(exchange, routingKey, body: Serialize(trade))` — envoie et oublie. `RiskService` (consommateur) : `channel.BasicConsume(queue, autoAck: false, consumer)` — lit et traite. En CIB, un service peut être les deux : `TradeService` consomme `MarketDataUpdated` pour enrichir les trades ET produit `TradeBooked` pour le risk. La séparation producteur/consommateur est logique, pas physique — un même service peut avoir les deux rôles."
+      "answer": "`a` compile et vaut 3 (troncature, éventuel warning), `b` provoque une erreur : les accolades interdisent les conversions rétrécissantes.",
+      "explanation": "C'est l'argument principal pour préférer `{}` : le compilateur refuse les conversions qui perdent de l'information (double → int, long → short…). Les parenthèses tronquent silencieusement."
     },
     {
-      "question": "[Terme → Définition] Pourquoi ne jamais concaténer une entrée utilisateur dans une requête SQL en C# ?",
+      "question": "[Terme → Étape] `undefined reference to 'Foo::bar()'` : à quelle étape du build cette erreur apparaît-elle ?",
       "options": [
-        "Pour des raisons de performance uniquement.",
-        "Pour éviter l'injection SQL — un input malveillant peut modifier la requête pour lire, modifier ou supprimer des données non autorisées. Les requêtes paramétrées ou ORM séparent code SQL et données.",
-        "Les entrées utilisateur contiennent toujours des caractères invalides pour SQL.",
-        "La concaténation SQL est interdite par le standard C# depuis .NET 5."
+        "Au préprocesseur : le header `Foo.h` est introuvable.",
+        "À la compilation : la syntaxe de `bar()` est incorrecte.",
+        "À l'exécution : la fonction plante au premier appel.",
+        "À l'édition de liens : la déclaration a été vue, mais le linker ne trouve la définition du symbole dans aucun `.o` ni aucune librairie reçus."
       ],
-      "answer": "Pour éviter l'injection SQL — un input malveillant peut modifier la requête pour lire, modifier ou supprimer des données non autorisées. Les requêtes paramétrées ou ORM séparent code SQL et données.",
-      "explanation": "Exemple d'injection : `\"SELECT * FROM Trades WHERE Isin = '\" + userInput + \"'\"`. Si `userInput = \"'; DROP TABLE Trades; --\"` → `SELECT * FROM Trades WHERE Isin = ''; DROP TABLE Trades; --'` → destruction de la table Trades. En CIB, une telle attaque sur la table des positions serait catastrophique. Correction : Dapper `WHERE Isin = @isin` + `new { isin = userInput }` ou EF Core `.Where(t => t.Isin == userInput)` — le driver paramétrise automatiquement."
+      "answer": "À l'édition de liens : la déclaration a été vue, mais le linker ne trouve la définition du symbole dans aucun `.o` ni aucune librairie reçus.",
+      "explanation": "Le compilateur traite un `.cpp` à la fois et se contente de la déclaration du header. Le linker assemble ensuite les `.o` et les librairies, et doit trouver une définition pour chaque symbole utilisé. Le code est donc syntaxiquement correct : c'est la composition du build qui pose problème."
     },
     {
-      "question": "[Confusion] La difference entre `Single()` et `First()` dans LINQ — dans quel cas `Single()` est-il préférable ?",
+      "question": "[Distinguer les erreurs] Lequel de ces messages n'est PAS une erreur d'édition de liens ?",
       "options": [
-        "`Single()` est toujours préférable à `First()` car plus strict.",
-        "`Single()` vérifie qu'il n'y a exactement qu'un résultat — utile pour chercher par clé primaire où plusieurs résultats seraient une erreur de données. `First()` prend le premier même si plusieurs existent.",
-        "`Single()` retourne `null` si la collection est vide, `First()` lance une exception.",
-        "`Single()` et `First()` sont identiques sauf pour les performances."
+        "`undefined reference to 'Foo::bar()'`",
+        "`multiple definition of 'Foo::bar()'`",
+        "`'bar' was not declared in this scope`",
+        "`undefined reference to 'vtable for Foo'`"
       ],
-      "answer": "`Single()` vérifie qu'il n'y a exactement qu'un résultat — utile pour chercher par clé primaire où plusieurs résultats seraient une erreur de données. `First()` prend le premier même si plusieurs existent.",
-      "explanation": "En CIB : `_ctx.Trades.Single(t => t.Id == tradeId)` — si deux trades ont le même ID (corruption de données), `Single()` lance une exception immédiatement — bug détecté. `First()` retournerait silencieusement le premier sans signaler le doublon. Règle : `Single()` pour les clés uniques (GUID, clé primaire) → sécurité de données. `First()` / `FirstOrDefault()` pour les cas où plusieurs résultats sont acceptables (tri par date, prendre le plus récent)."
+      "answer": "`'bar' was not declared in this scope`",
+      "explanation": "« was not declared » est une erreur de compilation : le compilateur ne connaît pas le nom (header manquant, faute de frappe, namespace). « undefined reference » signifie que le symbole est déclaré mais pas défini, « multiple definition » qu'il est défini plusieurs fois, et « vtable » vient d'une fonction virtuelle non définie : ces trois-là sont des erreurs de linker."
     },
     {
-      "question": "[Confusion] `SelectMany()` vs `Select()` en LINQ — quelle est la différence clé ?",
+      "question": "[Cause classique] `Foo.h` déclare `bar()`, `Foo.cpp` la définit, et tu lances `g++ main.cpp -o app`. Tu obtiens `undefined reference to 'Foo::bar()'`. Pourquoi ?",
       "options": [
-        "`SelectMany()` sélectionne plusieurs colonnes, `Select()` en sélectionne une.",
-        "`Select()` retourne une collection de collections. `SelectMany()` aplatit — retourne tous les éléments imbriqués dans une seule collection.",
-        "`SelectMany()` filtre en plus de projeter.",
-        "`Select()` est pour les types simples, `SelectMany()` pour les objets complexes."
+        "Il manque `#pragma once` dans `Foo.h`.",
+        "`Foo.cpp` n'est ni compilé ni lié : le linker ne voit que `main.o`. Correction : `g++ main.cpp Foo.cpp -o app` (ou ajouter `Foo.cpp` à la cible CMake).",
+        "Il faut écrire `#include \"Foo.cpp\"` dans `main.cpp`.",
+        "`bar()` doit être déclarée `static`."
       ],
-      "answer": "`Select()` retourne une collection de collections. `SelectMany()` aplatit — retourne tous les éléments imbriqués dans une seule collection.",
-      "explanation": "En CIB : `desks.Select(d => d.Trades)` retourne `IEnumerable<IEnumerable<Trade>>` — une liste de listes. `desks.SelectMany(d => d.Trades)` retourne `IEnumerable<Trade>` — toutes les trades de tous les desks en une seule liste plate. Utile pour : calculer le notionnel total cross-desks `desks.SelectMany(d => d.Trades).Sum(t => t.Notional)`, ou pour obtenir tous les ISIN uniques de tous les portefeuilles `funds.SelectMany(f => f.Positions).Select(p => p.Isin).Distinct()`."
+      "answer": "`Foo.cpp` n'est ni compilé ni lié : le linker ne voit que `main.o`. Correction : `g++ main.cpp Foo.cpp -o app` (ou ajouter `Foo.cpp` à la cible CMake).",
+      "explanation": "Inclure le header suffit au compilateur, pas au linker. Inclure un `.cpp` est une mauvaise pratique qui provoque des « multiple definition » dès que deux fichiers l'incluent. Les include guards protègent contre la double inclusion dans un même `.cpp`, pas contre un fichier oublié."
     },
     {
-      "question": "[Terme → Définition] Qu'est-ce qu'un acknowledgement (ACK) dans RabbitMQ et pourquoi est-il critique ?",
+      "question": "[Outil] `nm -C main.o` affiche `U Foo::bar()` et `nm -C Foo.o` affiche `T Foo::bar()`. Comment l'interpréter ?",
       "options": [
-        "Un message de confirmation envoyé par le producteur après publication.",
-        "Une confirmation envoyée par le consommateur après traitement réussi — sans ACK, RabbitMQ considère le message non traité et le redélivre. Permet d'éviter la perte de messages si le consommateur crash pendant le traitement.",
-        "Un token d'authentification pour accéder à RabbitMQ.",
-        "Un header JSON confirmant que le message a bien été désérialisé."
+        "`U` : symbole référencé mais non défini dans ce fichier (attendu ailleurs). `T` : symbole défini dans la section code. Si `Foo.o` est passé au linker, `Foo::bar()` sera résolu.",
+        "`U` signifie « utilisé », `T` signifie « testé ».",
+        "`U` signifie « unique », `T` signifie « template ».",
+        "Les deux fichiers définissent `bar()` : risque de « multiple definition »."
       ],
-      "answer": "Une confirmation envoyée par le consommateur après traitement réussi — sans ACK, RabbitMQ considère le message non traité et le redélivre. Permet d'éviter la perte de messages si le consommateur crash pendant le traitement.",
-      "explanation": "Scénario CIB sans ACK : `RiskService` reçoit un message `TradeBooked`, commence à calculer les Greeks, crash à mi-chemin. Sans ACK, RabbitMQ pense que le message a été traité — trade non risqué, position incorrecte. Avec ACK manuel (`autoAck: false`) : le message est redelivré à une autre instance de `RiskService`. `BasicAck(deliveryTag)` = traitement réussi, RabbitMQ supprime le message. `BasicNack(deliveryTag, requeue: false)` = échec, envoyer vers la DLQ. `autoAck: true` = dangereux en CIB (trade perdu si crash)."
+      "answer": "`U` : symbole référencé mais non défini dans ce fichier (attendu ailleurs). `T` : symbole défini dans la section code. Si `Foo.o` est passé au linker, `Foo::bar()` sera résolu.",
+      "explanation": "C'est le diagnostic de base : chaque `U` d'un fichier doit correspondre à un `T` (ou un autre symbole défini) dans un autre `.o` ou une librairie de la ligne de link. `-C` démangle les noms : sans lui, on voit `_ZN3Foo3barEv`. Si le `T` existe mais que l'erreur persiste, c'est que `Foo.o` ou la librairie n'est pas sur la ligne de link."
     },
     {
-      "question": "[Confusion] JWT — pourquoi le payload du token est-il visible en Base64 mais pas sécurisé comme un mot de passe ?",
+      "question": "[Symptôme runtime] `./app: error while loading shared libraries: libmylib.so: cannot open shared object file`. À quel moment cette erreur se produit-elle ?",
       "options": [
-        "Le payload JWT est chiffré — il est illisible sans la clé secrète.",
-        "Le payload JWT est encodé en Base64 (lisible) mais SIGNÉ — quiconque peut le lire, mais personne ne peut le modifier sans invalider la signature. Les données sensibles (mot de passe) ne doivent jamais être dans le JWT.",
-        "JWT chiffre automatiquement les données sensibles dans le payload.",
-        "Le payload JWT est illisible — seul le serveur peut le déchiffrer."
+        "À la compilation de `main.cpp`.",
+        "À l'édition de liens.",
+        "Pendant l'exécution, au premier appel d'une fonction de `mylib`.",
+        "Au lancement, avant même `main()` : le build a réussi, mais le chargeur dynamique ne trouve pas la `.so`."
       ],
-      "answer": "Le payload JWT est encodé en Base64 (lisible) mais SIGNÉ — quiconque peut le lire, mais personne ne peut le modifier sans invalider la signature. Les données sensibles (mot de passe) ne doivent jamais être dans le JWT.",
-      "explanation": "JWT = 3 parties séparées par `.` : Header.Payload.Signature. Le payload `{ userId: 123, role: TRADER, desk: equity }` est décodable par n'importe qui avec Base64. La signature (HMAC-SHA256 avec la clé secrète serveur) garantit l'intégrité — si quelqu'un modifie `role: ADMIN`, la signature ne correspond plus → rejet. HTTPS chiffre le token en transit. Ne jamais mettre un mot de passe, numéro de carte ou donnée confidentielle dans le JWT payload — visible."
+      "answer": "Au lancement, avant même `main()` : le build a réussi, mais le chargeur dynamique ne trouve pas la `.so`.",
+      "explanation": "Le binaire contient une entrée `NEEDED libmylib.so`. Au démarrage, `ld.so` doit charger toutes ces librairies. S'il en manque une, le processus s'arrête avant `main()`. Il ne faut pas confondre avec `dlopen()`, qui charge à la demande pendant l'exécution et renvoie `NULL` en cas d'échec."
     },
     {
-      "question": "[Terme → Définition] Quelle est l'utilité d'un Correlation ID dans une architecture microservices ?",
+      "question": "[Outil] Quelle commande affiche les librairies dynamiques dont dépend `./app`, avec `not found` pour celles qui sont introuvables ?",
       "options": [
-        "Un identifiant de corrélation entre une table SQL et une entité C#.",
-        "Un UUID généré à l'entrée du système et propagé dans tous les logs et headers de tous les services — permet de retrouver tous les événements d'une requête en filtrant sur cet ID dans les logs centralisés.",
-        "Un token de sécurité alternatif au JWT pour les appels inter-services.",
-        "Un identifiant de version pour les contrats JSON."
+        "`nm -C ./app`",
+        "`cmake --build build --verbose`",
+        "`ldd ./app`",
+        "`g++ -v ./app`"
       ],
-      "answer": "Un UUID généré à l'entrée du système et propagé dans tous les logs et headers de tous les services — permet de retrouver tous les événements d'une requête en filtrant sur cet ID dans les logs centralisés.",
-      "explanation": "Sans Correlation ID en CIB : un trade échoue, le trader appelle le support. Le support regarde les logs de `BookingService` → trouve l'erreur, mais ne sait pas quel appel `RiskService` a été fait, ni quel message `RabbitMQ` a été publié. Avec Correlation ID : `X-Correlation-ID: 550e8400-...` propagé dans tous les headers → dans Elasticsearch, filtrer `correlationId=\"550e8400\"` → voir tous les logs de tous les services pour ce trade spécifique. Débogage en secondes au lieu d'heures."
+      "answer": "`ldd ./app`",
+      "explanation": "`ldd` simule la résolution du chargeur et affiche chaque `.so` avec le chemin trouvé, ou `not found`. `nm` sert aux symboles (problèmes de link), `--verbose` montre les commandes de build. Remarque de sécurité : `ldd` peut exécuter du code, il faut donc l'utiliser sur un binaire de confiance. Sinon, `readelf -d ./app` fait l'affaire."
     },
     {
-      "question": "[Confusion] `AsNoTracking()` dans EF Core — dans quel cas NE PAS l'utiliser ?",
+      "question": "[static membre] `struct Compteur { static inline int valeur = 10; }; Compteur a, b; a.valeur = 20; std::cout << b.valeur;` — Qu'est-ce qui est affiché ?",
       "options": [
-        "Ne jamais utiliser `AsNoTracking()` — il est dangereux.",
-        "Ne pas utiliser `AsNoTracking()` quand on veut MODIFIER les entités chargées — le change tracking détecte les modifications et les sauvegarde avec `SaveChanges()`. Pour les lectures seules, `AsNoTracking()` est recommandé.",
-        "`AsNoTracking()` ne fonctionne pas avec `Include()` pour les jointures.",
-        "`AsNoTracking()` doit être utilisé uniquement pour les tables de plus de 1000 lignes."
+        "10, car chaque instance a sa propre copie.",
+        "20, car un membre `static` appartient à la classe et est partagé par toutes les instances.",
+        "0, car `b` n'a jamais été modifié.",
+        "Erreur de compilation : on ne peut pas accéder à un `static` via une instance."
       ],
-      "answer": "Ne pas utiliser `AsNoTracking()` quand on veut MODIFIER les entités chargées — le change tracking détecte les modifications et les sauvegarde avec `SaveChanges()`. Pour les lectures seules, `AsNoTracking()` est recommandé.",
-      "explanation": "Avec change tracking (sans `AsNoTracking`) : `var trade = _ctx.Trades.First(t => t.Id == id); trade.Status = \"Cancelled\"; await _ctx.SaveChangesAsync();` → EF Core détecte la modification et génère `UPDATE Trades SET Status='Cancelled' WHERE Id=@id`. Avec `AsNoTracking()` : `trade.Status = \"Cancelled\"` → pas de suivi → `SaveChanges()` ne sauvegarde rien. En CIB : les endpoints GET (liste des positions, référentiel ISIN) → `AsNoTracking()`. Les endpoints POST/PATCH (booking, modification) → sans `AsNoTracking()`."
+      "answer": "20, car un membre `static` appartient à la classe et est partagé par toutes les instances.",
+      "explanation": "Il n'existe qu'une seule variable `Compteur::valeur`. `a.valeur` et `b.valeur` désignent la même case mémoire (l'écriture `Compteur::valeur` est plus claire). Sans `static`, chaque objet aurait la sienne. `inline` (C++17) permet de l'initialiser dans la classe sans définition séparée dans un `.cpp`."
     },
     {
-      "question": "[Confusion] `.Result` et `.Wait()` sur une Task async en C# — pourquoi sont-ils dangereux dans ASP.NET Core ?",
+      "question": "[Slicing] `void show(Base b) { b.name(); }` appelée avec un `Derived` (où `name()` est virtuelle). Quelle version de `name()` s'exécute ?",
       "options": [
-        "Ils sont identiques à `await` — simple préférence de syntaxe.",
-        "Ils bloquent le thread appelant de façon synchrone, et dans ASP.NET Core provoquent un deadlock : le thread HTTP attend la Task, mais la continuation de la Task attend d'être schedulée sur ce même thread — impasse totale.",
-        "Ils sont dangereux uniquement dans les applications console, pas dans ASP.NET Core.",
-        "Ils causent uniquement une légère dégradation de performance."
+        "`Base::name()` : le passage par valeur copie uniquement la partie `Base`, l'objet reçu est réellement un `Base`.",
+        "`Derived::name()`, grâce à `virtual`.",
+        "Erreur de compilation.",
+        "Comportement indéfini."
       ],
-      "answer": "Ils bloquent le thread appelant de façon synchrone, et dans ASP.NET Core provoquent un deadlock : le thread HTTP attend la Task, mais la continuation de la Task attend d'être schedulée sur ce même thread — impasse totale.",
-      "explanation": "Deadlock classique en CIB : `public IActionResult BookTrade() { var result = _service.BookAsync().Result; return Ok(result); }`. Le thread HTTP appelle `.Result` → se bloque en attendant. La continuation de `BookAsync()` essaie de reprendre sur le contexte de synchronisation ASP.NET (le même thread) → impasse. La requête ne revient jamais. Correction : `await _service.BookAsync()` jusqu'au bout de la chaîne. Si du code synchrone doit appeler du code async : `Task.Run(() => _service.BookAsync()).Result` (thread pool séparé) — mais mieux vaut refactoriser toute la chaîne en async."
+      "answer": "`Base::name()` : le passage par valeur copie uniquement la partie `Base`, l'objet reçu est réellement un `Base`.",
+      "explanation": "C'est le slicing. `virtual` ne fonctionne qu'à travers une référence ou un pointeur. Correction : `void show(const Base& b)`. Même piège avec `catch (std::exception e)`."
     },
     {
-      "question": "[Terme → Définition] Quelle est la différence entre `Any()` et `Count() > 0` en LINQ pour vérifier si une collection contient des éléments ?",
+      "question": "[Règle du zéro] Une classe ne contient que `std::string`, `std::vector<int>` et `std::unique_ptr<Conn>`. Quelles fonctions spéciales faut-il écrire ?",
       "options": [
-        "Ce sont des équivalents stricts — le compilateur les optimise de la même façon.",
-        "`Any()` s'arrête dès qu'il trouve un premier élément (court-circuit). `Count() > 0` parcourt TOUTE la collection pour compter. Sur 1M d'éléments, `Any()` peut s'arrêter au premier, `Count()` parcourt tout.",
-        "`Count()` est recommandé car il retourne un entier réutilisable.",
-        "`Any()` ne fonctionne pas avec les `IQueryable` EF Core."
+        "Destructeur, copie et affectation (règle des trois).",
+        "Les cinq fonctions spéciales.",
+        "Seulement le destructeur.",
+        "Aucune : tous les membres gèrent leurs ressources (règle du zéro). La classe sera déplaçable et non copiable à cause du `unique_ptr`."
       ],
-      "answer": "`Any()` s'arrête dès qu'il trouve un premier élément (court-circuit). `Count() > 0` parcourt TOUTE la collection pour compter. Sur 1M d'éléments, `Any()` peut s'arrêter au premier, `Count()` parcourt tout.",
-      "explanation": "En CIB sur `IQueryable` : `_ctx.Trades.Where(t => t.DeskId == id).Any()` génère `SELECT TOP 1 1 FROM Trades WHERE DeskId=@id` — SQL s'arrête dès le premier résultat. `_ctx.Trades.Where(t => t.DeskId == id).Count() > 0` génère `SELECT COUNT(*) FROM Trades WHERE DeskId=@id` — SQL compte tous les enregistrements. Sur une table de 10M trades, `Any()` retourne en microsecondes, `Count()` en secondes. Règle : pour une vérification d'existence → toujours `Any()`. Pour connaître le nombre exact → `Count()`."
+      "answer": "Aucune : tous les membres gèrent leurs ressources (règle du zéro). La classe sera déplaçable et non copiable à cause du `unique_ptr`.",
+      "explanation": "Les versions générées font la bonne chose membre par membre. Écrire un destructeur vide empêcherait même la génération automatique du déplacement. On n'écrit les fonctions spéciales que pour une classe qui gère elle-même une ressource brute."
     },
     {
-      "question": "[Confusion] Dans RabbitMQ, quelle est la différence entre une queue `durable` et `autoDelete` ?",
+      "question": "[Combo — map + const] `int lire(const std::map<std::string,int>& m) { return m[\"EUR\"]; }` — Résultat ?",
       "options": [
-        "Ce sont des options contradictoires qui ne peuvent pas coexister.",
-        "`durable: true` = la queue survit au redémarrage du broker (persistée sur disque). `autoDelete: true` = la queue est supprimée quand le dernier consommateur se déconnecte. En CIB, les queues de booking doivent être `durable: true, autoDelete: false`.",
-        "`durable` concerne les messages, `autoDelete` concerne les exchanges.",
-        "`autoDelete` supprime les messages non consommés après un TTL."
+        "Retourne 0 si la clé est absente.",
+        "Crée la clé \"EUR\" avec la valeur 0 puis la retourne.",
+        "Erreur de compilation : `operator[]` peut insérer une clé, il n'existe pas en version `const`. Il faut `m.at(\"EUR\")` ou `m.find(\"EUR\")`.",
+        "Lève `std::out_of_range` si la clé est absente."
       ],
-      "answer": "`durable: true` = la queue survit au redémarrage du broker (persistée sur disque). `autoDelete: true` = la queue est supprimée quand le dernier consommateur se déconnecte. En CIB, les queues de booking doivent être `durable: true, autoDelete: false`.",
-      "explanation": "Scénario CIB sans `durable` : RabbitMQ redémarre (maintenance), la queue `trade.booked` est supprimée → tous les messages non consommés sont perdus → trades non risqués. Avec `durable: true` : la queue et ses messages survivent au redémarrage. Note : les messages eux-mêmes doivent aussi être persistants (`deliveryMode: 2`) pour survivre au redémarrage. `autoDelete: true` est utile pour les queues temporaires de réponse (pattern RPC), jamais pour les queues métier critiques en CIB."
+      "answer": "Erreur de compilation : `operator[]` peut insérer une clé, il n'existe pas en version `const`. Il faut `m.at(\"EUR\")` ou `m.find(\"EUR\")`.",
+      "explanation": "Deux pièges combinés : `map[k]` crée la clé si elle est absente, c'est justement pour cela qu'il n'est pas utilisable sur une map `const`. `at()` lève `std::out_of_range`, `find()` permet de tester sans exception."
     },
     {
-      "question": "[Terme → Définition] Qu'est-ce que le principe DRY (Don't Repeat Yourself) appliqué aux contrats JSON entre microservices ?",
+      "question": "[Itérateurs] `auto it = v.begin(); v.push_back(42); std::cout << *it;` — Qu'en penser ?",
       "options": [
-        "Ne jamais définir deux endpoints REST qui retournent le même type de données.",
-        "Partager les DTOs et contrats JSON dans un package NuGet commun entre les services — évite de dupliquer les définitions `TradeBookedEvent` dans `TradeService` et `RiskService`, source d'incohérence si l'un est mis à jour et pas l'autre.",
-        "DRY s'applique uniquement au code C#, pas aux structures JSON.",
-        "Utiliser un seul endpoint qui retourne tous les types de données possibles."
+        "Toujours correct : `it` pointe sur le premier élément.",
+        "Possible comportement indéfini : si `push_back` réalloue le stockage, `it` devient invalide.",
+        "Erreur de compilation.",
+        "`it` est automatiquement mis à jour."
       ],
-      "answer": "Partager les DTOs et contrats JSON dans un package NuGet commun entre les services — évite de dupliquer les définitions `TradeBookedEvent` dans `TradeService` et `RiskService`, source d'incohérence si l'un est mis à jour et pas l'autre.",
-      "explanation": "Anti-pattern en CIB : `TradeService` définit `class TradeBookedEvent { string TradeId; decimal Notional; }` et `RiskService` définit sa propre copie `class TradeBookedEvent { string TradeId; decimal Amount; }`. Quand `TradeService` publie `Notional: 500000`, `RiskService` désérialise `Amount: null` → calcul de risque incorrect. Solution : package NuGet `Maps.Contracts` avec les classes partagées, référencé par les deux services. Inconvénient : couplage de build — toute modification du contrat nécessite de republier le package et mettre à jour tous les consommateurs."
-    }
+      "answer": "Possible comportement indéfini : si `push_back` réalloue le stockage, `it` devient invalide.",
+      "explanation": "Quand la capacité est atteinte, le vector alloue un nouveau bloc, déplace les éléments et libère l'ancien. Itérateurs, pointeurs et références vers les éléments deviennent pendants. Le bug dépend de la capacité, donc il est intermittent ; ASan le révèle."
+    },
+    {
+      "question": "[auto] `const BigObject& get();` puis `auto x = get(); x.modify();` — Que se passe-t-il ?",
+      "options": [
+        "`x` est une copie modifiable : `auto` enlève la référence et le `const` de premier niveau.",
+        "Erreur de compilation : `x` est `const`.",
+        "`x` est une référence, l'objet d'origine est modifié.",
+        "Comportement indéfini."
+      ],
+      "answer": "`x` est une copie modifiable : `auto` enlève la référence et le `const` de premier niveau.",
+      "explanation": "La déduction de `auto` suit celle des templates par valeur. Pour garder la référence sans copie : `const auto& x = get();` (et alors `modify()` ne compile plus). Piège fréquent de performance sur de gros objets."
+    },
+    {
+      "question": "[Conversion] `if (-1 < 0u) std::cout << \"oui\"; else std::cout << \"non\";` — Qu'est-ce qui est affiché ?",
+      "options": [
+        "« oui », car -1 est inférieur à 0.",
+        "Erreur de compilation.",
+        "Comportement indéfini.",
+        "« non » : `-1` est converti en `unsigned`, il devient la plus grande valeur possible."
+      ],
+      "answer": "« non » : `-1` est converti en `unsigned`, il devient la plus grande valeur possible.",
+      "explanation": "Quand un signé et un non signé de même rang sont comparés, le signé est converti en non signé. Piège typique avec `i < v.size()` quand `i` est négatif. `-Wsign-compare` le signale ; C++20 propose `std::cmp_less`."
+    },
+    {
+      "question": "[Déclarations] `const int* p1;` et `int* const p2 = &x;` — Quelle affirmation est vraie ?",
+      "options": [
+        "`p1` ne peut pas changer d'adresse, `*p2` ne peut pas être modifié.",
+        "Les deux déclarations sont équivalentes.",
+        "`*p1` ne peut pas être modifié mais `p1` peut pointer ailleurs ; `p2` ne peut pas pointer ailleurs mais `*p2` est modifiable.",
+        "Aucun des deux ne permet de modifier quoi que ce soit."
+      ],
+      "answer": "`*p1` ne peut pas être modifié mais `p1` peut pointer ailleurs ; `p2` ne peut pas pointer ailleurs mais `*p2` est modifiable.",
+      "explanation": "On lit de droite à gauche depuis le nom : `p1` est un pointeur vers un `int` constant ; `p2` est un pointeur constant vers un `int`. `const int*` et `int const*` sont identiques ; c'est la position du `const` par rapport à `*` qui compte."
+    },
+    {
+      "question": "[Combo — destructeur virtuel + unique_ptr] `struct Base { ~Base(); }; struct Derived : Base { std::vector<int> data; };` puis `std::unique_ptr<Base> p = std::make_unique<Derived>();`. Que se passe-t-il à la destruction de `p` ?",
+      "options": [
+        "Tout est correct : `unique_ptr` connaît le vrai type.",
+        "Comportement indéfini : le destructeur de `Base` n'est pas virtuel, `unique_ptr<Base>` appelle `~Base()` seulement, `data` n'est pas libéré.",
+        "Erreur de compilation à la conversion.",
+        "Double libération de `data`."
+      ],
+      "answer": "Comportement indéfini : le destructeur de `Base` n'est pas virtuel, `unique_ptr<Base>` appelle `~Base()` seulement, `data` n'est pas libéré.",
+      "explanation": "Piège : on pense que le smart pointer protège de tout. `unique_ptr<Base>` fait `delete` sur un `Base*`, donc il faut `virtual ~Base()`. (`shared_ptr` créé par `make_shared<Derived>` mémorise le bon deleter, mais il ne faut pas compter dessus.)"
+    },
+    {
+      "question": "[Combo — copie générée + double delete] `class Buf { double* d; public: Buf() : d(new double[10]) {} ~Buf() { delete[] d; } };` puis `{ Buf a; Buf b = a; }`. Résultat ?",
+      "options": [
+        "Double libération : la copie générée copie le pointeur, `a` et `b` font chacun `delete[]` sur le même bloc.",
+        "Aucun problème : `b` reçoit son propre tableau.",
+        "Fuite mémoire uniquement.",
+        "Erreur de compilation : la copie est interdite."
+      ],
+      "answer": "Double libération : la copie générée copie le pointeur, `a` et `b` font chacun `delete[]` sur le même bloc.",
+      "explanation": "La copie générée est superficielle (membre par membre). Corrections : remplacer `double*` par `std::vector<double>` (règle du zéro), ou écrire copie et affectation profondes (règle des trois/cinq), ou interdire la copie avec `= delete`."
+    },
+    {
+      "question": "[Build/Deploy — Makefile] Tu modifies `foo.h`, inclus par `main.cpp`, et `make` répond « rien à faire ». Pourquoi, et quelle correction ?",
+      "options": [
+        "`make` ne gère pas le C++.",
+        "Il faut toujours lancer `make clean` avant `make`.",
+        "Il faut ajouter `#pragma once` dans `foo.h`.",
+        "La règle `%.o: %.cpp` ne connaît pas les headers. Correction : compiler avec `-MMD -MP` et ajouter `-include $(OBJS:.o=.d)` pour que Make lise les dépendances générées."
+      ],
+      "answer": "La règle `%.o: %.cpp` ne connaît pas les headers. Correction : compiler avec `-MMD -MP` et ajouter `-include $(OBJS:.o=.d)` pour que Make lise les dépendances générées.",
+      "explanation": "Make ne reconstruit une cible que si une dépendance déclarée est plus récente. `-MMD` fait écrire au compilateur un `main.d` du type `main.o: main.cpp foo.h`. Un `make clean` systématique masque le problème et ralentit chaque build."
+    },
   ],
   avance: [
     {
-      "question": "[Architecture] Pourquoi le pattern 'Base de données partagée' est-il l'anti-pattern n°1 des microservices en CIB ?",
+      "question": "[Build/Deploy — Code retour] Dans un script CI, `./app; echo $?` affiche 127. Quelles causes faut-il envisager ?",
       "options": [
-        "C'est uniquement un problème de performance.",
-        "La DB partagée réintroduit le couplage que les microservices cherchent à éliminer : une migration SQL affecte tous les services simultanément, les services ne peuvent pas être déployés indépendamment, et les transactions cross-services créent des dépendances cachées.",
-        "Deux services peuvent partager la même DB s'ils lisent les mêmes tables.",
-        "La DB partagée est acceptable si les services sont dans le même datacenter."
+        "Une segmentation fault.",
+        "Une assertion échouée.",
+        "Commande introuvable (mauvais chemin, binaire non construit), ou librairie dynamique introuvable au chargement (`error while loading shared libraries`).",
+        "Le test a réussi avec des warnings."
       ],
-      "answer": "La DB partagée réintroduit le couplage que les microservices cherchent à éliminer : une migration SQL affecte tous les services simultanément, les services ne peuvent pas être déployés indépendamment, et les transactions cross-services créent des dépendances cachées.",
-      "explanation": "Anti-pattern 'Distributed Monolith' : `TradeService` et `RiskService` partagent `TradesDB`. `TradeService` ajoute une colonne NOT NULL → `RiskService` plante immédiatement (colonne inconnue). Les deux doivent être déployés ensemble. `ALTER TABLE` nécessite de tester et déployer les deux services. Correct : chaque service a sa propre DB. La communication se fait via API REST ou événements RabbitMQ. Le `RiskService` maintient sa propre copie des données de trade (eventual consistency) mise à jour via l'événement `TradeBooked`."
+      "answer": "Commande introuvable (mauvais chemin, binaire non construit), ou librairie dynamique introuvable au chargement (`error while loading shared libraries`).",
+      "explanation": "127 est le code de « not found » : le shell ne trouve pas la commande, ou le chargeur ne trouve pas une `.so` avant `main()`. Vérifier le chemin du binaire, puis `ldd ./app`. À distinguer de 139 (SIGSEGV) et 134 (SIGABRT)."
     },
     {
-      "question": "[Anti-pattern] Un développeur écrit `var risks = await Task.Run(() => trades.Where(t => t.Price > 100).Select(t => CalculateRisk(t)).ToList());` pour un calcul de risque. Quel problème architectural ?",
+      "question": "[Build/Deploy — gdb] `bt` affiche : `#0 memcpy (libc)` `#1 std::vector<...>::_M_realloc (STL)` `#2 Pricer::addLeg (pricer.cpp:88)` `#3 main`. Que faire ensuite ?",
       "options": [
-        "Le code est correct et optimal.",
-        "`Task.Run` avec du LINQ sur une `IEnumerable` charge en mémoire + calcul sur le ThreadPool = deux problèmes : LINQ non optimisé (pas IQueryable) ET `Task.Run` sur du CPU-bound sans `Parallel.For` = séquentiel sur un thread de pool. Correction : `Parallel.ForEach(trades, t => results.Add(CalculateRisk(t)))` pour CPU-bound.",
-        "Le seul problème est l'absence de `CancellationToken`.",
-        "`Task.Run` ne peut pas être awaitable dans ASP.NET Core."
+        "Ouvrir un ticket sur la libc.",
+        "`frame 2` puis `print` / `info locals` : la première frame de notre code est celle où chercher le bug.",
+        "`frame 0` puis `print` sur les registres.",
+        "Recompiler en `-O3`."
       ],
-      "answer": "`Task.Run` avec du LINQ sur une `IEnumerable` charge en mémoire + calcul sur le ThreadPool = deux problèmes : LINQ non optimisé (pas IQueryable) ET `Task.Run` sur du CPU-bound sans `Parallel.For` = séquentiel sur un thread de pool. Correction : `Parallel.ForEach(trades, t => results.Add(CalculateRisk(t)))` pour CPU-bound.",
-      "explanation": "Double anti-pattern CIB : (1) `Task.Run` sur une opération CPU-bound (calcul de risque) ne parallélise pas — le calcul reste séquentiel sur un thread du pool. Pour le parallélisme CPU : `var results = new ConcurrentBag<Risk>(); Parallel.ForEach(trades, t => results.Add(CalculateRisk(t)));`. (2) `Task.Run` dans ASP.NET Core sur des opérations qui sont déjà async = ThreadPool thread starvation (prend un thread pour libérer un autre). Règle : async/await pour I/O-bound (DB, réseau). `Parallel.For/ForEach` pour CPU-bound (calculs numériques)."
+      "answer": "`frame 2` puis `print` / `info locals` : la première frame de notre code est celle où chercher le bug.",
+      "explanation": "Les frames du haut sont presque toujours dans la libc ou la STL, qui reçoivent des arguments invalides. On remonte jusqu'à notre code, on inspecte les variables (`print leg`, `print this->legs.size()`) et le source (`list`)."
     },
     {
-      "question": "[Code → Identification] `var notionnel = await _ctx.Trades.Where(t => t.DeskId == deskId && t.Status == \"Active\").AsNoTracking().SumAsync(t => t.Notional, ct);`. Identifiez tous les patterns utilisés.",
+      "question": "[Build/Deploy — Sanitizers] Quel flag permet de détecter une data race entre deux threads ?",
       "options": [
-        "Seul async/await est utilisé.",
-        "IQueryable (SQL côté serveur) + async/await (libération thread) + AsNoTracking (lecture seule, 2× plus rapide) + CancellationToken (annulation propre) + projection directe SumAsync (SQL `SUM()` côté DB).",
-        "EF Core + LINQ + Repository Pattern.",
-        "Unit of Work + IQueryable + Circuit Breaker."
+        "`-fsanitize=thread`",
+        "`-fsanitize=address`",
+        "`-fsanitize=undefined`",
+        "`-Wall -Wextra`"
       ],
-      "answer": "IQueryable (SQL côté serveur) + async/await (libération thread) + AsNoTracking (lecture seule, 2× plus rapide) + CancellationToken (annulation propre) + projection directe SumAsync (SQL `SUM()` côté DB).",
-      "explanation": "Analyse ligne par ligne : `_ctx.Trades` = `IQueryable<Trade>` (pas encore exécuté). `.Where(...)` = filtre traduit en `WHERE` SQL. `.AsNoTracking()` = pas de change tracking (lecture seule). `.SumAsync(t => t.Notional, ct)` = traduit en `SELECT SUM(Notional) FROM Trades WHERE DeskId=@d AND Status=@s` — UNE seule ligne retournée par SQL (pas 50k lignes en RAM). `await` = libère le thread pendant l'I/O SQL. `ct` = si le client ferme la connexion → SQL annulé. SQL généré très efficace pour une table de millions de trades."
+      "answer": "`-fsanitize=thread`",
+      "explanation": "ThreadSanitizer instrumente les accès mémoire et la synchronisation. Il ne peut pas être combiné avec AddressSanitizer dans le même binaire : en CI, on prévoit un job ASan+UBSan et un job TSan séparés."
     },
     {
-      "question": "[Refactoring] Un service MAPS publie un message RabbitMQ avec `channel.BasicPublish(...)` directement dans le controller. Comment refactoriser pour la testabilité et la résilience ?",
+      "question": "[Build/Deploy — Livraison] Quelle pratique de déploiement est correcte ?",
       "options": [
-        "Déplacer le `BasicPublish` dans une méthode privée du controller.",
-        "Extraire `IMessageBus { Task PublishAsync<T>(string routingKey, T message, CancellationToken ct); }` + implémenter `RabbitMqMessageBus` + injecter dans le controller. En test : mocker `IMessageBus`. En prod : ajouter Polly retry sur `RabbitMqMessageBus`.",
-        "Utiliser un static helper `MessageBusHelper.Publish(...)` accessible partout.",
-        "Publisher directement depuis `DbContext.SaveChanges()` via un hook EF Core."
+        "Recompiler sur chaque serveur de production pour adapter le binaire.",
+        "Copier le dossier `build` d'un poste développeur.",
+        "Recompiler en production avec `-O0` pour pouvoir déboguer.",
+        "Construire un artefact unique en CI, versionné, puis promouvoir ce même artefact de la recette vers la production."
       ],
-      "answer": "Extraire `IMessageBus { Task PublishAsync<T>(string routingKey, T message, CancellationToken ct); }` + implémenter `RabbitMqMessageBus` + injecter dans le controller. En test : mocker `IMessageBus`. En prod : ajouter Polly retry sur `RabbitMqMessageBus`.",
-      "explanation": "SRP + DIP + Testabilité : le controller ne doit pas connaître RabbitMQ directement. Avec `IMessageBus` injectée : test unitaire → `new Mock<IMessageBus>().Verify(m => m.PublishAsync(\"trade.booked\", trade, ct), Times.Once)`. `RabbitMqMessageBus` = implémentation concrète avec retry Polly (`Policy.Handle<BrokerUnreachableException>().WaitAndRetry(3, ...)`). Migration MSMQ→RabbitMQ : créer `RabbitMqMessageBus : IMessageBus` → le controller change zéro ligne. La mission mentionne explicitement MSMQ et RabbitMQ coexistants — cette abstraction est la clé."
+      "answer": "Construire un artefact unique en CI, versionné, puis promouvoir ce même artefact de la recette vers la production.",
+      "explanation": "« Build once, deploy many » : ce qui a été testé est exactement ce qui part en production, avec la traçabilité commit + options + dépendances. Recompiler sur place introduit un environnement non testé, et rend une régression difficile à reproduire ou à annuler."
     },
     {
-      "question": "[Situation → Architecture] `RiskService` crash pendant le traitement d'un message `TradeBooked`. Le message avait `autoAck: true`. Conséquences et correction.",
+      "question": "[Analyse de code] `class A { private: A(); A(int i = 0); public: virtual void doIt() = 0; };` puis `A a;` dans `main`. Pourquoi est-ce refusé ?",
       "options": [
-        "Aucune conséquence — RabbitMQ redélivre le message automatiquement.",
-        "Avec `autoAck: true`, RabbitMQ supprime le message dès sa réception — si le service crash pendant le calcul, le message est perdu. Le trade n'est jamais risqué. Correction : `autoAck: false` + `BasicAck()` après traitement réussi + DLQ pour les rejets.",
-        "Le message est conservé dans la mémoire du serveur jusqu'au redémarrage.",
-        "RabbitMQ envoie automatiquement un NACK si le consommateur crash."
+        "Uniquement parce que les constructeurs sont privés.",
+        "Uniquement parce que `A` est abstraite.",
+        "Pour deux raisons indépendantes : les constructeurs sont privés ET `A` est abstraite (fonction virtuelle pure). Corriger l'une ne suffit pas.",
+        "Ce code compile : `A a;` appelle simplement `A()`."
       ],
-      "answer": "Avec `autoAck: true`, RabbitMQ supprime le message dès sa réception — si le service crash pendant le calcul, le message est perdu. Le trade n'est jamais risqué. Correction : `autoAck: false` + `BasicAck()` après traitement réussi + DLQ pour les rejets.",
-      "explanation": "Scenario CIB : 100 trades sont bookés pendant un pic d'activité. `RiskService` reçoit les messages mais crash (OOM) à mi-traitement. Avec `autoAck: true` : les 50 premiers messages déjà reçus = perdus → 50 trades sans calcul de risque → exposition inconnue → incident majeur (MiFID II). Avec `autoAck: false` : les messages non ACKés sont redelivrés à une autre instance de `RiskService`. DLQ : si un message échoue 3× (donnée corrompue), il va en dead-letter pour inspection manuelle — pas de loop infinie."
+      "answer": "Pour deux raisons indépendantes : les constructeurs sont privés ET `A` est abstraite (fonction virtuelle pure). Corriger l'une ne suffit pas.",
+      "explanation": "Une classe qui a une fonction virtuelle pure (`= 0`) ne peut jamais être instanciée directement : il faut une classe dérivée qui implémente `doIt()`. Indépendamment, un constructeur privé n'est accessible qu'aux membres et aux amis de la classe. Correction : constructeurs publics (ou `protected`) et `class Derived : public A { void doIt() override {} };`."
     },
     {
-      "question": "[Anti-pattern] Un développeur définit `[JsonIgnore]` sur la propriété `Notional` d'un DTO de réponse de booking. Quel impact sur les clients RabbitMQ ?",
+      "question": "[Piège caché] Même en rendant `A` publique et non abstraite, `A(); A(int i = 0);` puis `A a;` pose encore problème. Lequel ?",
       "options": [
-        "Aucun impact — `JsonIgnore` n'affecte pas la désérialisation.",
-        "`[JsonIgnore]` exclut le champ lors de la sérialisation ET désérialisation — le JSON publié sur RabbitMQ ne contient pas `Notional`. `RiskService` qui lit ce champ reçoit `0` ou `null` → calcul de risque incorrect sur tous les trades.",
-        "`[JsonIgnore]` masque uniquement l'affichage, pas la valeur réelle.",
-        "`[JsonIgnore]` génère une erreur de compilation si le champ est requis."
+        "Aucun problème : `A()` est prioritaire.",
+        "Appel ambigu : les deux constructeurs peuvent être appelés sans argument, le compilateur ne peut pas choisir.",
+        "`A(int i = 0)` est prioritaire car il est déclaré en dernier.",
+        "Les valeurs par défaut sont interdites dans les constructeurs."
       ],
-      "answer": "`[JsonIgnore]` exclut le champ lors de la sérialisation ET désérialisation — le JSON publié sur RabbitMQ ne contient pas `Notional`. `RiskService` qui lit ce champ reçoit `0` ou `null` → calcul de risque incorrect sur tous les trades.",
-      "explanation": "Contrat JSON brisé silencieusement : `TradeService` sérialise `BookedTradeEvent` avec `[JsonIgnore]` sur `Notional`. JSON publié : `{ TradeId: 1, ISIN: 'FR...' }` — sans Notional. `RiskService` désérialise → `trade.Notional = 0`. Calcul VaR à 0. Trades passent toutes les limites. Bug silencieux car aucune exception n'est lancée. Correction : utiliser `[JsonIgnore]` uniquement pour les données qui ne doivent JAMAIS être partagées (ex: hash de mot de passe dans un DTO utilisateur). Si `Notional` doit être dans le message interne mais pas dans la réponse HTTP, créer deux DTOs séparés."
+      "answer": "Appel ambigu : les deux constructeurs peuvent être appelés sans argument, le compilateur ne peut pas choisir.",
+      "explanation": "Avec un paramètre par défaut, `A(int = 0)` est aussi un constructeur par défaut. Déclarer les deux compile, mais tout appel sans argument est ambigu. Correction : garder un seul des deux. C'est une erreur que peu de candidats repèrent dans l'exercice."
     },
     {
-      "question": "[Multi-concepts] Comment implémenter un pipeline de traitement de trade en C# qui : (1) valide asynchonement, (2) calcule les Greeks en parallèle, (3) publie sur RabbitMQ, (4) persiste en SQL — en moins de 200ms ?",
+      "question": "[Durée de vie] `B& getInstance() { B b; return b; }` — Quel est le problème ?",
       "options": [
-        "Exécuter chaque étape séquentiellement avec `await` pour chaque appel.",
-        "`await ValidateAsync(trade, ct)` → `await Task.WhenAll(ComputeDeltaAsync(), ComputeVegaAsync(), CheckLimitsAsync())` → `await Task.WhenAll(_bus.PublishAsync(), _ctx.SaveChangesAsync(ct))` — validation séquentielle (nécessite le résultat) + Greeks en parallèle + publish+save en parallèle.",
-        "Utiliser `Parallel.ForEach` pour toutes les étapes.",
-        "Créer 4 threads séparés avec `new Thread()`."
+        "Référence pendante : `b` est détruit à la sortie de la fonction. Le code compile (avec un warning), mais utiliser la référence est un comportement indéfini.",
+        "Erreur de compilation systématique.",
+        "Aucun : la référence prolonge la durée de vie de `b`.",
+        "`b` est automatiquement copié dans l'appelant."
       ],
-      "answer": "`await ValidateAsync(trade, ct)` → `await Task.WhenAll(ComputeDeltaAsync(), ComputeVegaAsync(), CheckLimitsAsync())` → `await Task.WhenAll(_bus.PublishAsync(), _ctx.SaveChangesAsync(ct))` — validation séquentielle (nécessaire car les étapes suivantes en dépendent) + Greeks en parallèle + publish+save en parallèle.",
-      "explanation": "Optimisation du pipeline : validation d'abord (séquentielle — pas la peine de calculer les Greeks si le trade est invalide). Greeks calculés en parallèle (`Task.WhenAll`) — si Delta=20ms, Vega=25ms, limites=15ms → total=25ms au lieu de 60ms. Publication RabbitMQ + save SQL en parallèle (indépendants l'un de l'autre) — si publish=5ms, save=10ms → total=10ms au lieu de 15ms. Résultat : ~50ms au lieu de ~100ms séquentiel. `CancellationToken` propagé partout — si annulation, toutes les Tasks sont annulées proprement."
+      "answer": "Référence pendante : `b` est détruit à la sortie de la fonction. Le code compile (avec un warning), mais utiliser la référence est un comportement indéfini.",
+      "explanation": "Une référence ne crée pas d'objet et ne le rend pas « plus vivant ». Elle désigne un objet existant. Une fois `b` détruit, la référence pointe vers de la mémoire morte. Correction : retourner par valeur (`B getInstance()`), ou retourner une référence vers un objet dont la durée de vie est garantie (membre, `static`)."
     },
     {
-      "question": "[Thème ↔ Concept] Comment le pattern Outbox Pattern résout-il le problème de cohérence entre `SaveChangesAsync()` (SQL) et `PublishAsync()` (RabbitMQ) ?",
+      "question": "[Signature] Header : `namespace net { void init(); }`. `net.cpp` : `#include \"net.h\"` puis `void init() { }` (sans namespace). `main` appelle `net::init()`. Résultat ?",
       "options": [
-        "En utilisant une transaction distribuée XA entre SQL et RabbitMQ.",
-        "Écrire le message dans une table `OutboxMessages` SQL dans la même transaction que le trade. Un background service lit et publie les messages non envoyés sur RabbitMQ. Si RabbitMQ est down, les messages attendent en SQL — aucune incohérence.",
-        "Utiliser `Task.WhenAll(save, publish)` garantit l'atomicité.",
-        "Le problème n'existe pas — SQL et RabbitMQ peuvent être traités indépendamment."
+        "Ça fonctionne : `init` est retrouvée automatiquement.",
+        "Erreur de compilation dans `net.cpp`.",
+        "`multiple definition of 'init'`.",
+        "`undefined reference to 'net::init()'` : `net.cpp` définit une autre fonction, `::init()` dans le namespace global, et `net::init()` n'est jamais définie."
       ],
-      "answer": "Écrire le message dans une table `OutboxMessages` SQL dans la même transaction que le trade. Un background service lit et publie les messages non envoyés sur RabbitMQ. Si RabbitMQ est down, les messages attendent en SQL — aucune incohérence.",
-      "explanation": "Problème CIB : `await _ctx.SaveChangesAsync()` réussit (trade en base) puis RabbitMQ est down → `await _bus.PublishAsync()` échoue → `RiskService` ne reçoit jamais `TradeBooked` → trade non risqué. `Task.WhenAll` ne garantit pas l'atomicité — si publish échoue, le save est déjà committé. Outbox Pattern : transaction SQL atomique `{ INSERT INTO Trades, INSERT INTO OutboxMessages }`. `IHostedService` lit l'Outbox toutes les secondes, publie sur RabbitMQ, marque les messages comme envoyés. Guaranteed delivery sans transaction distribuée."
+      "answer": "`undefined reference to 'net::init()'` : `net.cpp` définit une autre fonction, `::init()` dans le namespace global, et `net::init()` n'est jamais définie.",
+      "explanation": "Pour une fonction libre, une définition qui ne correspond pas exactement (namespace, type de paramètre, `long` au lieu de `int`…) crée une nouvelle fonction sans erreur de compilation. Le décalage n'apparaît qu'au link. Correction : `void net::init() { }` ou `namespace net { void init() { } }`. Pour une fonction membre, une définition hors classe sans déclaration correspondante est en revanche une erreur de compilation."
     },
     {
-      "question": "[Confusion + Performance] `GroupBy` suivi de `Count()` en LINQ sur IQueryable vs IEnumerable — quelle est la différence de SQL généré ?",
+      "question": "[Template] `Stack.h` déclare `template<class T> class Stack { void push(T); };` et `Stack.cpp` définit `push`. `main.cpp` utilise `Stack<int>`. Erreur : `undefined reference to 'Stack<int>::push(int)'`. Pourquoi ?",
       "options": [
-        "Les deux génèrent le même SQL.",
-        "Sur `IQueryable` : `SELECT DeskId, COUNT(*) FROM Trades GROUP BY DeskId` — SQL côté serveur. Sur `IEnumerable` (après `.ToList()`) : charge TOUTES les trades en mémoire, groupe en C#. Sur 1M de trades, la différence est de secondes vs millisecondes.",
-        "`GroupBy` n'est pas supporté sur `IQueryable` — uniquement `IEnumerable`.",
-        "`GroupBy` sur `IQueryable` génère N+1 requêtes SQL."
+        "Parce que `Stack.cpp` n'est pas dans le build.",
+        "Parce que `int` n'est pas un type autorisé pour un template.",
+        "Parce que les templates sont instanciés là où ils sont utilisés : `main.cpp` ne voit pas le corps de `push`, et `Stack.cpp` ne sait pas qu'il faut générer `Stack<int>`. Il faut définir le template dans le header, ou ajouter une instanciation explicite.",
+        "Parce qu'il manque le mot-clé `virtual`."
       ],
-      "answer": "Sur `IQueryable` : `SELECT DeskId, COUNT(*) FROM Trades GROUP BY DeskId` — SQL côté serveur. Sur `IEnumerable` (après `.ToList()`) : charge TOUTES les trades en mémoire, groupe en C#. Sur 1M de trades, la différence est de secondes vs millisecondes.",
-      "explanation": "Démonstration : `_ctx.Trades.GroupBy(t => t.DeskId).Select(g => new { Desk = g.Key, Count = g.Count() })` → SQL : `SELECT DeskId, COUNT(*) FROM Trades GROUP BY DeskId` → retourne N lignes (une par desk). `_ctx.Trades.ToList().GroupBy(...)` → SQL : `SELECT * FROM Trades` → 1M lignes en RAM → groupe en C# → 1M objets Trade créés pour obtenir le même N-lignes résultat. En CIB avec une table de positions historiques (10M lignes), la version `ToList()` avant `GroupBy` peut provoquer un OutOfMemoryException."
+      "answer": "Parce que les templates sont instanciés là où ils sont utilisés : `main.cpp` ne voit pas le corps de `push`, et `Stack.cpp` ne sait pas qu'il faut générer `Stack<int>`. Il faut définir le template dans le header, ou ajouter une instanciation explicite.",
+      "explanation": "C'est un piège classique, car `Stack.cpp` est bien compilé et lié. Mais un template n'est pas du code tant qu'il n'est pas instancié. Solutions : tout mettre dans le header (`.h`/`.hpp`), ou ajouter `template class Stack<int>;` à la fin de `Stack.cpp`."
     },
     {
-      "question": "[Anti-pattern] Un service publie `{ TradeId: 1, EmployeeSalary: 85000, JwtSecret: \"abc123\" }` dans un message RabbitMQ. Quels problèmes ?",
+      "question": "[Ordre des librairies] `g++ -L. -lmylib main.o -o app` avec `libmylib.a` donne `undefined reference to 'Foo::bar()'`, alors que `bar` est dans `libmylib.a`. Pourquoi ?",
       "options": [
-        "Aucun problème — les messages RabbitMQ sont chiffrés.",
-        "Surcharge du contrat JSON (données non nécessaires pour les consommateurs) + fuite d'informations sensibles (salaire, secret JWT) lisibles par tous les services consommateurs et dans les logs de monitoring RabbitMQ.",
-        "Le seul problème est la taille excessive du message.",
-        "Le problème est uniquement de sécurité — chiffrer le message suffit."
+        "Parce que `-L.` est interdit.",
+        "Parce que le linker GNU lit de gauche à droite : quand il traite `libmylib.a`, aucun symbole n'est encore demandé, donc il n'en extrait rien. La librairie doit être placée après les objets qui l'utilisent : `g++ main.o -L. -lmylib -o app`.",
+        "Parce qu'une librairie statique ne peut pas contenir de méthodes de classe.",
+        "Parce qu'il faut remplacer `-lmylib` par `-lmylib.a`."
       ],
-      "answer": "Surcharge du contrat JSON (données non nécessaires pour les consommateurs) + fuite d'informations sensibles (salaire, secret JWT) lisibles par tous les services consommateurs et dans les logs de monitoring RabbitMQ.",
-      "explanation": "Principe de minimisation (RGPD + sécurité) : les messages doivent contenir uniquement ce dont les consommateurs ont besoin. `RiskService` a besoin de `TradeId`, `ISIN`, `Notional`, pas du salaire. `JwtSecret` dans un message = catastrophe sécurité — visible dans les logs RabbitMQ management, dans les logs des consommateurs (Serilog), potentiellement stocké en DLQ. Règle : créer un DTO spécifique au message `TradeBookedEvent { TradeId, ISIN, Notional, Desk, Timestamp }` — seuls les champs nécessaires aux consommateurs."
+      "answer": "Parce que le linker GNU lit de gauche à droite : quand il traite `libmylib.a`, aucun symbole n'est encore demandé, donc il n'en extrait rien. La librairie doit être placée après les objets qui l'utilisent : `g++ main.o -L. -lmylib -o app`.",
+      "explanation": "Pour une archive statique, `ld` n'extrait que les `.o` qui résolvent des symboles déjà en attente. Règle : l'utilisateur d'abord, la dépendance ensuite. Si A dépend de B : `-lA -lB`. Avec CMake et `target_link_libraries`, l'ordre est géré automatiquement, ce qui est un argument de plus pour l'utiliser."
     },
     {
-      "question": "[Situation → Pattern] Le `RiskService` a besoin des données d'un trade pour calculer le risque, mais il ne partage pas la DB avec `TradeService`. Comment maintenir sa copie locale des trades ?",
+      "question": "[Link-time vs runtime] `g++ main.o -L/opt/mylib/lib -lmylib -o app` réussit, mais `./app` échoue avec `libmylib.so: cannot open shared object file`. Pourquoi ?",
       "options": [
-        "Appeler `GET /api/v1/trades/{id}` à chaque calcul de risque.",
-        "Pattern CQRS + Event Sourcing : consommer l'événement `TradeBooked` depuis RabbitMQ → stocker une copie locale dans la DB du `RiskService` (sa propre table `Trades_Risk`) → lire localement pour les calculs. Eventual consistency acceptable.",
-        "Accéder directement à la DB de `TradeService` en lecture seule.",
-        "Utiliser une transaction distribuée XA pour synchroniser les deux DBs."
+        "`-L` ne sert qu'au linker pendant le build. Au lancement, le chargeur `ld.so` cherche dans d'autres emplacements (RPATH/RUNPATH, `LD_LIBRARY_PATH`, cache `ldconfig`, `/lib`, `/usr/lib`) et ne connaît pas `/opt/mylib/lib`.",
+        "Le link a échoué silencieusement.",
+        "Il fallait compiler avec `-static`.",
+        "La librairie est corrompue."
       ],
-      "answer": "Pattern CQRS + Event Sourcing : consommer l'événement `TradeBooked` depuis RabbitMQ → stocker une copie locale dans la DB du `RiskService` (sa propre table `Trades_Risk`) → lire localement pour les calculs. Eventual consistency acceptable.",
-      "explanation": "DB per service + eventual consistency : `RiskService` a sa propre table `TradesForRisk { TradeId, ISIN, Notional, DeskId }` (uniquement les champs nécessaires au calcul de risque). `IHostedService` consomme `TradeBooked` depuis RabbitMQ → `INSERT OR UPDATE TradesForRisk`. Avantages : lecture locale ultra-rapide (pas d'appel HTTP vers `TradeService`), pas de couplage runtime, résilience (`TradeService` peut être down pendant le calcul de risque). Eventual consistency : le `RiskService` peut avoir quelques secondes de délai — acceptable en finance post-trade."
+      "answer": "`-L` ne sert qu'au linker pendant le build. Au lancement, le chargeur `ld.so` cherche dans d'autres emplacements (RPATH/RUNPATH, `LD_LIBRARY_PATH`, cache `ldconfig`, `/lib`, `/usr/lib`) et ne connaît pas `/opt/mylib/lib`.",
+      "explanation": "C'est la confusion la plus fréquente : il y a deux recherches distinctes. Au link, `ld` utilise `-L`. À l'exécution, `ld.so` utilise ses propres chemins. Corrections : `-Wl,-rpath,/opt/mylib/lib` (RUNPATH), un fichier dans `/etc/ld.so.conf.d/` suivi de `sudo ldconfig`, ou `LD_LIBRARY_PATH` pour un test ponctuel."
     },
     {
-      "question": "[Refactoring] Un `BookingController` de 400 lignes gère : désérialisation JSON, validation métier, appel Sophis, save SQL, publish RabbitMQ, logging, gestion d'erreurs. Refactorisez en SOLID.",
+      "question": "[Erreur de link spécifique] `undefined reference to 'vtable for Foo'`. Cause la plus probable ?",
       "options": [
-        "Diviser en méthodes privées dans le même controller.",
-        "SRP : `IBookingValidator` (validation), `IIsinService` (Sophis), `ITradeRepository` (SQL), `IEventPublisher` (RabbitMQ). `BookingController` = orchestrateur 20 lignes qui appelle chaque service injecté. DIP : interfaces injectées par constructeur. Tests : mocker chaque interface indépendamment.",
-        "Créer un service `BookingHelper` statique avec toutes les méthodes.",
-        "Utiliser des middlewares ASP.NET Core pour chaque responsabilité."
+        "`Foo` n'a aucune fonction virtuelle.",
+        "Le header `Foo.h` est inclus deux fois.",
+        "`Foo` est une classe abstraite.",
+        "Une fonction virtuelle non pure de `Foo` (souvent le destructeur virtuel) est déclarée mais jamais définie, ou le `.cpp` qui la définit n'est pas lié. La vtable est émise avec la première fonction virtuelle non inline."
       ],
-      "answer": "SRP : `IBookingValidator` (validation), `IIsinService` (Sophis), `ITradeRepository` (SQL), `IEventPublisher` (RabbitMQ). `BookingController` = orchestrateur 20 lignes qui appelle chaque service injecté. DIP : interfaces injectées par constructeur. Tests : mocker chaque interface indépendamment.",
-      "explanation": "SRP sur le controller : un controller 400 lignes = 5 raisons de changer = fragile. Après refactoring : `BookingController` → `await _validator.ValidateAsync(req)` → `var isin = await _isinService.ResolveAsync(req.Isin)` → `var trade = await _tradeRepo.CreateAsync(trade)` → `await _eventPublisher.PublishAsync(\"trade.booked\", trade)`. Chaque service testable isolément avec `Mock<IIsinService>`. Si Sophis change d'API : modifier uniquement `SophisIsinService`, zéro modification du controller. DIP : le controller dépend d'abstractions, pas des implémentations concrètes."
+      "answer": "Une fonction virtuelle non pure de `Foo` (souvent le destructeur virtuel) est déclarée mais jamais définie, ou le `.cpp` qui la définit n'est pas lié. La vtable est émise avec la première fonction virtuelle non inline.",
+      "explanation": "Avec l'ABI Itanium (GCC/Clang), le compilateur émet la vtable dans le `.o` qui définit la « key function », c'est-à-dire la première fonction virtuelle non pure et non inline. Si elle n'est jamais définie, aucun `.o` ne contient la vtable. Le message est trompeur car il ne nomme pas la fonction. Il faut vérifier chaque `virtual`, en particulier `virtual ~Foo();` sans corps."
     },
     {
-      "question": "[Architecture] Comment versionner un contrat JSON publié sur RabbitMQ sans casser les consommateurs existants ?",
+      "question": "[Erreur inverse] `utils.h` contient `int square(int x) { return x * x; }` (sans `inline`) et est inclus dans `a.cpp` et `b.cpp`. Résultat au link ?",
       "options": [
-        "Modifier directement le JSON — les consommateurs s'adapteront automatiquement.",
-        "Ajouter les nouveaux champs en optionnel (backward compatible). Pour les breaking changes : créer un nouveau routingKey `trade.booked.v2`, les anciens consommateurs gardent leur abonnement `trade.booked.v1`, les nouveaux s'abonnent à `v2`. Dual-publish pendant la transition.",
-        "Utiliser une transaction distribuée pour migrer tous les consommateurs simultanément.",
-        "Supprimer la queue et recréer — les messages en attente sont perdus."
+        "`undefined reference to 'square(int)'`",
+        "Aucun problème grâce aux include guards.",
+        "`multiple definition of 'square(int)'` : chaque `.cpp` qui inclut le header produit sa propre définition, ce qui viole la règle d'une seule définition (ODR). Correction : `inline`, ou déclaration dans le header et définition dans un `.cpp`.",
+        "Le linker garde silencieusement la première définition."
       ],
-      "answer": "Ajouter les nouveaux champs en optionnel (backward compatible). Pour les breaking changes : créer un nouveau routingKey `trade.booked.v2`, les anciens consommateurs gardent leur abonnement `trade.booked.v1`, les nouveaux s'abonnent à `v2`. Dual-publish pendant la transition.",
-      "explanation": "Versioning de contrat de message en CIB : Backward compatible (ajouter champ optionnel `CurrencyCode?`) — tous les consommateurs l'ignorent ou l'utilisent s'ils en ont besoin. Breaking change (renommer `Notional` → `Amount`) → dual-publish : `TradeService` publie sur `trade.booked` (format v1 pour les anciens) ET `trade.booked.v2` (format v2 pour les nouveaux). Quand tous les consommateurs ont migré, retirer le dual-publish. Timeline : 2-4 semaines de transition. Documenter le changelog avec la date de dépréciation de v1."
+      "answer": "`multiple definition of 'square(int)'` : chaque `.cpp` qui inclut le header produit sa propre définition, ce qui viole la règle d'une seule définition (ODR). Correction : `inline`, ou déclaration dans le header et définition dans un `.cpp`.",
+      "explanation": "C'est l'inverse de l'undefined reference : zéro définition donne « undefined », deux définitions donnent « multiple ». Les include guards empêchent seulement la double inclusion dans un même `.cpp`, pas entre deux `.cpp` différents. `inline` autorise plusieurs définitions identiques ; c'est implicite pour les méthodes définies dans la classe et pour les templates."
     },
     {
-      "question": "[Confusion + Architecture] Quelle est la différence entre `Competing Consumers` et `Publish-Subscribe` dans RabbitMQ ?",
+      "question": "[C / C++] Une librairie C fournit `compute(int)`. Un `main.cpp` l'appelle via un header sans `extern \"C\"`. `nm` montre `T compute` dans la lib et `U compute(int)` dans `main.o`. Diagnostic ?",
       "options": [
-        "Ce sont deux noms pour le même pattern.",
-        "Competing Consumers : plusieurs instances du même service partagent une queue — chaque message traité par UN seul consommateur (load balancing). Publish-Subscribe : chaque service a SA propre queue (Fanout Exchange) — chaque message reçu par TOUS les abonnés.",
-        "Competing Consumers utilise Topic Exchange, Publish-Subscribe utilise Direct Exchange.",
-        "Publish-Subscribe est uniquement pour les messages prioritaires."
+        "La librairie C n'est pas liée.",
+        "Problème de name mangling : le C++ cherche le symbole décoré `_Z7computei`, alors que la lib C exporte `compute`. Il faut entourer les déclarations de `extern \"C\" { ... }` dans le header (avec `#ifdef __cplusplus`).",
+        "Il faut recompiler la librairie C avec g++.",
+        "Il faut déclarer `compute` en `static`."
       ],
-      "answer": "Competing Consumers : plusieurs instances du même service partagent une queue — chaque message traité par UN seul consommateur (load balancing). Publish-Subscribe : chaque service a SA propre queue (Fanout Exchange) — chaque message reçu par TOUS les abonnés.",
-      "explanation": "Cas d'usage CIB : Competing Consumers → `RiskService` a 3 instances qui consomment toutes `risk.trade.booked` (une seule queue). Un message `TradeBooked` est traité par une seule des 3 instances — scale out horizontal, chaque trade risqué une seule fois. Publish-Subscribe → `TradeBooked` doit être reçu par `RiskService` ET `AuditService` ET `BlotterService` — Fanout Exchange copie le message dans 3 queues dédiées. Mélange des deux : `risk.trade.booked` (unique, 3 instances en competing consumers) + `audit.trade.booked` (unique) + `blotter.trade.booked` (unique)."
-    },
-    {
-      "question": "[Code → Analyse] `services.AddScoped<ITradeRepository, EfTradeRepository>()`. Que signifie `Scoped` et pourquoi est-ce le bon choix pour un `DbContext` EF Core ?",
-      "options": [
-        "Scoped = une seule instance pour toute la durée de vie de l'application (même chose que Singleton).",
-        "Scoped = une instance créée par requête HTTP et partagée dans cette requête. Le `DbContext` EF Core est conçu pour une seule unité de travail (une requête) — réutiliser le même DbContext entre plusieurs requêtes causerait des incohérences de change tracking.",
-        "Scoped = une nouvelle instance créée à chaque injection (même chose que Transient).",
-        "Scoped s'applique uniquement aux services qui accèdent au cache Redis."
-      ],
-      "answer": "Scoped = une instance créée par requête HTTP et partagée dans cette requête. Le `DbContext` EF Core est conçu pour une seule unité de travail (une requête) — réutiliser le même DbContext entre plusieurs requêtes causerait des incohérences de change tracking.",
-      "explanation": "Cycles de vie DI en ASP.NET Core : Singleton = une instance pour toute l'app (pour les services stateless : `IMessageBus`, `IHttpClientFactory`). Scoped = une instance par requête HTTP (pour `DbContext` EF Core, `ITradeRepository`). Transient = nouvelle instance à chaque injection (pour les services légers sans état). Piège : injecter un service Scoped dans un Singleton → exception à l'exécution (`IServiceScopeFactory` obligatoire). En CIB : `DbContext` Scoped garantit que le change tracking d'une requête de booking n'interfère pas avec la requête suivante."
-    },
-    {
-      "question": "[Situation → Architecture] Un `RiskService` appelle `TradeService` via HTTP pour chaque calcul de risque (100 appels/seconde). `TradeService` est down 5 minutes. Comment concevoir la résilience ?",
-      "options": [
-        "Augmenter le timeout HTTP à 5 minutes pour attendre le retour de `TradeService`.",
-        "Circuit Breaker Polly : après 5 erreurs consécutives, ouvrir le circuit 30s (réponse immédiate de refus). Fallback : utiliser les données de trade en cache local. Retry avec backoff exponentiel pour les erreurs transitoires. Alert monitoring quand le circuit s'ouvre.",
-        "Supprimer l'appel HTTP et accéder directement à la DB de `TradeService`.",
-        "Retry infini toutes les 100ms — `TradeService` finira par répondre."
-      ],
-      "answer": "Circuit Breaker Polly : après 5 erreurs consécutives, ouvrir le circuit 30s (réponse immédiate de refus). Fallback : utiliser les données de trade en cache local. Retry avec backoff exponentiel pour les erreurs transitoires. Alert monitoring quand le circuit s'ouvre.",
-      "explanation": "Sans circuit breaker : 100 appels/s × 5 minutes = 30 000 requêtes bloquées pendant le timeout (ex: 10s chacune) → 100 threads bloqués en permanence → `RiskService` crash également. Cascade de pannes. Circuit Breaker Polly : `services.AddHttpClient<ITradeServiceClient>().AddResilienceHandler(\"trade\", b => b.AddCircuitBreaker(new CircuitBreakerStrategyOptions { FailureRatio = 0.5, SamplingDuration = TimeSpan.FromSeconds(10), MinimumThroughput = 5, BreakDuration = TimeSpan.FromSeconds(30) }))`. Circuit ouvert → `RiskService` répond immédiatement avec données cache → reste disponible. Retry exponentiel (2s, 4s, 8s) pour les erreurs réseau transitoires seulement."
-    },
-    {
-      "question": "[Anti-pattern + LINQ] Un développeur filtre une liste de 50k trades avec `trades.Where(t => t.Desk == \"Equity\").Count()` dans une boucle appelée 1000 fois. Quel problème et quelle correction ?",
-      "options": [
-        "Aucun problème — LINQ est optimisé par le compilateur.",
-        "Exécution différée mal exploitée : `Count()` exécute le `Where` à chaque appel → O(n) × 1000 = 50M itérations. Correction : `var equityCount = trades.Where(t => t.Desk == \"Equity\").Count()` UNE FOIS hors de la boucle, ou `trades.GroupBy(t => t.Desk).ToDictionary(g => g.Key, g => g.Count())` pour tous les desks en une passe.",
-        "Le seul problème est que `Count()` devrait être remplacé par `Any()`.",
-        "Utiliser `Parallel.ForEach` sur la boucle résout le problème."
-      ],
-      "answer": "Exécution différée mal exploitée : `Count()` exécute le `Where` à chaque appel → O(n) × 1000 = 50M itérations. Correction : `var equityCount = trades.Where(t => t.Desk == \"Equity\").Count()` UNE FOIS hors de la boucle, ou `trades.GroupBy(t => t.Desk).ToDictionary(g => g.Key, g => g.Count())` pour tous les desks en une passe.",
-      "explanation": "Exécution différée + boucle = piège de performance classique. En CIB pour un rapport de positions : calculer le nombre de trades par desk dans une boucle de 1000 itérations sur 50k trades = 50M comparaisons. Optimisation : matérialiser le résultat une fois (`var counts = trades.GroupBy(t => t.Desk).ToDictionary(g => g.Key, g => g.Count())`) → une seule passe sur 50k trades. Puis dans la boucle : `counts.GetValueOrDefault(\"Equity\", 0)` → O(1). Gain : 50M itérations → 50k + 1000 lookups O(1)."
+      "answer": "Problème de name mangling : le C++ cherche le symbole décoré `_Z7computei`, alors que la lib C exporte `compute`. Il faut entourer les déclarations de `extern \"C\" { ... }` dans le header (avec `#ifdef __cplusplus`).",
+      "explanation": "Le C++ encode le namespace, la classe et les types des paramètres dans le nom du symbole pour permettre la surcharge. Le C ne le fait pas. `nm -C` fait apparaître la différence : `compute(int)` avec signature d'un côté, `compute` brut de l'autre. Ce piège apparaît souvent quand on intègre des dépendances C (OpenSSL, zlib…)."
     }
   ],
   expert: [
     {
-      "question": "[Architecture + Multi-concepts] Concevez un système garantissant qu'un trade booké dans MAPS est toujours risqué, même si RabbitMQ est temporairement indisponible. Nommez tous les patterns utilisés.",
+      "question": "[CMake — PRIVATE vs PUBLIC] Le header public `mylib.h` fait `#include <fmt/format.h>`, et on a écrit `target_link_libraries(mylib PRIVATE fmt::fmt)`. `app` (lié à `mylib`) échoue avec `fmt/format.h: No such file`. Pourquoi ?",
       "options": [
-        "Retry infini sur la publication RabbitMQ.",
-        "Outbox Pattern (message stocké en SQL dans la même transaction que le trade) + IHostedService (polling Outbox → publish RabbitMQ quand disponible) + Idempotency Key (RiskService ne recalcule pas deux fois le même trade) + Circuit Breaker sur RabbitMQ (ne pas bloquer le booking si RabbitMQ est down).",
-        "Transaction distribuée XA entre SQL Server et RabbitMQ.",
-        "Synchroniser directement les DBs de TradeService et RiskService."
+        "`PRIVATE` signifie que fmt sert uniquement à construire `mylib` : ses répertoires d'include ne sont pas propagés. Comme fmt apparaît dans un header public de `mylib`, il faut `PUBLIC`.",
+        "fmt n'est pas installée.",
+        "Il faut ajouter `add_dependencies(app fmt)`.",
+        "Il faut lier fmt directement à `app` avec `PRIVATE`."
       ],
-      "answer": "Outbox Pattern (message stocké en SQL dans la même transaction que le trade) + IHostedService (polling Outbox → publish RabbitMQ quand disponible) + Idempotency Key (RiskService ne recalcule pas deux fois le même trade) + Circuit Breaker sur RabbitMQ (ne pas bloquer le booking si RabbitMQ est down).",
-      "explanation": "Architecture garantie de livraison : (1) Outbox : `BEGIN TRANSACTION; INSERT INTO Trades; INSERT INTO OutboxMessages (tradeId, payload, sentAt=null); COMMIT;` — atomique. (2) `IHostedService` : toutes les 5s, `SELECT TOP 100 FROM OutboxMessages WHERE sentAt IS NULL` → publie → `UPDATE sentAt=NOW`. (3) Si RabbitMQ est down : le trade est en DB, l'OutboxMessage attend. Quand RabbitMQ revient : publication automatique. (4) Idempotency Key sur `RiskService` : si l'Outbox publie deux fois (retry) → `RiskService` vérifie `ProcessedTradeIds` → ignore le doublon. (5) Circuit Breaker Polly : si RabbitMQ down → circuit ouvert → publish échoue vite → Outbox conserve en SQL."
+      "answer": "`PRIVATE` signifie que fmt sert uniquement à construire `mylib` : ses répertoires d'include ne sont pas propagés. Comme fmt apparaît dans un header public de `mylib`, il faut `PUBLIC`.",
+      "explanation": "Règle : `PRIVATE` pour une dépendance utilisée seulement dans les `.cpp` ; `PUBLIC` si elle apparaît dans les headers publics (utilisée et exposée) ; `INTERFACE` si elle n'est utilisée que par les consommateurs (librairie header-only). Lier fmt directement à `app` masque le problème au lieu de décrire correctement `mylib`."
     },
     {
-      "question": "[Nommage inversé] Un mécanisme garantit que si `SaveChangesAsync()` (SQL) réussit mais que `PublishAsync()` (RabbitMQ) échoue, le message sera quand même publié — éventuellement, sans transaction distribuée. Quel est ce mécanisme ?",
+      "question": "[Ordre de recherche ld.so] Le binaire a un RUNPATH vers `/opt/app/lib` et `LD_LIBRARY_PATH=/tmp/test` contient aussi une `libmylib.so`. Laquelle est chargée ?",
       "options": [
-        "Two-Phase Commit (2PC) distribué",
-        "Outbox Pattern — le message est persisté dans la même transaction SQL que l'entité métier. Il est publié asynchronement par un background service. La cohérence est éventuelle mais garantie.",
-        "Saga Pattern avec compensation",
-        "Dead-Letter Queue avec retry automatique"
+        "Celle du RUNPATH, qui est toujours prioritaire.",
+        "Celle de `/usr/lib`.",
+        "Le chargeur s'arrête en signalant un conflit.",
+        "Celle de `LD_LIBRARY_PATH` : il est consulté avant RUNPATH. Seul l'ancien RPATH (utilisé quand il n'y a pas de RUNPATH) passe avant `LD_LIBRARY_PATH`."
       ],
-      "answer": "Outbox Pattern — le message est persisté dans la même transaction SQL que l'entité métier. Il est publié asynchronement par un background service. La cohérence est éventuelle mais garantie.",
-      "explanation": "Outbox Pattern résout le problème 'dual write' : deux systèmes (SQL + RabbitMQ) qui doivent être mis à jour de façon cohérente sans transaction distribuée. La table `OutboxMessages { Id, Payload, RoutingKey, CreatedAt, PublishedAt? }` est dans la même DB que les trades. Transaction SQL atomique : trade + outbox message ensemble. Le background service (`IHostedService`) assure la publication avec retry. Idempotency Key côté consommateur gère les éventuels doublons. 2PC distribué (option A) = trop lourd, verrouille les deux systèmes."
+      "answer": "Celle de `LD_LIBRARY_PATH` : il est consulté avant RUNPATH. Seul l'ancien RPATH (utilisé quand il n'y a pas de RUNPATH) passe avant `LD_LIBRARY_PATH`.",
+      "explanation": "Ordre glibc : DT_RPATH (s'il n'y a pas de DT_RUNPATH), puis `LD_LIBRARY_PATH`, puis DT_RUNPATH, puis le cache `ld.so.cache` (ldconfig), puis `/lib` et `/usr/lib`. Pour vérifier ce que contient le binaire : `readelf -d app | grep -E 'NEEDED|RPATH|RUNPATH'`. Une variable `LD_LIBRARY_PATH` oubliée en CI ou en prod peut ainsi charger une mauvaise version."
     },
     {
-      "question": "[Situation → Multi-concepts] 10 services consomment l'événement `TradeBooked`. Chacun doit le recevoir indépendamment. Décrivez l'architecture RabbitMQ complète.",
+      "question": "[Présente mais incompatible] `./app` démarre puis échoue avec `symbol lookup error: ./app: undefined symbol: _ZN5mylib3fooEv`. Diagnostic ?",
       "options": [
-        "Une seule queue `trade.booked` partagée entre les 10 services — round-robin.",
-        "Fanout Exchange `trades.events` → 10 queues dédiées (`risk.trade.booked`, `audit.trade.booked`, `blotter.trade.booked`, etc.) via bindings. Chaque service a sa propre queue — indépendance totale, chaque service reçoit tous les messages.",
-        "Direct Exchange avec 10 routingKeys différents — le producteur publie 10 fois.",
-        "Un seul message copié manuellement vers 10 services via HTTP."
+        "La `.so` est introuvable.",
+        "Il faut recompiler `main.cpp`.",
+        "La `.so` est bien trouvée, mais ce n'est pas la bonne version : elle n'exporte pas `mylib::foo()`, qui existait dans la version utilisée au link. C'est une incompatibilité d'ABI ou de version, à vérifier avec `nm -D -C libmylib.so` et `ldd`.",
+        "C'est une erreur de compilation."
       ],
-      "answer": "Fanout Exchange `trades.events` → 10 queues dédiées (`risk.trade.booked`, `audit.trade.booked`, `blotter.trade.booked`, etc.) via bindings. Chaque service a sa propre queue — indépendance totale, chaque service reçoit tous les messages.",
-      "explanation": "Fan-out architecture CIB : `TradeService` publie UNE fois sur `trades.events` (Fanout Exchange). RabbitMQ copie le message dans les 10 queues liées. Chaque service consomme SA propre queue à son propre rythme. Si `AuditService` est lent, sa queue grossit — les autres services ne sont pas affectés. Si `BlotterService` est down 1h, ses messages attendent dans `blotter.trade.booked` — retrouvés au redémarrage. Une queue partagée (Competing Consumers) = chaque message traité par UN SEUL consommateur (load balancing). Fanout = chaque message traité par TOUS les consommateurs."
+      "answer": "La `.so` est bien trouvée, mais ce n'est pas la bonne version : elle n'exporte pas `mylib::foo()`, qui existait dans la version utilisée au link. C'est une incompatibilité d'ABI ou de version, à vérifier avec `nm -D -C libmylib.so` et `ldd`.",
+      "explanation": "Il faut distinguer deux échecs runtime : « cannot open shared object file » (fichier introuvable) et « undefined symbol / symbol lookup error » (fichier trouvé mais incompatible). Prévention : versionner la librairie via son SONAME (`libmylib.so.1`), ne jamais casser l'ABI sans changer de version majeure, et déployer le binaire avec les librairies du même build (artefact CI)."
     },
     {
-      "question": "[Anti-pattern + Sécurité] Un développeur expose `GET /api/v1/trades?linq=trades.Where(t => t.Desk == {userInput}).ToList()` et évalue l'expression LINQ dynamiquement. Diagnostiquez.",
+      "question": "[Initialisation + explicit] `struct S { explicit S(int); };` — Parmi `S a(5);`, `S b{5};`, `S c = 5;`, `S d = {5};`, lesquelles échouent ?",
       "options": [
-        "Acceptable si l'endpoint est protégé par JWT.",
-        "Code Injection identique au RCE — l'expression LINQ est compilée et exécutée avec tous les droits du process. Un attaquant peut accéder à `_ctx.Users`, `_ctx.AuditLogs`, exécuter des méthodes système. Correction : paramètres typés (`deskId`, `status`, `dateFrom`) + LINQ hardcodé + validation whitelist.",
-        "Le seul risque est que l'expression LINQ soit incorrecte.",
-        "L'expression LINQ est sécurisée car elle n'accède pas au SQL directement."
+        "Aucune.",
+        "`S c = 5;` et `S d = {5};` : l'initialisation par copie (avec `=`) ne peut pas utiliser un constructeur `explicit`.",
+        "Seulement `S c = 5;`",
+        "Toutes sauf `S a(5);`"
       ],
-      "answer": "Code Injection identique au RCE — l'expression LINQ est compilée et exécutée avec tous les droits du process. Un attaquant peut accéder à `_ctx.Users`, `_ctx.AuditLogs`, exécuter des méthodes système. Correction : paramètres typés (`deskId`, `status`, `dateFrom`) + LINQ hardcodé + validation whitelist.",
-      "explanation": "LINQ dynamique évalué avec Roslyn/ExpressionBuilder = vecteur d'injection critique. Expression malveillante : `trades.Where(t => t.Desk == \"equity\"); _ctx.Users.ToList()` — double expression, accès à la table Users. Ou plus grave : utilisation des méthodes de réflexion pour accéder aux objets non exposés. En CIB : données de position, trades confidentiels, noms des traders, limites de risque. Architecture correcte : `GET /api/v1/trades?deskId=equity&status=Active&dateFrom=2024-01-01` → validation enum pour `deskId`, validation date pour `dateFrom` → LINQ hardcodé `.Where(t => t.DeskId == deskId && t.Status == status)` → pas d'injection possible."
+      "answer": "`S c = 5;` et `S d = {5};` : l'initialisation par copie (avec `=`) ne peut pas utiliser un constructeur `explicit`.",
+      "explanation": "`a(5)` et `b{5}` sont des initialisations directes, autorisées avec `explicit`. `c = 5` (copy-initialization) et `d = {5}` (copy-list-initialization) demandent une conversion implicite, que `explicit` interdit. C'est la vraie différence entre `T t{x}` et `T t = {x}`, souvent présentés à tort comme identiques."
     },
     {
-      "question": "[Multi-concepts] Décrivez comment implémenter un système de traçabilité end-to-end (de la saisie du trader jusqu'aux logs de compliance) pour un trade CIB, en nommant chaque composant.",
+      "question": "[Piège accolades] `std::vector<int> v1(3, 1); std::vector<int> v2{3, 1};` — Que contiennent `v1` et `v2` ?",
       "options": [
-        "Console.WriteLine dans chaque méthode.",
-        "1. Middleware génère `X-Correlation-ID` (UUID). 2. JWT claims propagent `userId + desk`. 3. Serilog enrichit chaque log avec `{CorrelationId, UserId, TradeId, ISIN, Service}`. 4. `X-Correlation-ID` propagé dans tous les headers RabbitMQ + HTTP. 5. OpenTelemetry spans sur chaque appel. 6. Elasticsearch indexe les logs. 7. Grafana/Kibana filtre par `correlationId`. 8. Immutable SQL audit table (INSERT-only).",
-        "Logs en fichiers texte sur chaque serveur, agrégés manuellement.",
-        "Utiliser `Debug.WriteLine` avec le mode verbose activé en production."
+        "`v1` = `{1, 1, 1}` (3 éléments valant 1), `v2` = `{3, 1}` (2 éléments) : avec des accolades, le constructeur `std::initializer_list` est prioritaire.",
+        "Les deux contiennent `{1, 1, 1}`.",
+        "Les deux contiennent `{3, 1}`.",
+        "`v1` = `{3, 1}`, `v2` = `{1, 1, 1}`."
       ],
-      "answer": "1. Middleware génère `X-Correlation-ID` (UUID). 2. JWT claims propagent `userId + desk`. 3. Serilog enrichit chaque log avec `{CorrelationId, UserId, TradeId, ISIN, Service}`. 4. `X-Correlation-ID` propagé dans tous les headers RabbitMQ + HTTP. 5. OpenTelemetry spans sur chaque appel. 6. Elasticsearch indexe les logs. 7. Grafana/Kibana filtre par `correlationId`. 8. Immutable SQL audit table (INSERT-only).",
-      "explanation": "Traçabilité CIB complète (MiFID II) : (1) Chaque requête HTTP reçoit un UUID `X-Correlation-ID` en entrée. (2) Le JWT porte `userId`, `desk`, `role`. (3) Serilog avec `LogContext.PushProperty` enrichit automatiquement tous les logs du contexte avec `CorrelationId + UserId`. (4) Les messages RabbitMQ portent le `CorrelationId` dans les headers AMQP. (5) OpenTelemetry crée un span par service traversé — `BookingService (50ms) → IsinService (5ms) → SophisAdapter (30ms) → RabbitMQ.Publish (1ms)`. (6) Table `AuditLogs { Id, TradeId, UserId, Action, Timestamp, OldValues, NewValues }` append-only — conforme MiFID II (5 ans de rétention)."
+      "answer": "`v1` = `{1, 1, 1}` (3 éléments valant 1), `v2` = `{3, 1}` (2 éléments) : avec des accolades, le constructeur `std::initializer_list` est prioritaire.",
+      "explanation": "C'est la principale exception à « préférer `{}` » : dès qu'une classe a un constructeur `initializer_list`, les accolades le choisissent en priorité. Pour une taille et une valeur, il faut les parenthèses. Phrase à dire à l'oral : « `{}` protège des conversions rétrécissantes, mais attention aux conteneurs à cause d'`initializer_list`. »"
     },
     {
-      "question": "[Ordre de dépendance] Pour construire le système MAPS complet (API REST + MSMQ/RabbitMQ + SQL + async + LINQ), dans quel ordre les fondations doivent-elles être maîtrisées ?",
+      "question": "[Combo — rethrow + slicing] `catch (const std::exception& e) { log(e); throw e; }` alors que l'exception lancée était un `std::out_of_range`. Que reçoit l'appelant ?",
       "options": [
-        "Docker → Kubernetes → CI/CD → Code",
-        "1. C# OOP (classes, interfaces, async/await) → 2. LINQ (requêtes sur collections) → 3. SQL Server + EF Core (persistance) → 4. API REST ASP.NET Core (exposition) → 5. MSMQ/RabbitMQ (messaging async) → 6. Microservices patterns (DIP, SRP, Outbox) → 7. Docker + CI/CD (infrastructure).",
-        "Microservices → APIs → Bases de données → C# de base",
-        "Docker → API REST → SQL → C# OOP"
+        "Le `std::out_of_range` d'origine.",
+        "Rien : relancer depuis un `catch` est interdit.",
+        "Une erreur de compilation.",
+        "Une copie de type `std::exception` : `throw e;` copie selon le type statique de `e`, le type réel est perdu. Il faut `throw;`."
       ],
-      "answer": "1. C# OOP (classes, interfaces, async/await) → 2. LINQ (requêtes sur collections) → 3. SQL Server + EF Core (persistance) → 4. API REST ASP.NET Core (exposition) → 5. MSMQ/RabbitMQ (messaging async) → 6. Microservices patterns (DIP, SRP, Outbox) → 7. Docker + CI/CD (infrastructure).",
-      "explanation": "Ordre de dépendance des fondations : Sans C# OOP solide (classes, interfaces, async/await), aucune autre compétence ne tient. LINQ est utilisé dans EF Core — doit être maîtrisé avant. EF Core (SQL) est la persistance de toutes les API — avant les controllers. L'API REST utilise les services (DIP) qui utilisent EF Core et async. RabbitMQ s'appuie sur async/await et la sérialisation JSON. Les patterns microservices (Outbox, CQRS) nécessitent de maîtriser les briques de base. Docker = empaqueter ce qui fonctionne déjà. Tentative inverse fréquente : apprendre Docker sans maîtriser async/await = impossible de diagnostiquer les problèmes."
+      "answer": "Une copie de type `std::exception` : `throw e;` copie selon le type statique de `e`, le type réel est perdu. Il faut `throw;`.",
+      "explanation": "`throw;` relance l'objet exception en cours, sans copie et avec son type réel. `throw e;` crée une nouvelle exception copiée depuis la partie `std::exception` : un `catch (const std::out_of_range&)` plus haut ne la capture plus."
     },
     {
-      "question": "[Confusion profonde] Quelle est la différence entre `await Task.WhenAll(t1, t2)` et `await t1; await t2;` pour deux appels simultanés dans un service de pricing ?",
+      "question": "[Combo — try + boucle] Un batch traite 10 000 trades ; un trade invalide lève une exception. On veut traiter tous les autres et rapporter les erreurs. Où placer le `try` ?",
       "options": [
-        "Aucune différence — les deux exécutent les tâches en parallèle.",
-        "`await t1; await t2` exécute les tâches SÉQUENTIELLEMENT (attend t1 entièrement, puis lance t2). `await Task.WhenAll(t1, t2)` lance les DEUX simultanément et attend que la plus lente finisse — gain de temps = durée de la plus longue, pas la somme.",
-        "`Task.WhenAll` est plus lent car il crée plus de threads.",
-        "`await t1; await t2` est recommandé pour éviter les race conditions."
+        "Autour de la boucle, pour un seul bloc `catch`.",
+        "Il ne faut pas de `try` : on laisse le programme s'arrêter.",
+        "Dans la boucle, autour du traitement d'un trade : l'erreur n'arrête que l'élément courant, on journalise et on continue. Le code retour final signale un succès partiel.",
+        "Dans le destructeur de chaque trade."
       ],
-      "answer": "`await t1; await t2` exécute les tâches SÉQUENTIELLEMENT (attend t1 entièrement, puis lance t2). `await Task.WhenAll(t1, t2)` lance les DEUX simultanément et attend que la plus lente finisse — gain de temps = durée de la plus longue, pas la somme.",
-      "explanation": "Confusion critique en CIB : `var delta = await ComputeDeltaAsync(); var vega = await ComputeVegaAsync();` → 20ms + 25ms = 45ms séquentiel. `await Task.WhenAll(ComputeDeltaAsync(), ComputeVegaAsync())` → 25ms (la plus longue), les deux partent simultanément. Important : les Tasks doivent être créées AVANT le `WhenAll` pour vraiment démarrer simultanément. `await Task.WhenAll(ComputeDeltaAsync(), ComputeVegaAsync())` = correct. `var t1 = ComputeDeltaAsync(); var t2 = ComputeVegaAsync(); await Task.WhenAll(t1, t2)` = idem. Si une Task lève une exception, `WhenAll` propage la première exception — les autres continuent quand même."
+      "answer": "Dans la boucle, autour du traitement d'un trade : l'erreur n'arrête que l'élément courant, on journalise et on continue. Le code retour final signale un succès partiel.",
+      "explanation": "`try` autour de la boucle : la première erreur arrête tout (adapté si une erreur rend la suite invalide). `try` dedans : traitement par lot tolérant. On capture par `const&`, et on remonte un code retour distinct (ex. 1 = partiel, 2 = échec) à l'ordonnanceur."
     },
     {
-      "question": "[Architecture complète] Un trade est créé en 3 étapes : validation (10ms), booking Sophis (150ms), publication RabbitMQ (5ms). Comment architecturer pour répondre au client le plus vite possible tout en garantissant la persistance et la notification ?",
+      "question": "[Combo — montants + répartition] On répartit 100,00 € entre 3 contreparties. Quelle approche est correcte ?",
       "options": [
-        "Exécuter les 3 étapes de façon séquentielle et bloquer le client 165ms.",
-        "Validation (await, 10ms) → Booking Sophis (await, 150ms) → répondre 201 Created avec TradeId → publication RabbitMQ en fire-and-forget avec Outbox Pattern (si RabbitMQ down, le message est en SQL) → total ressenti client : 160ms, publication garantie.",
-        "Répondre immédiatement au client sans validation ni booking.",
-        "Tout exécuter en `Task.WhenAll` — validation, booking et publication simultanément."
+        "`double part = 100.0 / 3;` pour chacune, puis arrondi à 2 décimales.",
+        "Travailler en centimes entiers : 10 000 / 3 = 3 333 reste 1 ; le centime restant va à la part de plus fort reste → 3 334 / 3 333 / 3 333.",
+        "Arrondir chaque part au centime supérieur.",
+        "Arrondir chaque part au demi-pair."
       ],
-      "answer": "Validation (await, 10ms) → Booking Sophis (await, 150ms) → répondre 201 Created avec TradeId → publication RabbitMQ en fire-and-forget avec Outbox Pattern (si RabbitMQ down, le message est en SQL) → total ressenti client : 160ms, publication garantie.",
-      "explanation": "Architecture optimale : certaines étapes sont bloquantes par nature (validation doit précéder le booking ; Sophis doit retourner un TradeId). La publication RabbitMQ peut être découplée de la réponse HTTP avec l'Outbox Pattern — le message est inséré dans la même transaction SQL que le trade (atomique), puis publié par un `IHostedService`. Le client reçoit 201 en 160ms. Si RabbitMQ est down : le trade est en DB, le message attend dans `OutboxMessages`. Quand RabbitMQ revient : publication automatique. Le `RiskService` reçoit le message 5-10 secondes plus tard — eventual consistency acceptable pour le calcul de risque post-trade. On NE peut PAS mettre validation et booking en `Task.WhenAll` car la logique est séquentielle (booking nécessite validation préalable)."
+      "answer": "Travailler en centimes entiers : 10 000 / 3 = 3 333 reste 1 ; le centime restant va à la part de plus fort reste → 3 334 / 3 333 / 3 333.",
+      "explanation": "Arrondir chaque part séparément donne 99,99 € ou 100,02 € : la somme ne retombe pas sur le total. Le plus fort reste garantit que la somme est exacte. L'arrondi demi-pair réduit le biais sur de grands volumes, mais ne garantit pas une somme exacte."
     },
     {
-      "question": "[Nommage inversé + Confusion] Un mécanisme C# permet à un service de s'enregistrer comme dépendance et d'être injecté automatiquement dans les constructeurs sans que le consommateur sache quelle implémentation concrète est utilisée. Comment s'appelle ce mécanisme et quel en est l'avantage clé en tests ?",
+      "question": "[Combo — C++ / C / C#] Une DLL C++ est appelée depuis C# via `[DllImport]`. Une fonction exportée peut lever une exception. Quelle conception est correcte ?",
       "options": [
-        "Le pattern Singleton — une seule instance partagée entre tous les services.",
-        "L'Injection de Dépendances (DI) via `IServiceCollection` — `services.AddScoped<ITradeRepository, EfTradeRepository>()`. En tests : remplacer `EfTradeRepository` par `MockTradeRepository` sans modifier le code du service testé.",
-        "La réflexion .NET — `Activator.CreateInstance(typeof(TradeRepository))`.",
-        "Le pattern Service Locator — `ServiceLocator.GetService<ITradeRepository>()`."
+        "Exporter une fonction `extern \"C\"` qui capture toutes les exceptions (`catch (...)`) et retourne un code retour ; côté C#, tester le code et lever une exception .NET si besoin.",
+        "Laisser l'exception C++ remonter : C# la convertit en exception .NET.",
+        "Exporter directement une méthode de classe C++ avec son nom décoré.",
+        "Utiliser `async void` côté C# pour isoler l'erreur."
       ],
-      "answer": "L'Injection de Dépendances (DI) via `IServiceCollection` — `services.AddScoped<ITradeRepository, EfTradeRepository>()`. En tests : remplacer `EfTradeRepository` par `MockTradeRepository` sans modifier le code du service testé.",
-      "explanation": "DI + testabilité en CIB : `BookingService(ITradeRepository repo, IMessageBus bus, IIsinService isin)` — le service dépend d'abstractions, pas d'implémentations. En production : DI injecte `EfTradeRepository`, `RabbitMqMessageBus`, `SophisIsinService`. En test unitaire : `new BookingService(new Mock<ITradeRepository>().Object, new Mock<IMessageBus>().Object, new Mock<IIsinService>().Object)` — aucun SQL, aucun RabbitMQ, aucun Sophis instancié. Test rapide, isolé, reproductible. Service Locator (anti-pattern) = le service appelle lui-même `ServiceLocator.Get<ITradeRepository>()` → couplage caché, impossible à mocker sans modifier le service. La DI par constructeur est le pattern recommandé en ASP.NET Core."
+      "answer": "Exporter une fonction `extern \"C\"` qui capture toutes les exceptions (`catch (...)`) et retourne un code retour ; côté C#, tester le code et lever une exception .NET si besoin.",
+      "explanation": "Trois règles combinées : une exception ne traverse jamais une frontière d'API C (comportement indéfini, souvent un crash) ; `extern \"C\"` donne un nom de symbole stable, sans mangling ; l'interface se limite à des types simples et à un code retour."
+    },
+    {
+      "question": "[Combo — -O2 + non initialisée] Un calcul est faux uniquement en Release (`-O2`), correct en Debug. Le code contient `double total; for (...) total += x;`. Diagnostic et démarche ?",
+      "options": [
+        "Bug de l'optimiseur : livrer en `-O0`.",
+        "Ajouter `volatile` sur `total`.",
+        "Relancer le build jusqu'à obtenir le bon résultat.",
+        "Comportement indéfini : `total` n'est pas initialisée. En `-O0`, la pile contient souvent 0 par hasard. Compiler avec `-Wall -Wmaybe-uninitialized` (efficace en `-O2`), corriger en `double total = 0.0;` et ajouter un test."
+      ],
+      "answer": "Comportement indéfini : `total` n'est pas initialisée. En `-O0`, la pile contient souvent 0 par hasard. Compiler avec `-Wall -Wmaybe-uninitialized` (efficace en `-O2`), corriger en `double total = 0.0;` et ajouter un test.",
+      "explanation": "Un écart Debug/Release signale presque toujours un UB. Le warning d'initialisation est plus fiable avec l'optimisation, car il s'appuie sur l'analyse de flux. Valgrind ou MemorySanitizer le confirment à l'exécution."
+    },
+    {
+      "question": "[Build/Deploy — -MP] À quoi sert précisément `-MP` en plus de `-MMD` ?",
+      "options": [
+        "À générer les dépendances vers les headers système.",
+        "À paralléliser la compilation.",
+        "À ajouter une cible vide pour chaque header : si un header est supprimé ou renommé, Make n'échoue plus avec `No rule to make target 'foo.h'`.",
+        "À compiler en code indépendant de la position."
+      ],
+      "answer": "À ajouter une cible vide pour chaque header : si un header est supprimé ou renommé, Make n'échoue plus avec `No rule to make target 'foo.h'`.",
+      "explanation": "Sans `-MP`, l'ancien `.d` mentionne encore `foo.h` ; Make cherche à le reconstruire, ne trouve aucune règle et s'arrête. `-MMD` (et non `-MD`) exclut les headers système, ce qui allège les fichiers `.d`."
+    },
+    {
+      "question": "[Build/Deploy — make -j] `make` fonctionne toujours, mais `make -j8` échoue une fois sur trois avec `cannot find -lcore`. Cause la plus probable ?",
+      "options": [
+        "Pas assez de mémoire.",
+        "Une dépendance non déclarée : la cible `app` utilise `libcore.a` sans la lister comme dépendance. En séquentiel, l'ordre d'écriture masque l'erreur ; en parallèle, le link démarre avant que la librairie existe.",
+        "Un bug de `make`.",
+        "Il faut `-j1` en CI."
+      ],
+      "answer": "Une dépendance non déclarée : la cible `app` utilise `libcore.a` sans la lister comme dépendance. En séquentiel, l'ordre d'écriture masque l'erreur ; en parallèle, le link démarre avant que la librairie existe.",
+      "explanation": "Un échec intermittent en parallèle indique presque toujours un graphe de dépendances incomplet. Correction : `app: main.o libcore.a`. Avec CMake, `target_link_libraries` déclare cette dépendance automatiquement. Forcer `-j1` masque le défaut et ralentit la CI."
+    },
+    {
+      "question": "[Build/Deploy — Combo crash Release] Un test CI finit en 139 uniquement en Release. Quelle démarche est la plus efficace ?",
+      "options": [
+        "Reproduire dans l'image CI en `-O2 -g`, récupérer le core (`ulimit -c unlimited`) et faire `bt` dans gdb, puis relancer le test sous ASan + UBSan pour identifier le comportement indéfini.",
+        "Passer la CI en Debug pour que le test passe.",
+        "Ajouter des `printf` jusqu'à trouver la ligne.",
+        "Augmenter le timeout du test."
+      ],
+      "answer": "Reproduire dans l'image CI en `-O2 -g`, récupérer le core (`ulimit -c unlimited`) et faire `bt` dans gdb, puis relancer le test sous ASan + UBSan pour identifier le comportement indéfini.",
+      "explanation": "139 = SIGSEGV. Release seulement = probablement un UB (accès hors limites, référence pendante, non initialisée). `-g` reste compatible avec `-O2`. Les sanitizers pointent souvent la cause réelle, alors que gdb montre où le crash survient, parfois bien après."
+    },
+    {
+      "question": "[Build/Deploy — Packaging] On livre `app/bin/app` et `app/lib/libpricing.so`, et le paquet peut être installé dans n'importe quel dossier. Quelle configuration est correcte ?",
+      "options": [
+        "Ajouter `LD_LIBRARY_PATH` dans le script de lancement de chaque serveur.",
+        "Copier `libpricing.so` dans `/usr/lib` à la main.",
+        "Lier avec `-L../lib` uniquement.",
+        "Embarquer un RUNPATH relatif `$ORIGIN/../lib` (CMake : `INSTALL_RPATH \"$ORIGIN/../lib\"`) et vérifier avec `readelf -d bin/app` puis `ldd bin/app` avant livraison."
+      ],
+      "answer": "Embarquer un RUNPATH relatif `$ORIGIN/../lib` (CMake : `INSTALL_RPATH \"$ORIGIN/../lib\"`) et vérifier avec `readelf -d bin/app` puis `ldd bin/app` avant livraison.",
+      "explanation": "`$ORIGIN` est remplacé au lancement par le dossier du binaire : le paquet est relocalisable. `-L` ne sert qu'au link. `LD_LIBRARY_PATH` est fragile (absent sous systemd ou cron, prioritaire sur RUNPATH)."
+    },
+    {
+      "question": "[Build/Deploy — ASan vs Valgrind] Quelle affirmation est correcte ?",
+      "options": [
+        "Valgrind et ASan détectent les data races.",
+        "ASan fonctionne sur n'importe quel binaire sans recompilation.",
+        "ASan nécessite une recompilation (`-fsanitize=address` à la compilation et au link) et coûte environ ×2 ; Valgrind analyse le binaire existant sans recompilation, mais 20 à 50 fois plus lentement. On ne lance pas un binaire ASan sous Valgrind.",
+        "Valgrind est plus rapide qu'ASan."
+      ],
+      "answer": "ASan nécessite une recompilation (`-fsanitize=address` à la compilation et au link) et coûte environ ×2 ; Valgrind analyse le binaire existant sans recompilation, mais 20 à 50 fois plus lentement. On ne lance pas un binaire ASan sous Valgrind.",
+      "explanation": "ASan est le bon outil pour la CI (rapide, messages précis). Valgrind dépanne quand on ne peut pas recompiler (binaire livré, librairie tierce). Pour les data races : TSan, ou Helgrind côté Valgrind."
     }
   ]
 };
