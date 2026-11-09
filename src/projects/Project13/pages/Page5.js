@@ -3,53 +3,53 @@
 import React, { useState, useEffect, useCallback } from "react";
 import "./Page.css";
 
-const basicSlides = [
-  {
-    "question": "B1 — Lire du code existant",
-    "answer": "**Déclaration** : lire depuis le nom. `const Deal* d` → le Deal est constant ; `Deal* const d` → le pointeur est constant. ◆ **Passage** : par valeur = copie ; `&` = modifie l'original ; `const&` = lit sans copier ; `*` = peut être nul, à tester. ◆ **Propriétaire** : celui qui fait `delete`. Un pointeur reçu en paramètre ne se libère pas. ◆ **Legacy** : `typedef`, `NULL`, `new/delete` partout : ancien, pas faux."
-  },
-  {
-    "question": "B2 — Mémoire et cycle de vie",
-    "answer": "**Pile** : objet détruit à la fin du bloc `}`. **Tas** : objet détruit par son propriétaire. ◆ **`new` sans `delete`** = fuite ; **deux `delete`** = crash. ◆ **`std::unique_ptr`** : propriétaire par défaut, créé avec `std::make_unique`, transféré avec `std::move`. ◆ **Règle du 0** : avec `string`, `vector`, `unique_ptr`, aucune fonction spéciale à écrire."
-  },
-  {
-    "question": "B3 — Classes et polymorphisme",
-    "answer": "**Classe de base** : `virtual ~Base() = default;` sinon `delete` via `Base*` est un bug. ◆ **`override`** : le compilateur vérifie la redéfinition. ◆ **Abstraite** : une fonction `= 0` → non instanciable. ◆ **Slicing** : passer une dérivée par valeur perd la partie dérivée → passer par `const Base&`."
-  },
-  {
-    "question": "B4 — STL et données",
-    "answer": "**Conteneur** : `vector` par défaut ; `map` si ordre ; `unordered_map` si recherche rapide par clé. ◆ **`map[k]`** crée la clé si elle est absente → lire avec `find` ou `at`. ◆ **Effacer en parcourant** : `it = v.erase(it);`. ◆ **`push_back`** peut invalider les itérateurs et pointeurs du `vector`."
-  },
-  {
-    "question": "B5 — Calculs financiers",
-    "answer": "**Montants** : centimes entiers (`int64_t`), jamais `double` (`0.1 + 0.2 != 0.3`). ◆ **Bases** : ACT/360 = jours réels / 360 ; 30/360 = mois de 30 jours. ◆ **Arrondi** : `std::round(2.5)` = 3 ; `static_cast<int>(2.9)` = 2 (troncature). ◆ **Répartir** : méthode du plus fort reste, la somme des parts = total."
-  },
-  {
-    "question": "B6 — Erreurs et codes retour",
-    "answer": "**`try` dans la boucle** : le deal en erreur est rejeté, le lot continue. ◆ **`catch`** par `const&`, du plus précis au plus général. ◆ **Code retour** : 0 OK, 1 partiel, 2 échec ; un `try/catch` dans `main`. ◆ **`throw;`** relance l'exception en cours sans la copier."
-  },
-  {
-    "question": "B7 — Build et librairies",
-    "answer": "**Étapes** : préprocesseur (header introuvable) → compilation (`not declared`) → link (`undefined reference`) → lancement (`.so` introuvable). ◆ **undefined reference** : fonction non définie, `.cpp` non lié ou librairie manquante. Outil : `nm -C`. ◆ **Ordre** : la librairie après les `.o`. ◆ **`-L`** sert au build ; au lancement : `ldd`, RUNPATH."
-  },
-  {
-    "question": "B8 — Débogage",
-    "answer": "**Préparer** : compiler avec `-g`. ◆ **gdb** : `bt` (pile), `frame n` (première frame de notre code), `print x`. ◆ **Outils** : ASan (mémoire), UBSan (comportement indéfini), TSan (threads), Valgrind (sans recompiler). ◆ **Code 139** = segfault ; **bug seulement en `-O2`** = souvent une variable non initialisée."
-  },
-  {
-    "question": "B9 — Performance et threads",
-    "answer": "**Mesurer** avant d'optimiser, vérifier la même sortie après. ◆ **Recherche dans une boucle** = lent → construire un index `unordered_map`. ◆ **Data race** : deux threads écrivent la même variable → partitionner ou `std::mutex`. ◆ **C++ moderne** : `auto`, lambdas, `std::optional`, `for (auto& [k, v] : m)`."
-  },
-  {
-    "question": "Make — Les bases",
-    "answer": "**Règle** : `cible: dépendances` puis la commande, indentée par une tabulation. ◆ **Principe** : Make reconstruit une cible si une dépendance est plus récente. ◆ **Headers** : ajouter `-MMD -MP` pour qu'un `.h` modifié recompile les `.cpp` concernés. ◆ **Avant de livrer** : `make clean && make && ./tests`."
-  },
-  {
-    "question": "CMake — Les bases",
-    "answer": "**Rôle** : génère les fichiers de build (Makefile, Ninja), il ne compile pas lui-même. ◆ **Cibles** : `add_executable(app main.cpp)`, `add_library(mylib mylib.cpp)`, `target_link_libraries(app PRIVATE mylib)`. ◆ **Commandes** : `cmake -S . -B build` puis `cmake --build build` (`--verbose` pour voir les vraies commandes). ◆ **Mode** : `-DCMAKE_BUILD_TYPE=Debug` ou `Release`."
-  }
-];
-
+const basicSlides = 
+[
+{
+"question": "B1 — Lire du code existant",
+"answer": "Déclaration : lire depuis le nom. const Deal* d → objet constant ; Deal* const d → pointeur constant ; const Deal* const d → les deux. ◆ Passage : valeur = copie ; Deal& = alias modifiable ; const Deal& = lecture sans copie ; Deal* = adresse potentiellement nulle (nullptr). ◆ Accès : *p = objet pointé ; p->x = membre de l'objet. ◆ Durée de vie : ne jamais utiliser un pointeur ou une référence vers un objet détruit (dangling). ◆ Propriété : identifier qui possède et libère la ressource ; un pointeur brut reçu en paramètre n'implique pas la propriété. ◆ Legacy : typedef, NULL, new/delete : ancien, pas forcément faux ; préférer using, nullptr et les outils modernes."
+},
+{
+"question": "B2 — Mémoire et cycle de vie",
+"answer": "Durée de vie : un objet local automatique est détruit à la fin de sa portée } ; un objet dynamique vit jusqu'à sa destruction. ◆ new/delete : oubli de libération = fuite ; double delete ou accès après libération = comportement indéfini. ◆ RAII : une ressource est libérée automatiquement avec la destruction de son propriétaire. ◆ unique_ptr : propriété exclusive ; make_unique crée, std::move transfère. ◆ shared_ptr : propriété partagée ; weak_ptr observe sans prolonger la durée de vie. ◆ Règle du 0 : privilégier string, vector et les smart pointers pour éviter d'écrire destructeur, constructeur de copie et opérateur d'affectation."
+},
+{
+"question": "B3 — Classes et polymorphisme",
+"answer": "Destructeur virtuel : virtual ~Base() = default; permet de détruire correctement une dérivée via un Base*. ◆ override : vérifie la redéfinition d'une fonction virtuelle. ◆ Abstraite : virtual void f() = 0; → classe non instanciable. ◆ Polymorphisme : utiliser une interface de base via Base& ou Base*. ◆ Slicing : copier une dérivée dans un objet de base par valeur perd sa partie dérivée ; préférer const Base& pour lire sans copier."
+},
+{
+"question": "B4 — STL et données",
+"answer": "Conteneurs : vector par défaut ; map = clés triées ; unordered_map = recherche moyenne rapide par clé. ◆ Accès : m[k] insère une valeur par défaut si la clé manque ; at() vérifie et peut lever une exception ; find() teste l'existence. ◆ Effacement : it = v.erase(it); pour continuer correctement un parcours de vector. ◆ Invalidation : push_back peut invalider les pointeurs et itérateurs du vector si une réallocation survient. ◆ Parcours : for (const auto& x : v) évite les copies si la lecture suffit."
+},
+{
+"question": "B5 — Calculs financiers",
+"answer": "Montants : utiliser des unités entières adaptées (int64_t, par exemple en centimes) ou une représentation décimale maîtrisée ; éviter double pour les montants exacts. ◆ Bases : ACT/360 = jours réels / 360 ; 30/360 = convention de décompte des jours. ◆ Arrondi : std::round(2.5) = 3 ; static_cast<int>(2.9) = 2 (troncature vers zéro). ◆ Répartition : la méthode du plus fort reste permet de répartir des unités entières tout en conservant le total. ◆ Vérification : contrôler les unités, les conventions, les débordements et les règles d'arrondi."
+},
+{
+"question": "B6 — Erreurs et codes retour",
+"answer": "Exceptions : placer le try dans la boucle si chaque deal doit échouer indépendamment et que le lot doit continuer. ◆ catch : capturer généralement par const&, du type le plus précis au plus général. ◆ Relance : throw; relance l'exception courante sans la copier. ◆ Codes retour : définir une convention explicite, par exemple 0 = succès, 1 = succès partiel, 2 = échec. ◆ main : intercepter les exceptions non traitées au niveau applicatif et retourner un code d'échec. ◆ Ressources : RAII garantit leur libération même si une exception survient."
+},
+{
+"question": "B7 — Build et librairies",
+"answer": "Étapes : préprocesseur (header introuvable) → compilation (not declared) → édition de liens (undefined reference) → lancement (bibliothèque .so introuvable). ◆ undefined reference : définition manquante, fichier objet non lié ou bibliothèque absente. Outil : nm -C. ◆ Ordre : placer généralement les objets avant les bibliothèques avec les linkers sensibles à l'ordre. ◆ -I : chemins des headers ; -L : chemins des bibliothèques au link ; -l : bibliothèque à lier. ◆ À l'exécution : ldd inspecte les dépendances dynamiques ; RUNPATH et la configuration du chargeur aident à les localiser."
+},
+{
+"question": "B8 — Débogage",
+"answer": "Préparer : compiler avec -g, idéalement sans optimisation pour débuter. ◆ GDB : bt = pile d'appels ; frame n = sélectionner une frame ; print x = inspecter une variable ; break main = poser un point d'arrêt. ◆ Outils : ASan = erreurs mémoire ; UBSan = comportements indéfinis détectés ; TSan = courses de données ; Valgrind = analyse mémoire sans instrumentation de compilation spécifique. ◆ Code 139 : souvent une terminaison par SIGSEGV sous Linux. ◆ Bug en -O2 seulement : rechercher notamment comportement indéfini, variable non initialisée ou course de données."
+},
+{
+"question": "B9 — Performance et threads",
+"answer": "Mesurer avant d'optimiser ; vérifier que les résultats restent identiques. ◆ Recherche répétée : remplacer les recherches coûteuses par un index adapté, par exemple unordered_map. ◆ Data race : accès concurrents à la même mémoire, avec au moins une écriture, sans synchronisation appropriée → comportement indéfini. ◆ Protection : std::mutex avec std::lock_guard ou std::scoped_lock ; sinon, partitionner les données. ◆ C++ moderne : auto, lambdas, std::optional, std::thread et for (auto& [k, v] : m). ◆ Performance : éviter les copies inutiles, choisir le bon conteneur et profiler avant de modifier le code."
+},
+{
+"question": "Make — Les bases",
+"answer": "Règle : cible: dépendances, puis commande indentée par une tabulation. ◆ Principe : reconstruire une cible lorsque ses dépendances sont plus récentes ou que la cible manque. ◆ Headers : -MMD -MP génère les dépendances entre .cpp et .h ; inclure les fichiers .d générés. ◆ Variables : CXX = compilateur C++ ; CXXFLAGS = options de compilation ; LDFLAGS = options de link. ◆ Avant livraison : make clean && make && ./tests."
+},
+{
+"question": "CMake — Les bases",
+"answer": "Rôle : configure le projet et génère le système de build (Make ou Ninja) ; le compilateur effectue la compilation. ◆ Cibles : add_executable(app main.cpp) ; add_library(mylib mylib.cpp) ; target_link_libraries(app PRIVATE mylib). ◆ Includes : target_include_directories() ; standard C++ : target_compile_features(app PRIVATE cxx_std_20). ◆ Commandes : cmake -S . -B build puis cmake --build build ; ajouter --verbose pour voir les commandes. ◆ Configuration : -DCMAKE_BUILD_TYPE=Debug ou Release avec les générateurs mono-configuration, comme Make ou Ninja classique. ◆ Bon réflexe : configurer les options au niveau des cibles plutôt que globalement."
+}
+]
 
 const questions = {
   moyen: [

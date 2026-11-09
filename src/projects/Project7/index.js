@@ -2,6 +2,8 @@
 import React from 'react';
 import { Routes, Route } from 'react-router-dom';
 import Project7Navbar from './components/Project7Navbar';
+
+
 import Page1 from './pages/Page1';
 import Page1_1 from './pages/Page1_1';
 import Page1_11 from './pages/Page1_11';
@@ -14,6 +16,8 @@ import Page4 from './pages/Page4';
 import Page5 from './pages/Page5';
 import Page6 from './pages/Page6';
 import Page7 from './pages/Page7';
+import Page8 from './pages/Page8';
+
 
 
 const Project7 = () => {
@@ -33,6 +37,8 @@ const Project7 = () => {
         <Route path="/page5" element={<Page5 />} />
         <Route path="/page6" element={<Page6 />} />
         <Route path="/page7" element={<Page7 />} />
+        <Route path="/page8" element={<Page8 />} />
+
 
       </Routes>
     </div>

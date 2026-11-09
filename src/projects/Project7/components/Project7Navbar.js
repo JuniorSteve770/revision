@@ -18,6 +18,7 @@ const Project7Navbar = () => {
       <Link to="/project7/page5">5. CICD</Link>
       <Link to="/project7/page6">6. DeVops </Link>
       <Link to="/project7/page7">7. GitHubDeploy</Link>
+      <Link to="/project7/page8">8. SQL Agg</Link>
     </nav>
   );
 };
